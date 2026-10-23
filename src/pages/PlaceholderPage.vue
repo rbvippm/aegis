@@ -6,7 +6,6 @@ const route = useRoute()
 const title = computed(() => {
   if (route.name === 'me' && route.query.section === 'vip') return 'VIP 服务'
   if (route.name === 'me' && route.query.section === 'agents') return '代理比价'
-  if (route.name === 'compare' && route.query.tab === 'funding') return '出入金对比'
   return String(route.meta.title ?? '页面')
 })
 </script>

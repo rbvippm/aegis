@@ -9,7 +9,7 @@ withDefaults(defineProps<{ limit?: number }>(), { limit: 3 })
     <RouterLink
       v-for="row in monitorRows.slice(0, limit)"
       :key="row.id"
-      to="/compare?tab=funding"
+      :to="{ path: '/monitor', query: { platform: row.id } }"
       class="monitor-row"
     >
       <span class="merchant-avatar" :class="`merchant-${row.id.toLowerCase()}`">{{ row.id }}</span>

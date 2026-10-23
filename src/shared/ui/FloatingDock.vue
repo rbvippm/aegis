@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { House, Database, ChartNoAxesColumn, UserRound } from '@lucide/vue'
+import { House, Database, Trophy, UserRound } from '@lucide/vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
 const items = [
   { to: '/', label: '首页', icon: House },
   { to: '/monitor', label: '监测', icon: Database },
   { to: '/ai', label: 'AI', icon: null },
-  { to: '/compare', label: '对比', icon: ChartNoAxesColumn },
+  { to: '/compare', label: '对比', icon: Trophy },
   { to: '/me', label: '我的', icon: UserRound },
 ]
 </script>

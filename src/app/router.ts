@@ -12,7 +12,7 @@ const router = createRouter({
     {
       path: '/monitor',
       name: 'monitor',
-      component: () => import('@/pages/PlaceholderPage.vue'),
+      component: () => import('@/pages/MonitorPage.vue'),
       meta: { title: '监测' },
     },
     {
@@ -24,8 +24,9 @@ const router = createRouter({
     {
       path: '/compare',
       name: 'compare',
-      component: () => import('@/pages/PlaceholderPage.vue'),
-      meta: { title: '数据对比' },
+      beforeEnter: (to) => (to.query.tab === 'funding' ? { path: '/monitor' } : undefined),
+      component: () => import('@/pages/ComparePage.vue'),
+      meta: { title: '体育数据对比' },
     },
     {
       path: '/me',

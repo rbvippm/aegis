@@ -1,0 +1,416 @@
+/* Confined to the monitor route; the shared home and sports comparison stay independent. */
+.monitor-mode-label {
+  border: 1px solid #d9eaff;
+  background: #eef7ff;
+  border-radius: 20px;
+  padding: 4px 10px;
+  color: #58779e;
+}
+.monitor-research {
+  color: #081b4d;
+}
+.monitor-research button {
+  transition: transform 150ms ease;
+}
+.monitor-research button:active {
+  transform: scale(0.98);
+}
+.research-intro {
+  height: 98px;
+  margin: 0 -12px;
+  padding: 20px 20px 0;
+  background: url('../../shared/assets/glacier-hero.jpg') center bottom/100% 100% no-repeat;
+}
+.research-intro h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.7px;
+  line-height: 1.4;
+}
+.research-intro p {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0759e6;
+}
+.research-search-row {
+  display: flex;
+  gap: 9px;
+  margin: 5px 0 9px;
+}
+.research-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 44px;
+  border-radius: 24px;
+  padding: 0 14px;
+  color: #0874ff;
+}
+.research-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font-size: 16px;
+  color: #14213d;
+  padding: 0;
+  outline: none;
+}
+.research-search:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.research-search input::placeholder {
+  color: #7b99bd;
+}
+.research-filter {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  color: #0874ff;
+  flex-shrink: 0;
+}
+.research-filter i {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  border: 2px solid white;
+  border-radius: 50%;
+  height: 9px;
+  width: 9px;
+  background: #2563eb;
+}
+.research-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.research-chain {
+  display: flex;
+  align-items: center;
+  padding: 0 10px 0 13px;
+  border-radius: 15px;
+  color: #193565;
+}
+.research-chain select,
+.research-list-heading select {
+  border: 0;
+  appearance: none;
+  background: transparent;
+  min-height: 40px;
+  padding: 0 5px 0 0;
+  font-size: 13px;
+  color: inherit;
+  max-width: 125px;
+  cursor: pointer;
+}
+.research-period {
+  display: flex;
+  padding: 3px;
+  border-radius: 24px;
+}
+.research-period button {
+  min-height: 36px;
+  width: 54px;
+  border: 0;
+  border-radius: 20px;
+  background: none;
+  color: #5a749a;
+  font-size: 14px;
+}
+.research-period .active {
+  color: white;
+  background: linear-gradient(#91ccff, #0877ff 60%, #46acff);
+  box-shadow:
+    inset 0 1px 2px #fff,
+    0 2px 4px #7ab8f960;
+}
+.research-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 2px 5px;
+}
+.research-list-heading h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+.research-list-heading label {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  border: 1px solid #c8e0ff;
+  border-radius: 12px;
+  background: #f6fbffb8;
+  font-size: 12px;
+}
+.research-platforms {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.research-method,
+.research-live {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 7px;
+  text-align: left;
+  border: 1px solid #fff;
+  border-radius: 13px;
+  padding: 7px 9px;
+  margin-top: 7px;
+  background: #f4faffdf;
+  color: #55779f;
+}
+.research-method > svg {
+  color: #2587ff;
+}
+.research-method strong {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.research-method small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.research-method__more {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.research-live {
+  background: linear-gradient(100deg, #fff3d8, #fff8ec);
+  color: #955600;
+  min-height: 35px;
+  margin-top: 4px;
+}
+.research-live strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.research-live > span {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  font-size: 12px;
+}
+.research-empty {
+  padding-bottom: 20px;
+  text-align: center;
+  background: white;
+  border-radius: 18px;
+}
+.research-empty .state-panel {
+  padding: 25px 12px;
+}
+.research-empty > button {
+  border: 1px solid #c8e0ff;
+  border-radius: 15px;
+  background: #f3f9ff;
+  min-height: 44px;
+  padding: 0 15px;
+  color: #2563eb;
+}
+.research-sheet {
+  position: fixed;
+  inset: auto 0 0;
+  margin: 0 auto;
+  border: 1px solid white;
+  border-radius: 24px 24px 0 0;
+  width: min(100%, 430px);
+  max-width: 100%;
+  max-height: 86dvh;
+  padding: 0 0 calc(20px + var(--ae-safe-bottom));
+  color: #14213d;
+  background: #f5faff;
+  box-shadow: 0 -8px 40px #254a7c20;
+  overscroll-behavior: contain;
+}
+.research-sheet::backdrop {
+  background: #122c5260;
+}
+.research-sheet > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid #dceaf8;
+  position: sticky;
+  top: 0;
+  background: #f5faff;
+  z-index: 1;
+}
+.research-sheet > header p {
+  font-size: 12px;
+  color: #627b9b;
+  margin-bottom: 5px;
+}
+.research-sheet > header h2 {
+  font-size: 21px;
+  font-weight: 700;
+}
+.research-sheet > header button {
+  border: 1px solid #dce9f8;
+  background: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+.research-sheet__body {
+  padding: 16px 20px 0;
+  font-size: 14px;
+  line-height: 1.8;
+}
+.research-sheet__body > p + p {
+  margin-top: 12px;
+}
+.research-sheet-note {
+  color: #5d7594;
+  font-size: 12px;
+}
+.research-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  margin: 12px 0;
+}
+.research-field input,
+.research-field select,
+.research-field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #cbdff5;
+  background: white;
+  border-radius: 12px;
+  color: #14213d;
+  font-size: 16px;
+}
+.research-field textarea {
+  resize: vertical;
+}
+.research-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+.research-checkbox input {
+  width: 19px;
+  height: 19px;
+  accent-color: #2563eb;
+}
+.research-sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.research-sheet-actions > button {
+  min-height: 44px;
+  padding: 8px 20px;
+  border: 1px solid #d5e6fa;
+  border-radius: 22px;
+  background: white;
+}
+.research-sheet .research-primary {
+  border: 1px solid #b9dcff;
+  border-radius: 22px;
+  color: white;
+  min-height: 44px;
+  padding: 8px 20px;
+  background: linear-gradient(#64b7ff, #0874ff 65%, #4aaaff);
+  box-shadow:
+    inset 0 1px 2px white,
+    0 3px 8px #7aa9e640;
+  margin-top: 10px;
+}
+.research-sheet-actions .research-primary {
+  margin: 0 0 0 auto;
+}
+.research-sheet-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #dce9f6;
+  padding: 10px 0;
+  background: none;
+  color: #2266c7;
+  min-height: 44px;
+}
+.research-inspection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: #e2f6ef;
+  color: #087f6b;
+}
+.research-inspection strong {
+  font-size: 26px;
+}
+.research-inspection span {
+  font-size: 13px;
+  margin-left: auto;
+}
+.research-inspection.warning,
+.research-sheet-warning {
+  color: #9a5a00;
+  background: #fff1d7;
+}
+.research-sheet-warning {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+.research-feedback {
+  padding: 12px;
+  margin-top: 16px;
+  border-radius: 12px;
+  background: #e6f0ff;
+  color: #23569b;
+}
+@media (max-width: 374px) {
+  .research-period button {
+    width: 48px;
+  }
+  .research-method {
+    gap: 4px;
+    padding-inline: 7px;
+  }
+  .research-method__more {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .monitor-research button {
+    transition: none;
+  }
+  .monitor-research button:active {
+    transform: none;
+  }
+}
+
+html:has(.research-sheet[open]) {
+  overflow: hidden;
+}

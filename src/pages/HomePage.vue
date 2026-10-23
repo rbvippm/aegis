@@ -7,7 +7,7 @@ import {
   ChevronRight,
   ArrowDown,
   MessageCircle,
-  Scale,
+  Trophy,
   ChevronDown,
 } from '@lucide/vue'
 import GlassSurface from '@/shared/ui/GlassSurface.vue'
@@ -21,7 +21,7 @@ const shortcuts = [
   {
     label: '赔率对比',
     detail: '同盘口透明比较',
-    icon: Scale,
+    icon: Trophy,
     to: '/compare',
     color: 'violet',
   },
@@ -117,7 +117,7 @@ function ask(text: string) {
       <GlassSurface class="platform-card"
         ><div class="section-heading">
           <h2>平台观察</h2>
-          <RouterLink to="/compare?tab=funding" class="text-link"
+          <RouterLink to="/monitor" class="text-link"
             >全部平台 <ChevronRight :size="14"
           /></RouterLink>
         </div>

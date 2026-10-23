@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { Languages, Menu } from '@lucide/vue'
+import { Languages, Menu, Bell } from '@lucide/vue'
+import { useRoute } from 'vue-router'
+import { dataMode } from '@/shared/api/config'
 import AegisMark from '@/shared/ui/AegisMark.vue'
 import FloatingDock from '@/shared/ui/FloatingDock.vue'
 import { usePreferences } from '@/stores/preferences'
 
 const preferences = usePreferences()
+const route = useRoute()
 </script>
 
 <template>
@@ -20,8 +23,19 @@ const preferences = usePreferences()
         <span>Aegis</span>
       </RouterLink>
       <div class="home-header-actions">
-        <span><Languages :size="15" /> 中文</span
-        ><RouterLink to="/me" aria-label="菜单"><Menu :size="23" /></RouterLink>
+        <RouterLink
+          v-if="route.name === 'compare'"
+          to="/compare?panel=reminders"
+          aria-label="提醒中心"
+          ><Bell :size="22"
+        /></RouterLink>
+        <span v-if="route.name === 'monitor'" class="monitor-mode-label">{{
+          dataMode === 'demo' ? '演示数据' : '尚未接入'
+        }}</span>
+        <span v-else-if="route.name !== 'compare'"><Languages :size="15" /> 中文</span>
+        <RouterLink v-if="route.name !== 'compare'" to="/me" aria-label="菜单"
+          ><Menu :size="23"
+        /></RouterLink>
       </div>
     </header>
     <main id="main-content" class="main-content">
