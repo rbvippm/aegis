@@ -1,0 +1,7 @@
+---
+description: Aegis 项目协作入口，共用 Codex/Cursor 技能与工程约定
+alwaysApply: true
+---
+先读仓库根目录 AGENTS.md。Aegis 开发使用 `.agents/skills/aegis-vue-liquid-glass/SKILL.md`，按需读取 references。共享这一份规范，不复制出第二套主题或同名技能。
+
+当前设计阶段与已确认首页以 `.agents/skills/aegis-vue-liquid-glass/references/current-baseline.md` 为准，先查看其中的实际截图与实现路径。只保留首页完整界面，其他导航页和二级页保持文案占位；用户指定哪个页面再设计哪个页面。改动时重点核对字体大小/字重、过渡衔接和统一圆球底栏。不要按历史 AI/排名参考自动恢复已删除页面，也不要复制早期 token 模板覆盖当前实现。

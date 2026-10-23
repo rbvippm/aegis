@@ -1,0 +1,823 @@
+/* The approved H5 composition, bounded to a mobile application at every viewport. */
+.home-shell {
+  width: min(100%, 430px);
+  margin-inline: auto;
+  background: linear-gradient(155deg, #f7fcff 0%, #e3f2ff 48%, #e8f4ff 100%);
+  min-height: 100dvh;
+  box-shadow: 0 0 80px #5899da18;
+  color: #081b4d;
+}
+.home-shell .ambient {
+  display: none;
+}
+.home-shell .site-header,
+.home-shell .main-content {
+  width: 100%;
+  max-width: none;
+}
+.home-shell .site-header {
+  padding: calc(10px + var(--ae-safe-top)) 20px 5px;
+  height: calc(53px + var(--ae-safe-top));
+  background: #ffffffb8;
+}
+.home-shell .brand {
+  font-size: 23px;
+  gap: 7px;
+  letter-spacing: -0.8px;
+}
+.home-shell .brand-mark {
+  background: none;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  width: 30px;
+  height: 35px;
+  color: #0864ff;
+}
+.brand-mark svg {
+  width: 100%;
+  height: 100%;
+}
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  color: #09194e;
+}
+.home-header-actions > span {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 12px;
+}
+.home-shell .main-content {
+  padding: 0 12px 105px;
+}
+.reference-home .role-switch {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  height: 30px;
+  border: 0;
+  background: #dceafbba;
+  position: relative;
+  z-index: 2;
+}
+.reference-home .role-switch button {
+  flex: 1;
+  padding: 0;
+  min-height: 30px;
+  font-size: 13px;
+  color: #4a6592;
+}
+.reference-home .role-selection {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(100% / 3);
+  border-radius: 999px;
+  background: linear-gradient(#58aaff, #0068ff 58%, #1679ff);
+  border: 1px solid #a9d7ff;
+  box-shadow:
+    inset 0 2px 3px #ffffff9c,
+    0 3px 6px #3076e52e;
+  transform: translateX(calc(var(--role-index, 0) * 100%));
+  transition: transform 220ms cubic-bezier(0.22, 0.8, 0.25, 1);
+  pointer-events: none;
+}
+.reference-home .role-switch button {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  font-weight: 500;
+  transition: color 160ms ease;
+}
+.reference-home .role-switch button.selected {
+  color: white;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 600;
+}
+.reference-home .home-intro {
+  height: 120px;
+  margin: 0 -12px;
+  padding: 24px 20px 0;
+  position: relative;
+  isolation: isolate;
+  background: url('../assets/glacier-hero.jpg') center bottom/100% 100% no-repeat;
+  overflow: hidden;
+}
+.reference-home .home-intro h1 {
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.8px;
+  position: relative;
+  z-index: 2;
+}
+.reference-home .home-intro p {
+  font-size: 13px;
+  color: #0759e6;
+  font-weight: 600;
+  margin-top: 5px;
+  position: relative;
+  z-index: 2;
+}
+.reference-home .ai-hero {
+  display: block;
+  padding: 10px 12px 9px;
+  border-radius: 20px;
+  overflow: visible;
+  background: linear-gradient(135deg, #ffffffed, #f4faffba 65%, #dcedffcc);
+  border: 1px solid #fff;
+  box-shadow:
+    inset 0 1px 2px white,
+    0 4px 10px #5ba3e533;
+}
+.ai-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 65px;
+  padding-bottom: 9px;
+}
+.ai-card-heading h2 {
+  font-size: 21px;
+  letter-spacing: -0.7px;
+  white-space: nowrap;
+  line-height: 1.35;
+  font-weight: 700;
+}
+.ai-card-heading p {
+  font-size: 13px;
+  color: #5678a8;
+  margin-top: 3px;
+}
+.ai-orb-small {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-top: -13px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  color: white;
+  font-size: 47px;
+  line-height: 1;
+  background: radial-gradient(
+    circle at 30% 20%,
+    #fff 0%,
+    #b5ddff 13%,
+    #679fff 35%,
+    #2968ff 60%,
+    #a7dfff 83%,
+    #fff 96%
+  );
+  box-shadow:
+    0 0 0 2px #8cbdff99,
+    inset 0 0 8px white,
+    0 5px 12px #4e8ee354;
+  text-shadow: 0 0 7px white;
+}
+.ai-orb-small small {
+  position: absolute;
+  bottom: -10px;
+  left: 1px;
+  width: 60px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 17px;
+  color: #0058ff;
+  text-shadow: none;
+  background: #deefffe0;
+  border-radius: 8px;
+}
+.reference-home .ae-composer {
+  padding: 3px 4px 3px 10px;
+  gap: 0;
+  border-radius: 22px;
+  min-height: 46px;
+  background: linear-gradient(#fff, #f0f8ff);
+  border: 1px solid #a6ceff;
+  box-shadow:
+    inset 0 1px 3px white,
+    0 2px 7px #5eacff30;
+}
+.reference-home .composer-spark {
+  display: none;
+}
+.reference-home .ae-composer textarea {
+  font-size: 16px;
+  min-height: 36px;
+  padding: 6px 0;
+  line-height: 24px;
+}
+.reference-home .ae-composer textarea::placeholder {
+  color: #7f99bc;
+}
+.reference-home .send-button {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  background: linear-gradient(145deg, #61beff, #0061ff 55%, #308aff);
+  box-shadow:
+    inset 0 1px 3px white,
+    0 0 0 2px #c1e3ff,
+    0 3px 8px #378ef852;
+}
+.reference-home .send-button:disabled {
+  opacity: 1;
+}
+.reference-home .suggestion-link {
+  display: flex;
+  width: 100%;
+  margin-top: 7px;
+  padding: 5px 9px;
+  gap: 7px;
+  border-radius: 16px;
+  min-height: 33px;
+  background: linear-gradient(#f8fdff, #dfedff);
+  border: 1px solid white;
+  box-shadow: 0 2px 5px #6eafff20;
+  color: #0756de;
+  font-size: 12px;
+}
+.reference-home .suggestion-link > span {
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reference-home .suggestion-link > svg:last-child {
+  margin-left: auto;
+}
+.reference-home .shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+.reference-home .shortcut-card {
+  padding: 9px 2px 8px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1px solid #fff;
+  background: linear-gradient(145deg, #fff, #f6fbffbb);
+  box-shadow: none;
+  gap: 4px;
+}
+.reference-home .shortcut-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 30px;
+  margin: 0;
+  background: none;
+  border-radius: 0;
+  filter: drop-shadow(0 2px 2px #418af730);
+}
+.reference-home .shortcut-icon svg {
+  width: 27px;
+  height: 27px;
+}
+.reference-home .icon-blue {
+  color: #078cff;
+}
+.reference-home .icon-violet {
+  color: #6535ff;
+}
+.reference-home .icon-gold {
+  color: #ffb000;
+}
+.reference-home .icon-teal {
+  color: #00b59a;
+}
+.reference-home .shortcut-card strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.reference-home .home-main {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reference-home .ae-surface {
+  border: 1px solid #fff;
+  background: linear-gradient(120deg, #fffffff5, #f5fbffdc);
+  border-radius: 17px;
+  padding: 10px 13px;
+  box-shadow: 0 2px 6px #91bdeb12;
+}
+.reference-home .section-heading {
+  margin-bottom: 4px;
+  min-height: 22px;
+}
+.reference-home .section-heading h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.reference-home .label-chip {
+  font-size: 11px;
+  color: #7b91b0;
+  background: #edf5ff;
+  border: 1px solid #dceaff;
+  padding: 2px 8px;
+}
+.reference-home .overview-body {
+  gap: 8px;
+  align-items: end;
+}
+.reference-home .overview-body > div:first-child {
+  flex: 1;
+}
+.chain-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 20px;
+  width: 107px;
+  height: 26px;
+  background: #e7f0fc;
+  font-size: 13px;
+  margin: 1px 0 5px;
+}
+.chain-pill > span {
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  background: #ef1426;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+}
+.metric-caption {
+  font-size: 11px;
+  display: block;
+}
+.reference-home .metric-large {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 29px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.7px;
+  white-space: nowrap;
+}
+.reference-home .metric-large > span:first-child {
+  color: inherit;
+}
+.reference-home .trend-chip {
+  display: inline-flex;
+  gap: 3px;
+  font-size: 11px;
+  letter-spacing: 0;
+  margin-left: 9px;
+  padding: 4px 7px;
+  background: #d8f6ee;
+  color: #009c89;
+}
+.reference-home .sparkline-wrap {
+  width: 43%;
+  padding: 0;
+}
+.reference-home .sparkline {
+  height: 61px;
+}
+.reference-home .sparkline-wrap > span {
+  display: block;
+  font-size: 10px;
+  white-space: nowrap;
+  text-align: right;
+}
+.reference-home .platform-card {
+  padding-top: 7px;
+}
+.reference-home .platform-card .text-link {
+  font-size: 11px;
+}
+.reference-home .monitor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reference-home .monitor-row {
+  display: flex;
+  gap: 8px;
+  min-height: 43px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(100deg, #fff, #f8fcff);
+}
+.reference-home .merchant-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 22px;
+  box-shadow:
+    inset 0 1px 3px #fff,
+    0 2px 5px #7cbdff30;
+  background: linear-gradient(#70c6ff, #0068ff);
+  color: #fff;
+}
+.reference-home .merchant-b {
+  background: linear-gradient(#b4b0ff, #6246ff);
+}
+.reference-home .merchant-title {
+  display: block;
+}
+.reference-home .merchant-title strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.reference-home .merchant-title > .ae-meta {
+  display: none;
+}
+.reference-home .monitor-state {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.reference-home .timing {
+  margin-left: auto;
+  text-align: right;
+}
+.reference-home .timing strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.2;
+}
+.reference-home .timing .ae-meta {
+  font-size: 10px;
+  line-height: 1.1;
+}
+.reference-home .monitor-row > svg:last-child {
+  display: block;
+  width: 12px;
+}
+.home-demo-note {
+  font-size: 11px;
+  color: #6c83a4;
+  text-align: center;
+  padding: 12px 0;
+}
+.ae-app .ae-dock {
+  width: min(calc(100% - 16px), 414px);
+  bottom: calc(8px + var(--ae-safe-bottom));
+  border-radius: 30px;
+  min-height: 66px;
+  background: linear-gradient(115deg, #ffffffdf, #e9f4ffcc);
+  box-shadow:
+    inset 0 2px 2px white,
+    inset 0 -1px 2px #96bff1,
+    0 4px 16px #2e78c633;
+  border: 1px solid white;
+  overflow: visible;
+}
+.ae-app .ae-dock a {
+  font-size: 11px;
+  gap: 3px;
+  color: #6d89ac;
+}
+.ae-app .ae-dock a[aria-current='page'] {
+  color: #0066ff;
+}
+.ae-app .ae-dock a[aria-current='page'] > svg {
+  fill: #0877ff;
+  stroke: #0877ff;
+}
+.ae-app .ae-dock .ae-dock__ai {
+  width: 60px;
+  height: 60px;
+  min-height: 60px;
+  justify-self: center;
+  margin: -15px 0 0;
+  border-radius: 50%;
+  gap: 0;
+  color: white;
+  background: radial-gradient(
+    circle at 28% 18%,
+    #e6f9ff,
+    #61bcff 24%,
+    #0065ff 58%,
+    #7fcaff 85%,
+    #e2f8ff
+  );
+  border: 2px solid #fff;
+  box-shadow:
+    0 0 0 2px #9bd1ff,
+    inset 0 0 5px #fff,
+    0 4px 9px #1672db55;
+}
+.ae-app .ae-dock__ai svg {
+  width: 29px;
+  height: 29px;
+  fill: white;
+  stroke: white;
+  filter: drop-shadow(0 0 4px #fff);
+}
+.ae-app .ae-dock__ai span {
+  font-size: 12px;
+  line-height: 14px;
+}
+[data-transparency='reduced'].home-shell .ae-glass {
+  background: #f4f9ff;
+  backdrop-filter: none;
+}
+@media (max-width: 374px) {
+  .ai-card-heading h2 {
+    font-size: 19px;
+  }
+  .ai-card-heading {
+    gap: 9px;
+  }
+  .reference-home .home-intro h1 {
+    font-size: 23px;
+  }
+  .reference-home .timing .ae-meta {
+    font-size: 10px;
+  }
+}
+
+.reference-home .shortcut-card > .shortcut-icon {
+  display: grid;
+}
+.reference-home .suggestion-link {
+  font-size: 12px;
+}
+.reference-home .suggestion-link > span {
+  font-size: 12px;
+}
+.reference-home .shortcut-card > .shortcut-icon {
+  margin-top: 0;
+}
+.reference-home .shortcut-card > .icon-blue {
+  color: #078cff;
+}
+.reference-home .shortcut-card > .icon-violet {
+  color: #6535ff;
+}
+.reference-home .shortcut-card > .icon-gold {
+  color: #ffb000;
+}
+.reference-home .shortcut-card > .icon-teal {
+  color: #00b59a;
+}
+.reference-home .icon-gold svg {
+  fill: #ffca35;
+}
+.reference-home .icon-teal svg {
+  fill: #11c3a0;
+  stroke-width: 1.4;
+}
+
+/* A continuous ice backdrop and a quiet, readable type hierarchy. */
+.home-shell {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+.home-shell .brand {
+  font-weight: 700;
+}
+.reference-home .home-intro {
+  margin-bottom: -5px;
+  height: 125px;
+}
+.reference-home .home-intro::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(#f4faff85, transparent 24%, transparent 75%, #e8f4ff 100%);
+}
+.reference-home .home-intro h1 {
+  letter-spacing: -0.6px;
+  line-height: 1.4;
+}
+.reference-home .ai-hero {
+  position: relative;
+  z-index: 1;
+}
+.ai-card-heading h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+}
+.ai-card-heading p {
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+.reference-home .section-heading h2 {
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.reference-home .shortcut-card strong {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.reference-home .merchant-title strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.reference-home .monitor-state {
+  font-size: 12px;
+  font-weight: 400;
+}
+.reference-home .timing strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+.reference-home .timing .ae-meta {
+  font-size: 10px;
+  line-height: 1.3;
+}
+.reference-home .monitor-row {
+  min-height: 46px;
+}
+.reference-home .label-chip {
+  font-size: 11px;
+  font-weight: 400;
+}
+.reference-home .suggestion-link {
+  font-weight: 400;
+}
+.reference-home .metric-large {
+  font-size: 30px;
+  font-weight: 700;
+}
+.reference-home .ae-composer {
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+.reference-home .ae-composer:focus-within {
+  outline: none;
+  border-color: #529dff;
+  box-shadow:
+    0 0 0 3px #70baff24,
+    inset 0 1px 3px white;
+}
+.reference-home .send-button,
+.reference-home .suggestion-link,
+.reference-home .shortcut-card,
+.reference-home .monitor-row {
+  transition:
+    transform 150ms ease,
+    box-shadow 180ms ease;
+}
+.reference-home .shortcut-card:hover {
+  transform: none;
+}
+.reference-home .shortcut-card:active,
+.reference-home .suggestion-link:active,
+.reference-home .monitor-row:active {
+  transform: scale(0.98);
+}
+.reference-home .send-button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+/* One shared dock silhouette on every main route. */
+.ae-app .ae-dock {
+  height: 66px;
+  padding: 0 5px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  background: linear-gradient(115deg, #ffffffe0, #e9f4ffcc);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+.ae-app .ae-dock a {
+  min-width: 0;
+  min-height: 52px;
+  padding: 3px 0;
+  gap: 3px;
+  font-size: 11px;
+  line-height: 15px;
+  font-weight: 400;
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+.ae-app .ae-dock a[aria-current='page'] {
+  font-weight: 600;
+}
+.ae-app .ae-dock a[aria-current='page'] > svg {
+  fill: none;
+  stroke: currentColor;
+}
+.ae-app .ae-dock a:first-child[aria-current='page'] > svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+.ae-app .ae-dock .ae-dock__ai {
+  position: relative;
+  align-self: center;
+  width: 58px;
+  height: 58px;
+  min-height: 58px;
+  margin: -16px 0 0;
+  padding: 3px 0;
+  gap: 0;
+  isolation: isolate;
+}
+.ae-app .ae-dock__ai::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  border: 1px solid #ffffff65;
+  pointer-events: none;
+}
+.ae-app .ae-dock__ai .dock-star {
+  width: 31px;
+  height: 31px;
+  stroke: none;
+  filter: drop-shadow(0 0 3px #ffffffa0);
+}
+.ae-app .ae-dock__ai span {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 14px;
+}
+.ae-app .ae-dock a:active {
+  transform: scale(0.93);
+}
+.ae-app .ae-dock a:focus-visible {
+  outline: 2px solid #0864ff;
+  outline-offset: 2px;
+}
+.ae-app .ae-dock a[aria-current='page'].ae-dock__ai {
+  color: white;
+}
+.page-enter-active,
+.page-leave-active {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+[data-transparency='reduced'] .ae-dock {
+  background: #f0f7ff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@media (max-width: 374px) {
+  .ai-card-heading h2 {
+    font-size: 20px;
+  }
+  .ai-card-heading p {
+    font-size: 13px;
+  }
+  .reference-home .monitor-row {
+    gap: 5px;
+  }
+  .reference-home .monitor-state {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-home .role-selection,
+  .reference-home .role-switch button,
+  .reference-home .ae-composer,
+  .reference-home .send-button,
+  .reference-home .suggestion-link,
+  .reference-home .shortcut-card,
+  .reference-home .monitor-row,
+  .ae-app .ae-dock a,
+  .page-enter-active,
+  .page-leave-active {
+    transition: none;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ae-app .ae-dock {
+    background: #f0f7ff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}

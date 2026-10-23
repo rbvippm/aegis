@@ -1,0 +1,59 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+.DS_Store
+dist
+dist-ssr
+coverage
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+.eslintcache
+
+# Cypress
+/cypress/videos/
+/cypress/screenshots/
+
+# Vitest
+__screenshots__/
+
+# Vite
+*.timestamp-*-*.mjs
+
+test-results/
+playwright-report/
+
+# Private build-time secrets and local runtime state
+.env
+.env.*
+!.env.example
+.vercel/
+# Existing local business material (preserved, not published)
+/doc/AE.pdf
+/doc/FAIR网站问题总结-答复.html
+/doc/FAIR网站问题总结-答复.pdf
+/doc/competitive-analysis-asia.html
+/doc/redata.html
+/doc/竞品分析-Aegis立项机会点.pdf
+/doc/竞品分析-Aegis立项机会点.pptx
+
+# Local visual review exports (approved skill references are versioned separately)
+/outputs/

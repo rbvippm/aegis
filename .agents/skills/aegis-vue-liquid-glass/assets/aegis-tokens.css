@@ -1,0 +1,142 @@
+/* Aegis glacier-blue web approximation of Liquid Glass. */
+:root {
+  color-scheme: light;
+  --ae-primary: #2563eb;
+  --ae-primary-soft: #60a5fa;
+  --ae-bg: #f5f8ff;
+  --ae-surface: #fff;
+  --ae-text: #14213d;
+  --ae-muted: #526581;
+  --ae-success: #087f6b;
+  --ae-warning: #9a5a00;
+  --ae-danger: #b42318;
+  --ae-line: rgba(37, 99, 235, .12);
+  --ae-radius: 20px;
+  --ae-blur: 18px;
+  --ae-space: 8px;
+  --ae-shadow: 0 8px 28px rgba(28, 65, 126, .10);
+  /* Adapter writes resolved insets, including host content exclusion. */
+  --ae-safe-top: env(safe-area-inset-top, 0px);
+  --ae-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ae-dock-size: 68px;
+  --ae-viewport-height: 100dvh;
+}
+.ae-app {
+  min-height: var(--ae-viewport-height);
+  color: var(--ae-text);
+  background: radial-gradient(ellipse at 85% 0%, #e1edff 0%, transparent 55%), var(--ae-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.ae-page {
+  box-sizing: border-box;
+  width: min(100%, 480px);
+  margin-inline: auto;
+  padding: calc(16px + var(--ae-safe-top)) 16px calc(var(--ae-dock-size) + 32px + var(--ae-safe-bottom));
+}
+.ae-surface {
+  border: 1px solid var(--ae-line);
+  border-radius: var(--ae-radius);
+  padding: 16px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 3px 16px rgba(28, 65, 126, .04);
+}
+.ae-glass {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, .94);
+  border-radius: var(--ae-radius);
+  background: #f4f8ff;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(96,165,250,.2), var(--ae-shadow);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ae-glass {
+    background: linear-gradient(140deg, rgba(255,255,255,.79), rgba(229,239,255,.52));
+    -webkit-backdrop-filter: blur(var(--ae-blur)) saturate(140%);
+    backdrop-filter: blur(var(--ae-blur)) saturate(140%);
+  }
+}
+.ae-pill { border-radius: 999px; }
+.ae-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ae-text);
+  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease;
+}
+.ae-button--primary {
+  color: #fff;
+  background: linear-gradient(160deg, #3676f5, #1d56d7);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.6), 0 4px 14px rgba(37,99,235,.22);
+}
+.ae-button:active:not(:disabled) { transform: scale(.98); }
+.ae-button:disabled { opacity: .5; cursor: default; }
+.ae-button:focus-visible, .ae-composer:focus-within, .ae-dock a:focus-visible {
+  outline: 3px solid var(--ae-primary);
+  outline-offset: 3px;
+}
+.ae-composer { display: flex; align-items: end; gap: 8px; padding: 8px; }
+.ae-composer textarea {
+  flex: 1;
+  min-width: 0;
+  max-height: 144px;
+  resize: vertical;
+  border: 0;
+  padding: 10px 8px;
+  background: transparent;
+  color: var(--ae-text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ae-composer textarea:focus { outline: none; }
+.ae-composer textarea::placeholder { color: var(--ae-muted); }
+.ae-dock {
+  position: fixed;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(12px + var(--ae-safe-bottom));
+  transform: translateX(-50%);
+  width: min(calc(100% - 32px), 448px);
+  min-height: var(--ae-dock-size);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  border-radius: 32px;
+}
+.ae-dock a {
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--ae-muted);
+  font-size: 12px;
+  text-decoration: none;
+  border-radius: 22px;
+}
+.ae-dock a[aria-current='page'] { color: var(--ae-primary); font-weight: 600; }
+.ae-dock .ae-dock__ai { color: #fff; background: var(--ae-primary); margin: 6px; }
+.ae-meta { color: var(--ae-muted); font-size: 12px; line-height: 1.5; }
+[data-transparency='reduced'] .ae-glass {
+  background: #f4f8ff;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ae-glass { background: #f4f8ff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ae-button { transition: none; }
+  .ae-button:active:not(:disabled) { transform: none; }
+}
