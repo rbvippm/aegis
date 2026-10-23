@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   Activity,
@@ -17,7 +16,6 @@ import MonitorList from '@/features/monitoring/MonitorList.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import { dataMode } from '@/shared/api/config'
 const router = useRouter()
-const role = ref('用户')
 const shortcuts = [
   { label: '出金监测', detail: '读懂资金动态', icon: Activity, to: '/monitor', color: 'blue' },
   {
@@ -48,29 +46,10 @@ function ask(text: string) {
 </script>
 <template>
   <div class="reference-home">
-    <div
-      class="role-switch"
-      aria-label="用户角色"
-      :style="{ '--role-index': ['用户', '代理', '平台'].indexOf(role) }"
-    >
-      <span class="role-selection" aria-hidden="true"></span>
-      <button
-        v-for="item in ['用户', '代理', '平台']"
-        :key="item"
-        :aria-pressed="role === item"
-        :class="{ selected: role === item }"
-        @click="role = item"
-      >
-        {{ item }}
-      </button>
-    </div>
     <section class="home-intro">
       <h1>看清平台，再做选择</h1>
       <p>链上数据 · 出金监测 · 透明对比</p>
     </section>
-    <p v-if="role !== '用户'" class="role-notice">
-      {{ role }}工作台规划中，当前先体验公开数据工具。
-    </p>
     <GlassSurface variant="glass" class="ai-hero">
       <div class="ai-card-heading">
         <span class="ai-orb-small" aria-hidden="true">✦<small>Aegis AI</small></span>
