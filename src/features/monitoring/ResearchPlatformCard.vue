@@ -191,7 +191,7 @@ h3 {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 32px;
+  min-height: 44px;
   padding: 5px 8px;
   background: linear-gradient(100deg, #fff1cd, #fff7e8);
   border-radius: 10px;
@@ -239,7 +239,7 @@ h3 {
 }
 .research-metric small {
   font-size: 12px;
-  color: #627fa5;
+  color: #526581;
   line-height: 1.5;
 }
 .research-metric small b {
@@ -268,7 +268,7 @@ h3 {
   align-self: flex-start;
   gap: 4px;
   padding: 4px 7px;
-  min-height: 28px;
+  min-height: 44px;
   border: 1px solid #c1ecdf;
   border-radius: 14px;
   color: #087f6b;
@@ -293,11 +293,11 @@ h3 {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  min-height: 25px;
-  margin-top: -4px;
+  min-height: 44px;
+  margin-top: 0;
   padding: 0;
   font-size: 12px;
-  color: #627fa5;
+  color: #526581;
   gap: 2px;
 }
 .research-rebate {
@@ -326,7 +326,7 @@ h3 {
   margin-top: 3px;
 }
 .research-bind {
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 13px;
   margin-left: auto;
   flex-shrink: 0;
@@ -350,7 +350,7 @@ h3 {
   display: flex;
   align-items: center;
   padding: 0;
-  min-height: 30px;
+  min-height: 44px;
   font-size: 12px;
   color: #57769f;
 }
@@ -360,10 +360,10 @@ h3 {
   gap: 4px;
   align-items: center;
   width: 100%;
-  min-height: 26px;
+  min-height: 44px;
   padding: 0 1px;
-  color: #637fa4;
-  font-size: 10px;
+  color: #526581;
+  font-size: 12px;
 }
 .research-source > span:last-child {
   display: flex;

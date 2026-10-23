@@ -165,7 +165,7 @@
   margin-bottom: 9px;
 }
 .sp-status-tabs button {
-  min-height: 39px;
+  min-height: 44px;
   border: 1px solid white;
   border-radius: 15px;
   background: #ffffffd9;
@@ -184,7 +184,7 @@
   justify-content: space-between;
   gap: 3px;
   min-width: 0;
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 10px;
   background: #ffffffdf;
   border: 1px solid #e2edfc;
@@ -201,7 +201,7 @@
   color: inherit;
   font-size: 13px;
   padding: 0;
-  min-height: 36px;
+  min-height: 44px;
 }
 .sp-data-line {
   display: flex;
@@ -322,7 +322,7 @@
   border: 0;
   background: none;
   flex: 1;
-  min-height: 34px;
+  min-height: 44px;
   border-radius: 20px;
   color: #476b9d;
   font-size: 13px;
@@ -488,7 +488,7 @@
   justify-content: center;
   align-items: center;
   gap: 4px;
-  min-height: 38px;
+  min-height: 44px;
   border: 0;
   background: none;
   padding: 0 3px;
@@ -698,7 +698,7 @@
 }
 .sp-pill-tabs button {
   flex: 1;
-  min-height: 39px;
+  min-height: 44px;
 }
 .sp-ranking-explain {
   display: flex;
@@ -807,60 +807,6 @@
   background: #edf4fa;
   border-radius: 14px;
   padding: 4px 10px;
-}
-.sp-sheet {
-  position: fixed;
-  inset: auto 0 0;
-  margin: 0 auto;
-  width: min(100%, 430px);
-  max-width: 100%;
-  max-height: 90dvh;
-  border: 1px solid white;
-  border-radius: 25px 25px 0 0;
-  padding: 0 0 calc(20px + var(--ae-safe-bottom));
-  background: #f4faff;
-  color: #14213d;
-  box-shadow: 0 -10px 45px #1f4c7e20;
-  overscroll-behavior: contain;
-}
-.sp-sheet::backdrop {
-  background: #15335770;
-}
-.sp-sheet > header {
-  position: sticky;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  z-index: 1;
-  padding: 24px 18px 12px;
-  background: #f4faff;
-  border-bottom: 1px solid #e0ecf8;
-}
-.sp-sheet > header h2 {
-  font-size: 22px;
-  line-height: 1.4;
-  font-weight: 700;
-}
-.sp-sheet-handle {
-  position: absolute;
-  left: calc(50% - 21px);
-  top: 8px;
-  width: 42px;
-  height: 4px;
-  border-radius: 4px;
-  background: #b6cbe2;
-}
-.sp-sheet > header button {
-  display: grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: #eaf3ff;
-  color: #5075a4;
 }
 .sp-sheet-body {
   padding: 12px;
@@ -1234,9 +1180,6 @@
   font-size: 12px;
   color: #617fa2;
 }
-html:has(.sp-sheet[open]) {
-  overflow: hidden;
-}
 @media (max-width: 374px) {
   .sp-intro {
     padding-inline: 16px;
@@ -1310,7 +1253,7 @@ html:has(.sp-sheet[open]) {
 }
 .sp-filters label,
 .sp-filters > button {
-  min-height: 36px;
+  min-height: 44px;
 }
 .sp-data-line {
   min-height: 26px;
@@ -1320,4 +1263,36 @@ html:has(.sp-sheet[open]) {
 }
 .sp-teams {
   min-height: 47px;
+}
+
+/* Mobile touch targets stay readable without shrinking the quote matrix. */
+.sp-data-line,
+.sp-data-line button,
+.sp-market-scope,
+.sp-card-actions button,
+.sp-expand,
+.sp-sheet-link {
+  min-height: 44px;
+}
+.sp-data-line button {
+  font-size: 12px;
+  color: #526581;
+}
+.sp-match-meta > button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.sp-quotes thead th {
+  font-size: 12px;
+  color: #526581;
+}
+.sp-match-meta {
+  color: #526581;
+  font-size: 12px;
+}
+.sp-market-scope {
+  color: #34547f;
+}
+.sp-sheet-body {
+  color: #14213d;
 }

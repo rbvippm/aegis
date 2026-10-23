@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Search,
@@ -9,7 +9,6 @@ import {
   ArrowDown,
   Info,
   TriangleAlert,
-  X,
   ShieldCheck,
 } from '@lucide/vue'
 import ResearchChart from '@/features/monitoring/ResearchChart.vue'
@@ -23,6 +22,7 @@ import {
 import { researchPlatforms, researchSnapshot } from '@/mocks/monitoring-research'
 import { dataMode } from '@/shared/api/config'
 import StatePanel from '@/shared/ui/StatePanel.vue'
+import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 
 const route = useRoute()
 const windows: ResearchWindow[] = ['24h', '7d', '30d']
@@ -49,21 +49,18 @@ const visiblePlatforms = computed(() =>
       return b.score - a.score
     }),
 )
-const sheet = ref<HTMLDialogElement | null>(null)
 const panel = ref<{ kind: string; platform?: ResearchPlatform } | null>(null)
 const uid = ref('')
 const report = ref('')
 const feedback = ref('')
-async function open(kind: string, platform?: ResearchPlatform) {
+function open(kind: string, platform?: ResearchPlatform) {
   panel.value = { kind, platform }
   uid.value = ''
   report.value = ''
   feedback.value = ''
-  await nextTick()
-  sheet.value?.showModal()
 }
 function close() {
-  sheet.value?.close()
+  panel.value = null
 }
 function resetFilters() {
   chain.value = ''
@@ -167,24 +164,14 @@ onMounted(async () => {
       description="真实链上监测与平台研究服务尚未接入，接入后展示可追溯的数据。"
     />
 
-    <dialog
-      ref="sheet"
-      class="research-sheet"
-      aria-labelledby="research-sheet-title"
-      @click="
-        (event) => {
-          if (event.target === sheet) close()
-        }
-      "
+    <BottomDrawer
+      :open="panel !== null"
+      :title="panel?.kind ?? ''"
+      :subtitle="`AEGIS · ${panel?.platform?.name ?? '产品调研'}`"
+      close-label="关闭弹窗"
+      @close="close"
     >
       <template v-if="panel">
-        <header>
-          <div>
-            <p>AEGIS · {{ panel.platform?.name ?? '产品调研' }}</p>
-            <h2 id="research-sheet-title">{{ panel.kind }}</h2>
-          </div>
-          <button aria-label="关闭弹窗" @click="close"><X :size="22" /></button>
-        </header>
         <div class="research-sheet__body">
           <template v-if="panel.kind === '筛选条件'">
             <label class="research-field"
@@ -338,7 +325,7 @@ onMounted(async () => {
           <p v-if="feedback" class="research-feedback" role="status">{{ feedback }}</p>
         </div>
       </template>
-    </dialog>
+    </BottomDrawer>
   </div>
 </template>
 

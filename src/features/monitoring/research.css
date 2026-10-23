@@ -104,7 +104,7 @@
   border: 0;
   appearance: none;
   background: transparent;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 5px 0 0;
   font-size: 13px;
   color: inherit;
@@ -117,7 +117,7 @@
   border-radius: 24px;
 }
 .research-period button {
-  min-height: 36px;
+  min-height: 44px;
   width: 54px;
   border: 0;
   border-radius: 20px;
@@ -194,7 +194,7 @@
 .research-live {
   background: linear-gradient(100deg, #fff3d8, #fff8ec);
   color: #955600;
-  min-height: 35px;
+  min-height: 44px;
   margin-top: 4px;
 }
 .research-live strong {
@@ -223,51 +223,6 @@
   min-height: 44px;
   padding: 0 15px;
   color: #2563eb;
-}
-.research-sheet {
-  position: fixed;
-  inset: auto 0 0;
-  margin: 0 auto;
-  border: 1px solid white;
-  border-radius: 24px 24px 0 0;
-  width: min(100%, 430px);
-  max-width: 100%;
-  max-height: 86dvh;
-  padding: 0 0 calc(20px + var(--ae-safe-bottom));
-  color: #14213d;
-  background: #f5faff;
-  box-shadow: 0 -8px 40px #254a7c20;
-  overscroll-behavior: contain;
-}
-.research-sheet::backdrop {
-  background: #122c5260;
-}
-.research-sheet > header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px 12px;
-  border-bottom: 1px solid #dceaf8;
-  position: sticky;
-  top: 0;
-  background: #f5faff;
-  z-index: 1;
-}
-.research-sheet > header p {
-  font-size: 12px;
-  color: #627b9b;
-  margin-bottom: 5px;
-}
-.research-sheet > header h2 {
-  font-size: 21px;
-  font-weight: 700;
-}
-.research-sheet > header button {
-  border: 1px solid #dce9f8;
-  background: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
 }
 .research-sheet__body {
   padding: 16px 20px 0;
@@ -326,7 +281,7 @@
   border-radius: 22px;
   background: white;
 }
-.research-sheet .research-primary {
+.research-sheet__body .research-primary {
   border: 1px solid #b9dcff;
   border-radius: 22px;
   color: white;
@@ -411,6 +366,16 @@
   }
 }
 
-html:has(.research-sheet[open]) {
-  overflow: hidden;
+.monitor-research button:focus-visible,
+.monitor-research select:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .monitor-research button {
+    transition: none;
+  }
+  .monitor-research button:active {
+    transform: none;
+  }
 }

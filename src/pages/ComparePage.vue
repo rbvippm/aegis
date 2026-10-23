@@ -7,15 +7,13 @@ import {
   ChevronDown,
   ChevronRight,
   Bell,
-  Ellipsis,
-  CircleDot,
-  Activity,
   Info,
   TriangleAlert,
   X,
 } from '@lucide/vue'
 import { dataMode } from '@/shared/api/config'
 import SportsMatchCard from '@/features/sports/SportsMatchCard.vue'
+import SportIcon from '@/features/sports/SportIcon.vue'
 import SportsRanking from '@/features/sports/SportsRanking.vue'
 import SportsSheet from '@/features/sports/SportsSheet.vue'
 import SportsPlan from '@/features/sports/SportsPlan.vue'
@@ -285,17 +283,17 @@ onMounted(() => {
         <div class="sp-sport-tabs">
           <button
             v-for="item in [
-              { id: 'football', name: '足球', icon: CircleDot },
-              { id: 'basketball', name: '篮球', icon: Activity },
-              { id: 'tennis', name: '网球', icon: CircleDot },
-              { id: 'all', name: '更多', icon: Ellipsis },
+              { id: 'football', name: '足球' },
+              { id: 'basketball', name: '篮球' },
+              { id: 'tennis', name: '网球' },
+              { id: 'all', name: '更多' },
             ]"
             :key="item.id"
             :class="{ active: sport === item.id }"
             :aria-pressed="sport === item.id"
             @click="sport = item.id"
           >
-            <component :is="item.icon" :size="24" /><span>{{ item.name }}</span>
+            <SportIcon :sport="item.id" /><span>{{ item.name }}</span>
           </button>
         </div>
         <div class="sp-status-tabs">

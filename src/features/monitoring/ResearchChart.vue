@@ -187,7 +187,7 @@ button {
   background: none;
 }
 .research-toggle button {
-  min-height: 32px;
+  min-height: 44px;
   padding: 0 10px;
   font-size: 12px;
   border-radius: 16px;
@@ -208,7 +208,7 @@ button {
   display: flex;
   gap: 6px;
   align-items: center;
-  min-height: 32px;
+  min-height: 44px;
   padding: 0;
   font-size: 12px;
 }
