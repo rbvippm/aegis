@@ -12,9 +12,7 @@ const title = computed(() => {
 
 <template>
   <section class="page-placeholder" :key="route.fullPath">
-    <span class="placeholder-label">即将设计</span>
     <h1>{{ title }}</h1>
-    <p>页面设计中，敬请期待。</p>
     <RouterLink class="placeholder-back" to="/">返回首页</RouterLink>
   </section>
 </template>

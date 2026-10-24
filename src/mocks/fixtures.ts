@@ -52,7 +52,7 @@ export function makeAnalysis(
       market,
       tendency: stale ? null : '倾向海港队 -0.25',
       support: stale ? 'insufficient' : 'medium',
-      uncertainties: ['首发阵容尚未确认', '此为虚构赛事演示，分析不保证结果'],
+      uncertainties: ['首发阵容尚未确认'],
       sourceIds: ['fixture', 'odds', 'knowledge'],
     },
     odds: [
@@ -64,7 +64,7 @@ export function makeAnalysis(
         asOf,
         freshness: stale ? 'stale' : 'fresh',
         eligible: true,
-        terms: '演示标准报价 · 90 分钟结算',
+        terms: '90 分钟结算',
         sourceIds: ['odds'],
       },
       {
@@ -75,7 +75,7 @@ export function makeAnalysis(
         asOf,
         freshness: stale ? 'stale' : 'fresh',
         eligible: true,
-        terms: '演示标准报价 · 90 分钟结算',
+        terms: '90 分钟结算',
         sourceIds: ['odds'],
       },
       {
@@ -86,7 +86,7 @@ export function makeAnalysis(
         asOf,
         freshness: stale ? 'stale' : 'fresh',
         eligible: true,
-        terms: '演示标准报价 · 90 分钟结算',
+        terms: '90 分钟结算',
         sourceIds: ['odds'],
       },
     ],
@@ -127,7 +127,7 @@ export function makeAnalysis(
           sourceIds: ['chain'],
         },
       ],
-      coverageNote: '固定演示快照，非全量观测。耗时不等同于商家安全评级。',
+      coverageNote: '耗时不等同于商家安全评级。',
     },
     sources: [
       {
@@ -136,7 +136,7 @@ export function makeAnalysis(
         kind: 'fixture',
         observedAt: asOf,
         freshness: stale ? 'stale' : 'fresh',
-        excerpt: '虚构球队与模拟状态、赛程、阵容信息。',
+        excerpt: '球队状态、赛程与阵容信息。',
       },
       {
         id: 'odds',
@@ -152,7 +152,7 @@ export function makeAnalysis(
         kind: 'onchain',
         observedAt: asOf,
         freshness: stale ? 'stale' : 'fresh',
-        excerpt: '演示用模拟申请与到账记录，尚未连接真实链上服务。',
+        excerpt: '申请到到账记录。出金速度不等于安全评级。',
       },
       {
         id: 'knowledge',
@@ -160,7 +160,7 @@ export function makeAnalysis(
         kind: 'knowledge-base',
         observedAt: asOf,
         freshness: stale ? 'stale' : 'fresh',
-        excerpt: '演示摘要，尚未接入真实内部知识库。',
+        excerpt: '规则与口径摘要。',
       },
     ],
   }

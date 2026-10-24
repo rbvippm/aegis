@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 for (const route of ['monitor', 'compare']) {
-  test(`${route} 抽屉支持点击、下拉两级收起及焦点返回`, async ({ page }) => {
+  test(`${route} 抽屉按距离关闭，短距离下滑保持展开`, async ({ page }) => {
     await page.goto(`/${route}`)
     const trigger = page.getByRole('button', {
       name: route === 'monitor' ? '筛选平台' : '识别',
@@ -15,30 +15,21 @@ for (const route of ['monitor', 'compare']) {
     await expect(drawer).not.toBeVisible()
     await expect(trigger).toBeFocused()
     await trigger.click()
-    await handle.focus()
-    await page.keyboard.press('ArrowUp')
-    await expect(drawer).toHaveAttribute('data-detent', 'expanded')
-    await page.keyboard.press('ArrowDown')
-    await expect(drawer).toHaveAttribute('data-detent', 'half')
+    await expect(drawer).toHaveAttribute('data-detent', 'fit')
     const heightRatio = () =>
       drawer.evaluate(
         (el) => el.getBoundingClientRect().height / (window.visualViewport?.height ?? innerHeight),
       )
-    await expect.poll(heightRatio).toBeCloseTo(0.5, 2)
-    await handle.click()
-    await expect(drawer).not.toBeVisible()
-    await trigger.click()
-    await handle.focus()
-    await page.keyboard.press('ArrowUp')
-    await expect(drawer).toHaveAttribute('data-detent', 'expanded')
-    await expect.poll(heightRatio).toBeCloseTo(0.9, 2)
-    // Actual touch gestures exercise pointer capture and scroll isolation on mobile.
+    const ratio = await heightRatio()
+    expect(ratio).toBeGreaterThanOrEqual(0.59)
+    expect(ratio).toBeLessThanOrEqual(0.81)
     const session = await page.context().newCDPSession(page)
     async function pull(distance: number) {
-      const box = await handle.boundingBox()
-      if (!box) throw new Error('Missing drawer handle')
-      const x = box.x + box.width / 2
+      const box = await drawer.locator('.ae-drawer__header').boundingBox()
+      if (!box) throw new Error('Missing drawer header')
+      const x = box.x + 28
       const y = box.y + box.height / 2
+      const leftBefore = (await drawer.boundingBox())?.x ?? 0
       await session.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
         touchPoints: [{ x, y }],
@@ -50,16 +41,21 @@ for (const route of ['monitor', 'compare']) {
         })
       }
       await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+      return leftBefore
     }
-    await pull(120)
-    await expect(drawer).toHaveAttribute('data-detent', 'half')
-    await page.waitForTimeout(350)
-    await page.screenshot({ path: `outputs/drawer-review/${route}-half.png` })
-    await pull(120)
+    const leftBefore = await pull(48)
+    await expect(drawer).toBeVisible()
+    await expect.poll(heightRatio).toBeGreaterThanOrEqual(0.59)
+    expect(Math.abs(((await drawer.boundingBox())?.x ?? 0) - leftBefore)).toBeLessThan(1)
+    await pull(280)
     await expect(drawer).not.toBeVisible()
     await expect(trigger).toBeFocused()
     await trigger.click()
     await expect(drawer).toBeVisible()
+    await handle.focus()
+    await page.keyboard.press('ArrowDown')
+    await expect(drawer).not.toBeVisible()
+    await trigger.click()
     await page.keyboard.press('Escape')
     await expect(drawer).not.toBeVisible()
   })
@@ -81,7 +77,6 @@ for (const width of [360, 390, 430]) {
       const drawer = page.getByRole('dialog')
       await expect(drawer).toBeVisible()
       await drawer.locator('.ae-drawer__handle').focus()
-      await page.keyboard.press('ArrowUp')
       await page.waitForTimeout(350)
       await page.screenshot({ path: `outputs/drawer-review/${route}-expanded-${width}.png` })
       expect(await drawer.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(false)
@@ -106,10 +101,7 @@ test('减少动效时抽屉键盘操作与关闭仍可用', async ({ page }) => 
   const drawer = page.getByRole('dialog')
   const handle = drawer.locator('.ae-drawer__handle')
   await handle.focus()
-  await page.keyboard.press('ArrowUp')
-  await expect(drawer).toHaveAttribute('data-detent', 'expanded')
-  await page.keyboard.press('ArrowDown')
-  await expect(drawer).toHaveAttribute('data-detent', 'half')
+  await expect(drawer).toHaveAttribute('data-detent', 'fit')
   await page.keyboard.press('ArrowDown')
   await expect(drawer).not.toBeVisible()
 })

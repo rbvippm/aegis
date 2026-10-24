@@ -31,9 +31,9 @@ export const useProfile = defineStore('profile-center', () => {
   const settledCents = computed(() => totalCents(records.value, 'settled'))
   function guard() {
     return dataMode !== 'demo'
-      ? '真实服务尚未接入，未发送或保存任何资料。'
+      ? '暂时无法保存。'
       : !previewIdentity.value
-        ? '请先进入示例身份或等待真实登录服务接入。'
+        ? '请先登录。'
         : ''
   }
   function bind(platform: string, uid: string) {
@@ -48,14 +48,14 @@ export const useProfile = defineStore('profile-center', () => {
   function saveTicket(input: TicketInput) {
     const error = guard() || validateTicket(input)
     if (error) return { error }
-    const id = `LOCAL-${crypto.randomUUID().slice(0, 8)}`
+    const id = `AE-${crypto.randomUUID().slice(0, 8)}`
     tickets.value.unshift({
       id,
       platform: input.platform,
       category: input.category,
       description: input.description.trim(),
       status: 'draft',
-      date: '当前会话',
+      date: '今天',
       amount: input.amount,
       example: false,
       evidence: input.evidence.map((item) => ({ ...item })),
@@ -80,7 +80,7 @@ export const useProfile = defineStore('profile-center', () => {
     return ''
   }
   function saveFeedback(category: string, content: string, contact: string) {
-    if (dataMode !== 'demo') return '反馈服务尚未接入，未提交反馈。'
+    if (dataMode !== 'demo') return '暂时无法提交反馈。'
     if (content.trim().length < 10 || content.length > 2000) return '请填写 10–2000 字的反馈意见。'
     feedback.value.push({ category, content: content.trim(), contact: contact.trim() })
     return ''

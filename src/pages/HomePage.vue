@@ -79,7 +79,6 @@ function ask(text: string) {
       <GlassSurface class="overview-card"
         ><div class="section-heading">
           <h2>出金监测</h2>
-          <span class="label-chip">演示数据</span>
         </div>
         <div v-if="dataMode === 'demo'" class="overview-body">
           <div>
@@ -91,7 +90,7 @@ function ask(text: string) {
             </div>
           </div>
           <div class="sparkline-wrap">
-            <svg viewBox="0 0 220 80" class="sparkline" aria-label="演示耗时趋势图" role="img">
+            <svg viewBox="0 0 220 80" class="sparkline" aria-label="出金耗时趋势" role="img">
               <defs>
                 <linearGradient id="spark-fill" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#60a5fa" stop-opacity=".25" />
@@ -109,10 +108,10 @@ function ask(text: string) {
                 stroke-width="2"
                 stroke-linecap="round"
               /></svg
-            ><span class="ae-meta">固定快照 10/22 19:32 · UTC+8</span>
+            ><span class="ae-meta">10/22 19:32 · UTC+8</span>
           </div>
         </div>
-        <StatePanel v-else title="监测数据尚未接入" description="配置监测接口后展示真实数据。" />
+        <StatePanel v-else title="暂无监测数据" description="稍后再查看出金监测。" />
       </GlassSurface>
       <GlassSurface class="platform-card"
         ><div class="section-heading">
@@ -126,6 +125,5 @@ function ask(text: string) {
           title="暂无平台数据"
       /></GlassSurface>
     </div>
-    <p class="home-demo-note">演示数据 · 模型与内部知识库尚未接入</p>
   </div>
 </template>

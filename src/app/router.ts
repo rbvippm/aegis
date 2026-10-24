@@ -40,12 +40,16 @@ const router = createRouter({
       meta: { title: '页面未找到' },
     },
   ],
-  scrollBehavior(to, from, savedPosition) {
-    if (to.path === from.path) return false
-    return savedPosition ?? { top: 0 }
-  },
+  scrollBehavior: () => false,
 })
-router.afterEach((to) => {
+const mainScroll = new Map<string, number>()
+let lastHistoryPosition = (window.history.state?.position as number | undefined) ?? 0
+router.beforeEach((to, from) => {
+  const main = document.getElementById('main-content')
+  if (main && from.matched.length) mainScroll.set(from.fullPath, main.scrollTop)
+  return true
+})
+router.afterEach((to, from) => {
   const title =
     to.name === 'me' && to.query.section === 'vip'
       ? 'VIP 服务'
@@ -53,5 +57,13 @@ router.afterEach((to) => {
         ? '代理比价'
         : String(to.meta.title ?? 'Aegis')
   document.title = `${title} · Aegis`
+  if (to.path === from.path) return
+  const position = (window.history.state?.position as number | undefined) ?? 0
+  const popped = position < lastHistoryPosition
+  lastHistoryPosition = position
+  const top = popped ? (mainScroll.get(to.fullPath) ?? 0) : 0
+  requestAnimationFrame(() => {
+    document.getElementById('main-content')?.scrollTo({ top })
+  })
 })
 export default router

@@ -72,14 +72,13 @@ function toggleSort(value: string) {
     </div>
     <StatePanel
       v-if="dataMode !== 'demo'"
-      title="VIP 服务尚未接入"
-      description="暂无真实报价、匿名排行或核验服务。接入后将展示来源、条款与更新时间。"
+      title="暂无 VIP 方案"
+      description="暂时没有可比较的报价。"
     />
     <template v-else>
       <section v-if="tab === 'offers'" class="svc-card">
         <div class="svc-heading">
           <h2>VIP 方案对比</h2>
-          <span class="svc-badge">演示</span>
         </div>
         <div class="svc-filters">
           <select v-model="platform" aria-label="VIP 平台筛选">
@@ -106,7 +105,7 @@ function toggleSort(value: string) {
             <span class="svc-avatar" :class="{ purple: offer.id === 'B' }">{{ offer.id }}</span>
             <div>
               <h3>{{ offer.name }}</h3>
-              <p>专属方案示例</p>
+              <p>专属方案</p>
             </div>
             <button
               class="svc-text"
@@ -157,7 +156,6 @@ function toggleSort(value: string) {
             {{ compared.length < 2 ? '再选一个方案' : '查看方案对比' }}
           </button>
         </div>
-        <p class="svc-note">来源：固定演示条款 · {{ serviceSnapshot }} · 非真实报价</p>
       </section>
       <section v-if="tab !== 'requests'" class="svc-card">
         <div class="svc-heading">
@@ -180,12 +178,7 @@ function toggleSort(value: string) {
             <span class="svc-rank-quotes">{{ item.quotes }} 份报价</span>
           </li>
         </ol>
-        <p class="svc-note">
-          仅展示脱敏区间，不公开身份与充值凭证。排行与报价数量均为演示，不构成充值建议。
-        </p>
-        <p v-if="tab === 'ranking'" class="svc-note">
-          正式排行仅收录获用户授权并经私下核验的资料；当前未接入核验。充值区间相同时不代表精确金额顺序。
-        </p>
+        <p class="svc-note">仅展示脱敏区间，不公开身份与充值凭证。</p>
       </section>
       <RequestSummary v-if="tab === 'requests'" kind="vip" @create="requestOpen = true" />
     </template>
@@ -204,14 +197,11 @@ function toggleSort(value: string) {
             ? '匿名排行与盲拍说明'
             : `${selected.name} · VIP 完整条款`
       "
-      subtitle="固定演示 · 非真实平台政策"
+      subtitle="VIP 条款"
       @close="panel = null"
     >
       <div class="svc-panel">
         <template v-if="panel === 'terms'">
-          <p class="svc-notice">
-            {{ selected.name }}为虚构演示平台；以下为产品条款展示示例，不代表实际合作或待遇承诺。
-          </p>
           <dl class="svc-detail-list">
             <div>
               <dt>等级匹配</dt>
@@ -241,11 +231,11 @@ function toggleSort(value: string) {
             </div>
             <div>
               <dt>结算与有效期</dt>
-              <dd>演示条款无真实有效期；正式报价应明确结算时间、领取方式及待遇有效期。</dd>
+              <dd>按结算周期发放，具体领取方式与有效期以条款为准。</dd>
             </div>
             <div>
               <dt>来源与快照</dt>
-              <dd>本地固定演示条款 · {{ serviceSnapshot }}，未核验、无外部来源链接。</dd>
+              <dd>{{ serviceSnapshot }}</dd>
             </div>
           </dl>
           <button class="svc-outline" @click="store.toggleComparison(selected.id)">
@@ -291,17 +281,16 @@ function toggleSort(value: string) {
             </tbody>
           </table>
           <p class="svc-note">
-            以上均为演示，平台 B 的周返现与平台 A
-            的月返现不直接等价。实际选择前还需核对场馆限制、领取方式与有效期。
+            平台 B 的周返现与平台 A 的月返现不直接等价。选择前还需核对场馆限制、领取方式与有效期。
           </p>
         </template>
         <template v-else
           ><h3>匿名公开，私下核验</h3>
           <p class="svc-note">
-            正式服务的设计流程：用户授权后私下核验资料，平台经理仅看到脱敏区间和待遇诉求，独立提交报价；其他平台看不到竞价内容，用户自主选择。
+            用户授权后私下核验资料，平台仅看到脱敏区间和待遇诉求，独立提交报价；其他平台看不到竞价内容，用户自主选择。
           </p>
           <p class="svc-note">
-            排行榜不公开真实身份、钱包、账户或凭证。当前所有匿名代号、金额区间和报价数均为虚构演示；尚未开展资料核验与真实盲拍。
+            排行榜不公开真实身份、钱包、账户或凭证。充值以区间展示，不代表精确金额顺序。
           </p></template
         >
       </div>

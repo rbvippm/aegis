@@ -13,7 +13,7 @@ describe('真实模式不回退演示报价', () => {
       const wrapper = mount(component, {
         global: { stubs: { RouterLink: true, BottomDrawer: true } },
       })
-      expect(wrapper.text()).toContain('尚未接入')
+      expect(wrapper.text()).toMatch(/暂无/)
       expect(wrapper.text()).not.toContain('平台 A')
       expect(wrapper.text()).not.toContain('鲸鱼 #')
       expect(wrapper.find('.svc-hero button').attributes('disabled')).toBeDefined()

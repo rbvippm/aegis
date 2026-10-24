@@ -88,7 +88,7 @@ export const useConversation = defineStore('ai-conversation', () => {
       question: question.trim(),
       context,
       status: 'pending',
-      stage: '正在整理示例回答…',
+      stage: '正在整理回答…',
     }
     active.value!.messages.push(message)
     // Use the reactive proxy so async updates are observable to the UI.

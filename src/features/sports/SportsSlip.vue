@@ -68,9 +68,9 @@ function parse() {
         placeholder="选项 @ 十进制赔率 平台，例如：北辰队胜 @ 2.10 平台 A"
         @input="parsed = false"
       ></textarea>
-      <p class="sp-small-note">仅本地处理，不自动读取剪贴板</p>
+      <p class="sp-small-note">粘贴后点识别并核对。</p>
       <div class="sp-split-actions">
-        <button class="sp-secondary" @click="example">填入示例</button
+        <button class="sp-secondary" @click="example">填入</button
         ><button class="sp-primary" @click="parse">识别并核对</button>
       </div>
     </section>

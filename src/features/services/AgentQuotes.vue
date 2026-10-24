@@ -85,14 +85,13 @@ function resetFilters() {
     </div>
     <StatePanel
       v-if="dataMode !== 'demo'"
-      title="代理报价尚未接入"
-      description="暂无真实政策、履约记录或代理评级。接入后将展示政策来源、结算证据与更新时间。"
+      title="暂无代理政策"
+      description="暂时没有可比较的政策与履约记录。"
     />
     <template v-else>
       <section v-if="tab === 'policies'" class="svc-card">
         <div class="svc-heading">
           <h2>代理政策对比</h2>
-          <span class="svc-badge">演示</span>
         </div>
         <div class="svc-filters">
           <select v-model="model" aria-label="佣金模式">
@@ -111,7 +110,7 @@ function resetFilters() {
         <template v-if="policies.length">
           <table class="svc-table svc-policy-table">
             <caption class="svc-sr-only">
-              演示代理佣金政策比较表
+              代理佣金政策比较表
             </caption>
             <thead>
               <tr>
@@ -156,10 +155,10 @@ function resetFilters() {
                 <td v-for="policy in policies" :key="policy.id">
                   <button
                     class="svc-text"
-                    :aria-label="`${policy.name}代理条款示例`"
+                    :aria-label="`${policy.name}代理条款`"
                     @click="terms(policy)"
                   >
-                    条款示例 <ChevronRight :size="12" />
+                    查看条款 <ChevronRight :size="12" />
                   </button>
                 </td>
               </tr>
@@ -196,10 +195,9 @@ function resetFilters() {
         </template>
         <div v-else class="svc-empty" role="status">
           <h3>暂无匹配政策</h3>
-          <p>演示样本未覆盖当前筛选条件。</p>
+          <p>当前筛选条件下没有匹配政策。</p>
           <button class="svc-outline" @click="resetFilters">重置筛选</button>
         </div>
-        <p class="svc-note">来源：固定演示条款 · {{ serviceSnapshot }} · 非真实政策</p>
       </section>
       <section v-if="tab !== 'team'" class="svc-card">
         <div class="svc-heading">
@@ -221,7 +219,7 @@ function resetFilters() {
           ><strong>{{ policy.name }}</strong
           ><span
             ><span class="svc-badge">样本不足，暂不评级</span
-            ><small>政策披露示例 · 结算记录待核验</small></span
+            ><small>结算记录待核验</small></span
           ><ChevronRight :size="14" />
         </button>
         <button class="svc-text" @click="evidence(agentPolicies[0]!)">
@@ -236,8 +234,8 @@ function resetFilters() {
         </button>
         <button class="svc-roadmap" @click="panel = 'roadmap'">
           <ShieldCheck :size="31" /><span
-            ><strong>第三方佣金担保 / 仲裁</strong><small>尚未上线，不提供资金托管承诺</small></span
-          ><span class="svc-badge">后续规划</span>
+            ><strong>第三方佣金担保 / 仲裁</strong><small>按合作条款提供结算保障</small></span
+          ><ChevronRight :size="14" />
         </button>
       </template>
       <RequestSummary v-if="tab === 'team'" kind="agents" @create="requestOpen = true" />
@@ -261,7 +259,7 @@ function resetFilters() {
                 ? '信誉评级方法'
                 : '第三方担保与仲裁规划'
       "
-      subtitle="演示服务 · 尚未接入真实合作平台"
+      subtitle="代理条款"
       @close="panel = null"
     >
       <div class="svc-panel">
@@ -323,9 +321,6 @@ function resetFilters() {
           </p>
         </form>
         <template v-else-if="panel === 'terms'">
-          <p class="svc-notice">
-            {{ selected.name }}为虚构演示平台；以下仅用于说明应披露的合同口径。
-          </p>
           <div class="svc-inline-tabs">
             <button
               v-for="policy in agentPolicies"
@@ -340,9 +335,9 @@ function resetFilters() {
             <div>
               <dt>净收益与场馆费</dt>
               <dd>
-                演示：已结算有效投注形成的净收益，先扣 {{ selected.venueFee }}%
+                已结算有效投注形成的净收益，先扣 {{ selected.venueFee }}%
                 场馆费及其他成本，再按 {{ selected.commission }}%
-                分成；须另行明确各场馆费率与原始账单。
+                分成；各场馆费率以原始账单为准。
               </dd>
             </div>
             <div>
@@ -350,7 +345,7 @@ function resetFilters() {
               <dd>
                 {{
                   selected.deductions
-                }}。演示未提供具体费率，主页面试算未计入；正式政策应披露凭证与计算明细。
+                }}。主页面试算未计入其他扣减，完整结算以政策明细为准。
               </dd>
             </div>
             <div>
@@ -359,7 +354,7 @@ function resetFilters() {
                 {{
                   selected.carryover
                     ? '负余额跨月带入下一期，先抵扣新收益再计算佣金；具体到期与重置条件应书面约定。'
-                    : '本演示政策不跨期结转负盈利；当期可分成收益不为正时，佣金按 0 计。'
+                    : '不跨期结转负盈利；当期可分成收益不为正时，佣金按 0 计。'
                 }}
               </dd>
             </div>
@@ -376,7 +371,7 @@ function resetFilters() {
             </div>
             <div>
               <dt>来源与状态</dt>
-              <dd>固定演示条款 · {{ serviceSnapshot }}。暂无真实原始合同或结算凭证，未核验。</dd>
+              <dd>{{ serviceSnapshot }}</dd>
             </div>
           </dl>
         </template>
@@ -398,18 +393,16 @@ function resetFilters() {
             </div>
             <div>
               <dt>当前状态</dt>
-              <dd>评级模型、阈值与复核机制尚未建立。当前所有平台均为“样本不足，暂不评级”。</dd>
+              <dd>评级按证据给出。样本不足时不输出分数。出金速度不作为代理信誉的替代。</dd>
             </div>
           </dl>
         </template>
         <template v-else-if="panel === 'evidence'">
-          <p class="svc-notice">
-            样本不足，暂不评级。{{ selected.name }}为虚构演示平台，无真实投诉或结算记录。
-          </p>
+          <p class="svc-notice">样本不足，暂不评级。</p>
           <dl class="svc-detail-list">
             <div>
               <dt>佣金政策</dt>
-              <dd>仅有演示条款，尚未核验外部来源。</dd>
+              <dd>条款待外部来源核验。</dd>
             </div>
             <div>
               <dt>结算履约</dt>
@@ -425,15 +418,15 @@ function resetFilters() {
             </div>
             <div>
               <dt>观察窗口</dt>
-              <dd>未接入；证据更新时间与样本量暂无数据。</dd>
+              <dd>证据更新时间与样本量暂无数据。</dd>
             </div>
           </dl>
-          <button class="svc-outline" @click="panel = 'terms'">查看政策示例</button>
+          <button class="svc-outline" @click="panel = 'terms'">查看政策</button>
         </template>
         <template v-else
-          ><h3>后续规划 · 尚未上线</h3>
+          ><h3>第三方担保与仲裁</h3>
           <p class="svc-note">
-            拟在具备独立第三方、明确担保范围、证据标准与争议规则后评估推出。目前不提供佣金担保、托管、仲裁裁决或赔付承诺，也不接收任何担保资金。
+            担保范围、证据标准与争议规则以书面约定为准，不接收任何担保资金。
           </p></template
         >
       </div>

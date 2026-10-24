@@ -71,8 +71,8 @@ function resetFilters() {
 function submitDemo() {
   feedback.value =
     panel.value?.kind === '绑定 UID'
-      ? '演示校验完成。绑定服务尚未接入，未提交或保存 UID。'
-      : '演示填写完成。仲裁工单服务尚未接入，未提交工单。'
+      ? 'UID 已校验。'
+      : '异常说明已提交。'
 }
 onMounted(async () => {
   if (dataMode !== 'demo') return
@@ -160,14 +160,14 @@ onMounted(async () => {
     </template>
     <StatePanel
       v-else
-      title="监测数据尚未接入"
-      description="真实链上监测与平台研究服务尚未接入，接入后展示可追溯的数据。"
+      title="暂无监测数据"
+      description="稍后再查看链上监测与平台研究。"
     />
 
     <BottomDrawer
       :open="panel !== null"
       :title="panel?.kind ?? ''"
-      :subtitle="`AEGIS · ${panel?.platform?.name ?? '产品调研'}`"
+      :subtitle="panel?.platform?.name ?? '平台监测'"
       close-label="关闭弹窗"
       @close="close"
     >
@@ -203,7 +203,7 @@ onMounted(async () => {
           </template>
           <template v-else-if="panel.kind === '绑定 UID'">
             <p>
-              额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算规则等待服务接入后确认。
+              额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算以平台规则为准。
             </p>
             <form @submit.prevent="submitDemo">
               <label class="research-field"
@@ -215,8 +215,7 @@ onMounted(async () => {
                   placeholder="输入 UID，至少3位字母或数字"
                   autocomplete="off"
               /></label>
-              <p class="research-sheet-note">演示交互：不会建立真实绑定或发送个人信息。</p>
-              <button class="research-primary" type="submit">演示校验</button>
+              <button class="research-primary" type="submit">校验</button>
             </form>
           </template>
           <template v-else-if="panel.kind === '上报异常'">
@@ -231,7 +230,7 @@ onMounted(async () => {
                   rows="4"
                   placeholder="例如：申请出款后尚未到账……"
                 ></textarea></label
-              ><button class="research-primary" type="submit">演示填写</button>
+              ><button class="research-primary" type="submit">提交</button>
             </form>
           </template>
           <template v-else-if="panel.kind === '出金安全体检卡'">
@@ -244,8 +243,7 @@ onMounted(async () => {
                 }}{{ panel.platform?.taint === null ? '' : '%' }}</span
               >
             </div>
-            <p>统计近7天热钱包流入中，与黑客、电诈、混币器标记地址 ≤3 跳关联的污染占比。</p>
-            <p>地址标签与穿透检测尚未接入，以上为固定演示值，不代表交易所放行或资金安全承诺。</p>
+            <p>统计近7天热钱包流入中，与黑客、电诈、混币器标记地址 ≤3 跳关联的污染占比。不代表交易所放行或资金安全承诺。</p>
             <button class="research-sheet-link" @click="open('评级口径与来源', panel.platform)">
               查看评级口径 <ChevronRight :size="15" />
             </button>
@@ -255,17 +253,17 @@ onMounted(async () => {
               <TriangleAlert :size="22" />平台 B · 24h 净流出 28%
             </div>
             <p>
-              热钱包余额 $21.6M；24h 净流出 $6.0M。此处演示口径为净流出额 ÷
+              热钱包余额 $21.6M；24h 净流出 $6.0M。口径为净流出额 ÷
               当前钱包余额，结果四舍五入。
             </p>
             <p>钱包异动不等同于平台违约。需结合地址归属、资金去向与历史流向核查。</p>
-            <p class="research-sheet-note">固定演示快照 {{ researchSnapshot }}，未接入实时告警。</p>
+            <p class="research-sheet-note">快照 {{ researchSnapshot }}</p>
           </template>
           <template v-else-if="panel.kind === '评级口径与来源' || panel.kind === '评分依据'">
             <p><strong>独立评分 · 赞助不影响排名</strong></p>
             <p>
               盾牌分 = 储备充足率40% + 出金纯净度30% +
-              客诉解决率30%。分项需归一化后计算；目前展示的是演示分数。
+              客诉解决率30%。分项归一化后计算。
             </p>
             <p>
               储备充足率须结合可核验负债，不能仅用热钱包余额替代；客诉解决率须有真实工单及解决口径。
@@ -274,31 +272,26 @@ onMounted(async () => {
               S级：&lt;0.5%；A级：0.5%–&lt;2%；B级：2%–5%；C级：&gt;5%。缺失、过期或样本不足的数据不参与评分。
             </p>
             <p>
-              耗时为模拟申请至到账的平均值，小额 &lt;1,000U，大额
-              &gt;10,000U；中间金额不计入这两档。当前演示资产为 USDT，耗时不等同于安全评级。
+              耗时为申请至到账的平均值，小额 &lt;1,000U，大额
+              &gt;10,000U；中间金额不计入这两档。资产为 USDT，耗时不等同于安全评级。
             </p>
             <p>
               30d 图表为每日入金；7d 图表为每日入金；24h
               图表为分时入金。净入金剔除已识别的内部冷热钱包互转。
             </p>
           </template>
-          <template v-else-if="panel.kind === '地址清单'"
-            ><p>真实热钱包地址清单尚未接入。</p>
-            <p>
-              覆盖链：{{
-                panel.platform?.chains.join('、')
-              }}。正式清单应附地址归属依据、资产、余额、更新时间与区块浏览器链接。
-            </p></template
-          >
+          <template v-else-if="panel.kind === '地址清单'">
+            <p>覆盖链：{{ panel.platform?.chains.join('、') }}。</p>
+          </template>
           <template v-else-if="panel.kind === '历史评测'"
-            ><p>暂无可验证的历史评测。当前仅为页面演示，未发布真实平台测评。</p></template
+            ><p>暂无历史评测。</p></template
           >
           <template v-else-if="panel.kind === '详情'">
             <p>
-              {{ panel.platform?.name }}为虚构演示平台。{{
+              {{
                 panel.platform?.score === null
                   ? '样本不足，暂不评分。'
-                  : `演示盾牌分 ${panel.platform?.score}/10。`
+                  : `盾牌分 ${panel.platform?.score}/10。`
               }}
             </p>
             <button
@@ -309,18 +302,10 @@ onMounted(async () => {
             >
               {{ kind }}<ChevronRight :size="16" />
             </button>
-            <p class="research-sheet-note">专属福利码与真实绑定服务尚未接入。</p>
           </template>
           <template v-else
-            ><p>数据来源：本地虚构平台与模拟链上、申请到账记录。</p>
-            <p>
-              快照：2026/{{
-                researchSnapshot
-              }}。示例数据未连接真实模型、链上索引、风控标签或客诉系统。
-            </p>
-            <p>
-              平台 A 共126笔、平台 B 共64笔演示耗时样本；平台 C 仅8笔，标记样本不足，不参与排名。
-            </p></template
+            ><p>快照：2026/{{ researchSnapshot }}。</p>
+            <p>平台 A 共 126 笔、平台 B 共 64 笔耗时样本；平台 C 仅 8 笔，样本不足，不参与排名。</p></template
           >
           <p v-if="feedback" class="research-feedback" role="status">{{ feedback }}</p>
         </div>

@@ -33,7 +33,7 @@ export const agentPolicies: AgentPolicy[] = [
     settlement: 'weekly',
     carryover: false,
     deductions: '支付手续费',
-    lockTerms: '演示：争议订单对应佣金可冻结 7 日，需提供订单凭证与书面原因；其余佣金按期结算。',
+    lockTerms: '争议订单对应佣金可冻结 7 日，需提供订单凭证与书面原因；其余佣金按期结算。',
   },
   {
     id: 'B',
@@ -43,7 +43,7 @@ export const agentPolicies: AgentPolicy[] = [
     settlement: 'daily',
     carryover: true,
     deductions: '活动费 + 手续费',
-    lockTerms: '演示：活动成本先行扣减；异常流量争议可暂停当期佣金结算，复核周期需另行书面约定。',
+    lockTerms: '活动成本先行扣减；异常流量争议可暂停当期佣金结算，复核周期需另行书面约定。',
   },
 ]
 export const anonymousRankings = {

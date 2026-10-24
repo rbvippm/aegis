@@ -45,7 +45,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
           <li>密集赛程下的体能变数。</li>
         </ol>
         <button class="ac-warning" @click="emit('detail', 'analysis')">
-          <CircleAlert :size="14" /><span>首发与伤停待确认 · 依据仅为示例</span
+          <CircleAlert :size="14" /><span>首发与伤停待确认</span
           ><ChevronRight :size="15" />
         </button>
         <button class="ac-text-link" @click="emit('detail', 'analysis')">
@@ -58,11 +58,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
           <span>主队 +0.75 · 港盘</span>
         </div>
         <table class="ac-table">
-          <caption class="ac-sr-only">
-            {{
-              aiScope.market
-            }}，样例报价
-          </caption>
+          <caption class="ac-sr-only">同盘口报价</caption>
           <thead>
             <tr>
               <th>平台</th>
@@ -78,7 +74,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
             </tr>
           </tbody>
         </table>
-        <p class="ac-card-note">样例报价，仅供展示；出金表现需独立比较。</p>
+        <p class="ac-card-note">出金表现需单独比较。</p>
         <button class="ac-soft-button" @click="emit('detail', 'quotes')">
           查看同盘口完整对比<ArrowUpRight :size="15" />
         </button>
@@ -105,7 +101,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
           <caption class="ac-sr-only">
             {{
               aiScope.funding
-            }}，模拟出金记录
+            }}，出金记录
           </caption>
           <thead>
             <tr>
@@ -126,7 +122,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
             </tr>
           </tbody>
         </table>
-        <p class="ac-card-note">虚构平台与模拟记录 · 申请到到账 · {{ aiScope.window }}</p>
+        <p class="ac-card-note">申请到到账 · {{ aiScope.window }}</p>
         <button class="ac-text-link" @click="emit('detail', 'funding')">
           统计口径与来源<ChevronRight :size="16" />
         </button>
@@ -177,6 +173,6 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
         {{ question }}<ChevronRight :size="14" />
       </button>
     </div>
-    <div class="ac-answer-footnote"><ChartNoAxesColumn :size="12" />示例分析 · 关键事实待核验</div>
+    <div class="ac-answer-footnote"><ChartNoAxesColumn :size="12" />关键事实待核验</div>
   </div>
 </template>

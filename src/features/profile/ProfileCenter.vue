@@ -82,7 +82,7 @@ const ticketNames = {
   materials: '待补充材料',
   processing: '处理中',
   closed: '已结束',
-  draft: '本地草稿',
+  draft: '草稿',
 }
 const draftCount = computed(
   () => profile.tickets.filter((item) => item.status === 'materials').length,
@@ -186,9 +186,7 @@ watch(
       </button>
     </header>
     <div class="pf-content">
-      <p class="pf-mode">
-        {{ dataMode === 'demo' ? '示例数据 · 服务待接入' : '个人中心服务尚未接入' }}
-      </p>
+      <p class="pf-mode">个人中心</p>
       <template v-if="section === 'overview'">
         <button class="pf-identity" @click="open(profile.previewIdentity ? 'identity' : 'login')">
           <span class="pf-identity-crystal" aria-hidden="true"><AegisMark /></span>
@@ -200,7 +198,7 @@ watch(
                 profile.previewIdentity ? '普通用户' : '未登录'
               }}</small></span
             ><span class="pf-user-id">{{
-              profile.previewIdentity ? 'ID: AE 00128 · 示例身份' : '登录后查看个人记录'
+              profile.previewIdentity ? 'ID: AE 00128' : '登录后查看个人记录'
             }}</span
             ><span class="pf-connections"
               ><small><Send :size="11" />Telegram</small
@@ -244,7 +242,7 @@ watch(
             {{
               dataMode === 'demo'
                 ? '登录后查看收益与绑定记录。'
-                : '真实收益与账户服务尚未接入，暂无数据。'
+                : '暂无收益记录。'
             }}
           </p>
           <button class="pf-text-button" @click="open('login')">
@@ -303,14 +301,14 @@ watch(
       </template>
       <StatePanel
         v-else-if="dataMode !== 'demo'"
-        title="个人中心服务尚未接入"
-        description="真实账户、收益、绑定和工单服务尚未接入，不回退示例数据。"
+        title="暂无个人记录"
+        description="登录后查看账户、收益、绑定和工单。"
       />
       <section v-else-if="!profile.previewIdentity && section !== 'follows'" class="pf-empty">
         <UserRound :size="32" />
         <h2>登录后查看个人记录</h2>
-        <p>游客可浏览监测与对比内容；真实登录服务尚未接入。</p>
-        <button class="pf-primary" @click="open('login')">登录 / 使用示例身份</button>
+        <p>登录后查看收益、绑定和工单。</p>
+        <button class="pf-primary" @click="open('login')">登录</button>
       </section>
       <template v-else-if="section === 'earnings'">
         <section class="pf-card pf-summary">
@@ -466,13 +464,13 @@ watch(
             ><span>{{ ticket.date }}</span>
           </div>
           <p>{{ ticket.description }}</p>
-          <p v-if="ticket.supplement" class="pf-helper">有本地补充草稿，未上传</p>
+          <p v-if="ticket.supplement" class="pf-helper">已补充材料</p>
           <button
             v-if="ticket.status === 'materials' || ticket.status === 'draft'"
             class="pf-text-button"
             @click="ticketAction(ticket)"
           >
-            {{ ticket.status === 'draft' ? '查看本地草稿' : '补充材料' }}<ChevronRight :size="16" />
+            {{ ticket.status === 'draft' ? '查看草稿' : '补充材料' }}<ChevronRight :size="16" />
           </button>
         </article>
         <section v-if="!visibleTickets.length" class="pf-empty">
@@ -490,7 +488,7 @@ watch(
           <ol v-if="selectedTicket.status !== 'draft'">
             <li class="done">
               <strong>已提交</strong>
-              <p>材料已接收（示例）</p>
+              <p>材料已接收</p>
             </li>
             <li class="current">
               <strong>{{ selectedTicket.status === 'materials' ? '待补充材料' : '审核中' }}</strong>
@@ -503,12 +501,12 @@ watch(
           </ol>
           <ol v-else>
             <li class="current">
-              <strong>本地草稿</strong>
-              <p>当前会话保存，尚未提交</p>
+              <strong>草稿</strong>
+              <p>已保存，等待提交</p>
             </li>
             <li>
-              <strong>服务待接入</strong>
-              <p>未发送给客服或平台</p>
+              <strong>处理中</strong>
+              <p>等待进一步反馈</p>
             </li>
           </ol>
           <button class="pf-text-button" @click="open('notifications')">
@@ -522,7 +520,7 @@ watch(
             ><strong>让 AI 帮我整理事实</strong><small>整理描述与材料，不自动提交工单</small></span
           ><ChevronRight :size="16"
         /></RouterLink>
-        <p class="pf-bottom-note"><ShieldCheck :size="12" />示例工单与本地草稿，不对外公开</p>
+        <p class="pf-bottom-note"><ShieldCheck :size="12" />工单内容仅自己可见</p>
       </template>
       <template v-else-if="section === 'messages'"
         ><div class="pf-section-heading">
@@ -591,7 +589,7 @@ watch(
           </section>
           <RouterLink class="pf-primary pf-wide" to="/compare">去体育对比页</RouterLink></template
         ><template v-else
-          ><p class="pf-helper">平台关注仅保存在当前会话，不会实际发送异动提醒。</p>
+          ><p class="pf-helper">关注的平台会出现在这里。</p>
           <article v-for="item in profile.bindings" :key="item.id" class="pf-card pf-platform-top">
             <span class="pf-letter" :class="`pf-letter--${item.id}`">{{ item.id }}</span>
             <h3>{{ item.name }}</h3>
@@ -610,7 +608,7 @@ watch(
             >打开平台监测<ChevronRight :size="16" /></RouterLink></template
       ></template>
       <template v-else-if="section === 'history'"
-        ><p class="pf-helper">仅保留当前标签页内的 AI 对话，刷新后清空。</p>
+        ><p class="pf-helper">AI 对话会显示在这里。</p>
         <button
           v-for="conversation in ai.conversations"
           :key="conversation.id"

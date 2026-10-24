@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Languages, Menu, Bell } from '@lucide/vue'
+import { Menu, Bell } from '@lucide/vue'
 import { useRoute } from 'vue-router'
-import { dataMode } from '@/shared/api/config'
 import AegisMark from '@/shared/ui/AegisMark.vue'
+import LanguageMenu from '@/shared/ui/LanguageMenu.vue'
 import FloatingDock from '@/shared/ui/FloatingDock.vue'
 import { usePreferences } from '@/stores/preferences'
 
@@ -35,17 +35,14 @@ const customHeader = computed(() => route.name === 'ai' || profilePage.value)
           aria-label="提醒中心"
           ><Bell :size="22"
         /></RouterLink>
-        <span v-if="route.name === 'monitor'" class="monitor-mode-label">{{
-          dataMode === 'demo' ? '演示数据' : '尚未接入'
-        }}</span>
-        <span v-else-if="route.name !== 'compare'"><Languages :size="15" /> 中文</span>
+        <LanguageMenu v-if="route.name !== 'compare'" />
         <RouterLink v-if="route.name !== 'compare'" custom to="/me" v-slot="{ href, navigate }"
           ><a
             :href="href"
             aria-label="菜单"
             :aria-current="route.name === 'me' && !route.query.section ? 'page' : undefined"
             @click="navigate"
-            ><Menu :size="23" /></a
+            ><Menu :size="21" :stroke-width="1.8" /></a
         ></RouterLink>
       </div>
     </header>

@@ -34,23 +34,23 @@ export async function requestChat(
   stage: (text: string) => void,
 ): Promise<ChatAnswer> {
   if (dataMode !== 'demo')
-    throw new Error('AI 与内部知识库服务尚未接入，暂时无法生成回答。请稍后重试。')
-  stage('正在整理示例回答…')
+    throw new Error('暂时无法生成回答，请稍后重试。')
+  stage('正在整理回答…')
   await wait(signal)
-  stage('正在生成示例卡片…')
+  stage('正在生成卡片…')
   await wait(signal)
   if (/大额/.test(message))
     return {
       kind: 'clarify',
       summary:
-        '当前样例只有小额 <1,000 USDT 的同口径记录，大额出金样本尚未提供。不能把小额耗时直接用于大额推荐。请补充金额、链与资产，接入大额数据后再比较。',
+        '当前记录覆盖小额 <1,000 USDT。大额出金需要单独比较，不能把小额耗时直接用于大额推荐。',
       sources: [],
       followups: ['TRON 小额出金，优先看哪家？'],
     }
   const answer = mockChatAnswer(resolveChatKind(message, previous))
   if (message === '查看平台 B' && previous === 'funding') {
     answer.summary =
-      '在此小额样例中，平台 B 的申请到到账中位耗时为 5m08s，共 64 笔记录；平台 A 同口径为 3m24s。平台 B 的真实费用与风险指标仍待核验。'
+      '在此小额记录中，平台 B 的申请到到账中位耗时为 5m08s，共 64 笔记录；平台 A 同口径为 3m24s。费用与风险指标需单独核验。'
   }
   return answer
 }

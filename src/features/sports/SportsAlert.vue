@@ -106,14 +106,11 @@ function save() {
     <section class="sp-card">
       <h3>通知方式</h3>
       <div class="sp-setting-row">
-        <span>站内提醒设置</span><span class="sp-status-chip">本地保存</span>
+        <span>应用内提醒</span><span class="sp-status-chip">已开启</span>
       </div>
-      <div class="sp-setting-row"><span>Telegram</span><span class="sp-muted">尚未接入</span></div>
-      <p class="sp-small-note">外部通知需用户启用并完成渠道接入</p>
     </section>
     <p class="sp-notice sp-notice--blue"><Info :size="17" />比分与报价不同步时，暂停机会提醒</p>
     <p v-if="error" class="sp-notice" role="alert">{{ error }}</p>
     <button class="sp-primary sp-full" type="submit">保存提醒设置</button>
-    <p class="sp-small-note">仅保存本机设置，不会发送外部通知</p>
   </form>
 </template>

@@ -9,10 +9,9 @@ const store = useServiceRequests()
   <section class="svc-card svc-request-summary">
     <div class="svc-heading">
       <h2>{{ kind === 'vip' ? '我的 VIP 需求' : '我的团队需求' }}</h2>
-      <span class="svc-badge">会话内演示</span>
     </div>
     <template v-if="store.requests[kind]">
-      <p class="svc-note">待核验 · 未发送 · 暂无真实报价</p>
+      <p class="svc-note">待处理</p>
       <dl class="svc-detail-list">
         <div>
           <dt>{{ kind === 'vip' ? '充值区间' : '月净收益区间' }}</dt>
@@ -33,12 +32,12 @@ const store = useServiceRequests()
       </dl>
       <div class="svc-actions">
         <button class="svc-outline" @click="$emit('create')">编辑需求</button
-        ><button class="svc-text" @click="store.remove(kind)">清除演示需求</button>
+        ><button class="svc-text" @click="store.remove(kind)">清除需求</button>
       </div>
     </template>
     <template v-else
       ><p class="svc-note">
-        暂无需求。创建匿名需求后，可在这里查看与编辑；当前演示不会发送给平台。
+        暂无需求。创建匿名需求后，可在这里查看与编辑。
       </p>
       <button class="svc-outline" @click="$emit('create')">创建匿名需求</button></template
     >

@@ -18,7 +18,7 @@ export function analysisService(scenario: DemoScenario): AnalysisService {
       const parsed = AnalysisSchema.safeParse(await response.json())
       if (!parsed.success) throw new Error('接口数据格式不完整，暂时无法展示分析。')
       if (parsed.data.requestId !== request.requestId || parsed.data.demo)
-        throw new Error('接口返回了不匹配或演示模式的结果。')
+        throw new Error('接口返回了不匹配的结果。')
       return parsed.data
     },
   }

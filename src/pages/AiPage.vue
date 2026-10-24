@@ -43,9 +43,7 @@ const detailAnswer = computed(
   () => chat.messages.find((item) => item.id === detail.value?.messageId)?.answer,
 )
 const feedback = ref('')
-const sourceMode = computed(() =>
-  dataMode === 'demo' ? '示例内容 · 服务待接入' : 'AI 与内部知识库尚未接入',
-)
+const sourceMode = computed(() => (dataMode === 'demo' ? '关键结论附依据' : '暂时无法生成回答'))
 const welcome = computed(() => chat.messages.length === 0)
 const attachmentTitle = computed(() =>
   context.value.length > 24 ? context.value.slice(0, 24) + '…' : context.value,
@@ -316,7 +314,7 @@ onBeforeUnmount(() => chat.stop())
         </button>
       </form>
       <p class="ac-composer-note">
-        {{ chat.busy ? '示例模式 · 不会查询真实数据源' : '示例内容 · 关键结论附依据' }}
+        {{ chat.busy ? '正在整理回答' : '关键结论附依据' }}
       </p>
     </footer>
     <ConversationDetails
@@ -334,7 +332,7 @@ onBeforeUnmount(() => chat.stop())
     >
       <div class="ac-utility">
         <template v-if="utility === 'history'"
-          ><p class="ac-card-note">仅保存在当前标签页内，刷新后清空；不会上传到外部服务。</p>
+          ><p class="ac-card-note">可以回到之前的问题。</p>
           <div v-if="!chat.conversations.length" class="ac-history-empty">
             <BookOpen :size="30" />
             <h2>还没有对话</h2>
@@ -364,7 +362,7 @@ onBeforeUnmount(() => chat.stop())
         ></template>
         <template v-else-if="utility === 'context'"
           ><p class="ac-prose">
-            补充赛事、盘口或平台背景。内容只用于当前问题的界面示例，不会上传文件或自动读取剪贴板。
+            补充赛事、盘口或平台背景，用于当前问题。
           </p>
           <label class="ac-field"
             >背景信息<textarea
@@ -380,8 +378,8 @@ onBeforeUnmount(() => chat.stop())
         <template v-else-if="utility === 'voice'"
           ><div class="ac-history-empty">
             <Mic :size="32" />
-            <h2>语音输入尚未接入</h2>
-            <p>当前不会开启麦克风或采集语音，请先使用文字提问。</p>
+            <h2>请使用文字提问</h2>
+            <p>语音输入暂不可用。</p>
           </div>
           <button class="ac-primary ac-return" @click="utility = null">
             使用文字输入

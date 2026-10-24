@@ -69,7 +69,7 @@ const amount = (n: number) =>
         <Check :size="18" /><span>同一赛事 / 市场 / 结算规则</span><b>已匹配</b>
       </div>
       <div class="sp-check">
-        <Info :size="18" /><span>报价与时效</span><b class="sp-muted">本地样本</b>
+        <Info :size="18" /><span>报价与时效</span><b class="sp-muted">待核验</b>
       </div>
       <div class="sp-check sp-amber">
         <Clock3 :size="18" /><span>手续费与可用限额</span><b>待核验</b>
@@ -136,7 +136,7 @@ const amount = (n: number) =>
       <p class="sp-notice"><TriangleAlert :size="16" />报价或规则变化后，请重新核验</p>
       <button
         class="sp-primary sp-full"
-        @click="confirmation = '报价服务尚未接入，无法完成实时核验。'"
+        @click="confirmation = '请重新核对当前报价。'"
       >
         重新核验报价
       </button>

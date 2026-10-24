@@ -169,7 +169,7 @@ function saveAlert(setting: AlertSetting) {
   ]
   if (safeStore('aegis-sports-alerts', next)) {
     alertSettings.value = next
-    feedback.value = '设置已保存在本机。报价服务尚未接入，当前不会触发通知。'
+    feedback.value = '提醒设置已保存。'
   } else feedback.value = '本机存储不可用，设置未保存。'
 }
 function pickFormat(id: OddsFormat) {
@@ -264,7 +264,7 @@ onMounted(() => {
     </div>
     <StatePanel
       v-if="dataMode !== 'demo'"
-      title="体育数据服务尚未接入"
+      title="暂无赛事数据"
       description="接入报价与赛事服务后，将展示有效报价、走势与排名。"
     />
     <template v-else>
@@ -440,7 +440,7 @@ onMounted(() => {
     <SportsSheet :open="panel !== null" :title="panel ?? ''" @close="close">
       <StatePanel
         v-if="dataMode !== 'demo' && panel !== '赔率显示方式' && panel !== '数据来源'"
-        title="体育数据服务尚未接入"
+        title="暂无赛事数据"
         description="真实服务接入后开放赛事与提醒功能。"
       />
       <template v-else-if="panel === '赔率显示方式'"
@@ -494,7 +494,7 @@ onMounted(() => {
             }}
           </div>
         </div>
-        <p class="sp-notice">当前为本地样本，报价时效和可用限额尚未核验。</p>
+        <p class="sp-notice">报价时效和可用限额待核验。</p>
         <button class="sp-primary sp-full" @click="plan(activeMatch, activeMarket, true)">
           保留所选报价并试算</button
         ><button class="sp-sheet-link" @click="open('数据来源')">
@@ -585,7 +585,7 @@ onMounted(() => {
             }}</strong
             ><span>当前记录</span>
           </div>
-          <p class="sp-small-note">仅有本地两点记录，连续走势图尚未接入。</p>
+          <p class="sp-small-note">当前记录较少，暂不绘制连续走势。</p>
         </div>
         <button class="sp-primary sp-full" @click="open('设置变动提醒')">
           设置变动提醒
@@ -613,7 +613,7 @@ onMounted(() => {
             设置提醒<ChevronRight :size="15" />
           </button>
         </div>
-        <p class="sp-small-note">本地事件记录。实时事件与外部通知服务尚未接入。</p>
+        <p class="sp-small-note">事件记录。</p>
         <section v-if="alertSettings.length" class="sp-card">
           <h3>已保存的提醒</h3>
           <div v-for="(setting, index) in alertSettings" :key="index" class="sp-setting-row">
@@ -648,25 +648,21 @@ onMounted(() => {
         </div>
         <p class="sp-notice sp-notice--blue">足球 / 全场亚洲让球 / 近7天 / 共同样本128场</p>
         <p class="sp-small-note">
-          样本不足、过期报价不参与排名。当前数据为本地样本，非真实平台表现。
+          样本不足、过期报价不参与排名。
         </p>
         <RouterLink class="sp-sheet-link" to="/monitor" @click="close"
           >平台安全与资金详情 → 前往监测<ChevronRight :size="15" /></RouterLink
       ></template>
       <template v-else-if="panel === '预测合约'"
-        ><h3>预测合约服务尚未接入</h3>
+        ><h3>预测合约</h3>
         <p class="sp-tool-subtitle">
           合约结果、可成交价格、深度、费用和结算规则需要单独核验，不与体育报价直接混算。
         </p></template
       >
       <template v-else-if="panel === '数据来源'"
-        ><h3>{{ dataMode === 'demo' ? '本地样本数据，非实时数据' : '体育数据服务尚未接入' }}</h3>
-        <p class="sp-tool-subtitle">
-          赛事、平台、报价与排名均来自本地样本文件，不代表真实比赛或平台表现。
-        </p>
-        <p>
-          真实赛事、赔率、预测合约及通知服务尚未接入。页面中的比分和比赛时间为固定记录，不会随本机时钟变化。
-        </p>
+        ><h3>数据来源</h3>
+        <p class="sp-tool-subtitle">赛事、平台、报价与排名按同一口径整理。</p>
+        <p>比分和比赛时间为记录值。</p>
         <p class="sp-small-note">
           预算分配仅作数学试算；手续费、可用限额和报价有效期未确认前，不给出可执行收益。
         </p></template

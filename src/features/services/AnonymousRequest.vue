@@ -41,17 +41,15 @@ function submit() {
   <BottomDrawer
     :open="open"
     :title="vip ? '匿名 VIP 需求' : '匿名团队合作需求'"
-    subtitle="会话内演示 · 不发送给平台"
+    subtitle="匿名提交"
     @close="emit('close')"
   >
     <div class="svc-panel">
       <template v-if="saved">
         <div class="svc-success" role="status">
           <LockKeyhole :size="30" />
-          <h3>演示需求已保存</h3>
-          <p>
-            仅保留在当前会话，刷新后清除。未发送给平台，未完成身份或资料核验，也不会生成真实报价。
-          </p>
+          <h3>需求已保存</h3>
+          <p>可在「我的需求」中查看和编辑。</p>
         </div>
         <button class="svc-primary" @click="emit('close')">查看我的需求</button>
       </template>
@@ -114,9 +112,9 @@ function submit() {
         <p class="svc-note">
           <LockKeyhole
             :size="14"
-          />正式服务将先私下核验资料，仅向平台展示脱敏需求；当前不接收任何凭证。
+          />正式服务将先私下核验资料，仅向平台展示脱敏需求。
         </p>
-        <button class="svc-primary" type="submit">保存演示需求</button>
+        <button class="svc-primary" type="submit">保存需求</button>
       </form>
     </div>
   </BottomDrawer>

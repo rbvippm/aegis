@@ -64,7 +64,7 @@ function move(direction: number) {
       >
         <i :style="{ background: color }"></i>平台 {{ index === 0 ? 'A' : 'B' }}
       </button>
-      <span>全链演示快照</span>
+      <span>全链汇总</span>
     </div>
     <svg
       viewBox="0 0 340 147"

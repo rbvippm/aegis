@@ -62,7 +62,7 @@ export const profileNotices: ProfileNotice[] = [
   {
     id: 'notice-ticket',
     title: '工单待补充材料',
-    description: '平台 B 出金进度咨询的示例提醒。',
+    description: '平台 B 出金进度咨询。',
     type: 'ticket',
     read: false,
     target: 'tickets',
@@ -77,8 +77,8 @@ export const profileNotices: ProfileNotice[] = [
   },
   {
     id: 'notice-system',
-    title: '欢迎体验个人中心',
-    description: '样例仅用于界面体验，真实服务尚未接入。',
+    title: '欢迎使用个人中心',
+    description: '账户与收益可在这里查看。',
     type: 'system',
     read: true,
     target: '',

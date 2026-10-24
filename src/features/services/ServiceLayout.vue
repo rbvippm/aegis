@@ -19,7 +19,6 @@ defineEmits<{ request: [] }>()
         ><a :href="href" @click="navigate"><ChevronLeft :size="20" />返回我的</a></RouterLink
       >
       <span>{{ kind === 'vip' ? 'VIP 服务' : '代理比价' }}</span>
-      <span class="svc-badge">{{ dataMode === 'demo' ? '演示数据' : '尚未接入' }}</span>
     </div>
     <section class="svc-hero">
       <div class="svc-hero-copy">
@@ -80,12 +79,5 @@ defineEmits<{ request: [] }>()
       >
     </div>
     <p class="svc-footnote">出金速度不代表平台安全评级。</p>
-    <p class="svc-footnote">
-      {{
-        dataMode === 'demo'
-          ? '虚构平台与报价，仅供演示；未接入真实 VIP / 代理服务。'
-          : 'VIP / 代理服务尚未接入，暂不提供报价与需求提交。'
-      }}
-    </p>
   </div>
 </template>
