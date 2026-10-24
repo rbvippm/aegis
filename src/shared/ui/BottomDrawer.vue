@@ -2,10 +2,9 @@
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { X } from '@lucide/vue'
 
-const props = withDefaults(
-  defineProps<{ open: boolean; title: string; subtitle?: string; closeLabel?: string }>(),
-  { subtitle: '', closeLabel: '关闭面板' },
-)
+const props = withDefaults(defineProps<{ open: boolean; title: string; closeLabel?: string }>(), {
+  closeLabel: '关闭面板',
+})
 const emit = defineEmits<{ close: [] }>()
 const titleId = useId()
 const dialog = ref<HTMLDialogElement>()
@@ -18,18 +17,33 @@ const dragging = ref(false)
 const closing = ref(false)
 const entering = ref(false)
 const dragHeight = ref(0)
+const detent = ref<'fit' | 'half' | 'expanded'>('fit')
+const safeTop = ref(0)
 const floorHeight = computed(() => Math.round(viewport.value * 0.6))
-const capHeight = computed(() => Math.round(viewport.value * 0.8))
+const capHeight = computed(() =>
+  Math.max(
+    100,
+    Math.min(Math.floor(viewport.value * 0.8), Math.round(viewport.value - safeTop.value - 12)),
+  ),
+)
 const restingHeight = computed(() =>
   Math.min(capHeight.value, Math.max(floorHeight.value, neededHeight.value)),
 )
+const settledHeight = computed(() =>
+  detent.value === 'expanded'
+    ? capHeight.value
+    : detent.value === 'half'
+      ? floorHeight.value
+      : restingHeight.value,
+)
 const height = computed(() =>
-  closing.value ? closingHeight.value : dragging.value ? dragHeight.value : restingHeight.value,
+  closing.value ? closingHeight.value : dragging.value ? dragHeight.value : settledHeight.value,
 )
 let startY = 0
 let startHeight = 0
 let moved = false
 let pointerId: number | null = null
+let captureTarget: HTMLElement | null = null
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 let disposed = false
 let closeNotified = false
@@ -38,6 +52,9 @@ let observer: ResizeObserver | undefined
 
 function resize() {
   viewport.value = window.visualViewport?.height ?? window.innerHeight
+  safeTop.value = dialog.value
+    ? parseFloat(getComputedStyle(dialog.value).getPropertyValue('--ae-safe-top')) || 0
+    : 0
 }
 function measure() {
   const headerHeight = dialog.value?.querySelector('header')?.getBoundingClientRect().height ?? 0
@@ -50,6 +67,10 @@ function finishClose() {
   onClosed()
 }
 function releasePointer() {
+  if (pointerId !== null && captureTarget?.hasPointerCapture(pointerId)) {
+    captureTarget.releasePointerCapture(pointerId)
+  }
+  captureTarget = null
   pointerId = null
   samples = []
   window.removeEventListener('pointerup', end)
@@ -97,14 +118,11 @@ function start(event: PointerEvent) {
   releasePointer()
   pointerId = event.pointerId
   startY = event.clientY
-  startHeight = dialog.value?.getBoundingClientRect().height ?? restingHeight.value
+  startHeight = dialog.value?.getBoundingClientRect().height ?? settledHeight.value
   moved = false
   samples = [{ y: event.clientY, t: event.timeStamp }]
-  try {
-    ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-  } catch {
-    // A pointer that is already gone cannot be captured; the window listeners still end the gesture.
-  }
+  // Capture only after a real drag so a tap still clicks the handle button.
+  captureTarget = event.currentTarget as HTMLElement
   window.addEventListener('pointerup', end)
   window.addEventListener('pointercancel', cancelPointer)
 }
@@ -118,9 +136,16 @@ function move(event: PointerEvent) {
   while (samples.length > 2 && samples[0]!.t < cutoff) samples.shift()
   const distance = event.clientY - startY
   if (Math.abs(distance) < 6 && !moved) return
+  if (!moved && captureTarget) {
+    try {
+      captureTarget.setPointerCapture(event.pointerId)
+    } catch {
+      /* Pointer may already be released. */
+    }
+  }
   moved = true
   dragging.value = true
-  dragHeight.value = Math.min(restingHeight.value, Math.max(72, startHeight - distance))
+  dragHeight.value = Math.min(capHeight.value, Math.max(100, startHeight - distance))
 }
 function end(event: PointerEvent, cancelled = false) {
   if (event.pointerId !== pointerId) return
@@ -129,14 +154,20 @@ function end(event: PointerEvent, cancelled = false) {
   dragging.value = false
   releasePointer()
   if (!moved || cancelled) return
-  const distanceLimit = Math.max(112, restingHeight.value * 0.28)
+  const distanceLimit = Math.max(112, startHeight * 0.28)
   const flung = velocity >= 0.72 && travel >= 40
   if (flung || travel >= distanceLimit) close()
+  else if (travel <= -32 || (velocity <= -0.5 && travel <= -12)) detent.value = 'expanded'
+  else if (travel >= 40) detent.value = 'half'
 }
 function keydown(event: KeyboardEvent) {
-  if (event.key === 'ArrowDown') {
+  if (event.key === 'ArrowUp' || event.key === 'Home') {
     event.preventDefault()
-    close()
+    detent.value = 'expanded'
+  } else if (event.key === 'ArrowDown') {
+    event.preventDefault()
+    if (detent.value === 'expanded') detent.value = 'half'
+    else close()
   }
 }
 watch(
@@ -159,8 +190,11 @@ watch(
     clearTimeout(closeTimer)
     resize()
     closing.value = false
+    detent.value = 'fit'
     entering.value = true
     dialog.value?.showModal()
+    // The dialog is the initial focus target; keep the handle's blue ring for keyboard use only.
+    dialog.value?.focus({ preventScroll: true })
     measure()
     observer?.disconnect()
     if (content.value && typeof ResizeObserver !== 'undefined') {
@@ -202,7 +236,8 @@ onBeforeUnmount(() => {
     ref="dialog"
     class="ae-drawer"
     :class="{ 'is-dragging': dragging, 'is-closing': closing, 'is-entering': entering }"
-    data-detent="fit"
+    :data-detent="detent"
+    tabindex="-1"
     :style="{ height: `${height}px` }"
     :aria-labelledby="titleId"
     @cancel.prevent="close"
@@ -231,7 +266,6 @@ onBeforeUnmount(() => {
           <span aria-hidden="true"></span>
         </button>
         <div class="ae-drawer__heading">
-          <p v-if="subtitle">{{ subtitle }}</p>
           <h2 :id="titleId">{{ title }}</h2>
         </div>
         <button
@@ -262,7 +296,7 @@ onBeforeUnmount(() => {
   translate: -50% 0;
   width: min(100%, 430px);
   max-width: 100%;
-  max-height: calc(100dvh - env(safe-area-inset-top, 0px) - 12px);
+  max-height: min(80dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 12px));
   min-height: 100px;
   padding: 0;
   border: 1px solid #ffffffed;
@@ -277,6 +311,9 @@ onBeforeUnmount(() => {
   transition:
     height 300ms cubic-bezier(0.22, 0.8, 0.25, 1),
     transform 240ms cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.ae-drawer:focus {
+  outline: none;
 }
 .ae-drawer::backdrop {
   background: #10284758;
@@ -326,6 +363,12 @@ onBeforeUnmount(() => {
   background: transparent;
   touch-action: none;
   cursor: grab;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ae-drawer__handle:focus:not(:focus-visible) {
+  outline: none;
 }
 .ae-drawer__handle span {
   width: 38px;
@@ -338,11 +381,6 @@ onBeforeUnmount(() => {
 }
 .ae-drawer__heading {
   min-width: 0;
-}
-.ae-drawer__heading p {
-  color: #526581;
-  font-size: 12px;
-  margin-bottom: 4px;
 }
 .ae-drawer__heading h2 {
   font-size: 21px;

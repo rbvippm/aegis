@@ -41,7 +41,6 @@ function submit() {
   <BottomDrawer
     :open="open"
     :title="vip ? '匿名 VIP 需求' : '匿名团队合作需求'"
-    subtitle="匿名提交"
     @close="emit('close')"
   >
     <div class="svc-panel">
@@ -110,9 +109,7 @@ function submit() {
           ><small>{{ form.note.length }}/200</small></label
         >
         <p class="svc-note">
-          <LockKeyhole
-            :size="14"
-          />正式服务将先私下核验资料，仅向平台展示脱敏需求。
+          <LockKeyhole :size="14" />正式服务将先私下核验资料，仅向平台展示脱敏需求。
         </p>
         <button class="svc-primary" type="submit">保存需求</button>
       </form>

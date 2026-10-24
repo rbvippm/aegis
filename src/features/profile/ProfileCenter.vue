@@ -127,6 +127,17 @@ async function navigate(next: string, tab?: string) {
     query: next === 'overview' ? {} : { section: next, ...(tab ? { tab } : {}) },
   })
 }
+
+function goBack() {
+  const previous = router.options.history.state.back
+  // Vue Router's history entry survives reloads; never navigate back to an external page.
+  if (typeof previous === 'string' && previous.startsWith('/') && !previous.startsWith('//')) {
+    router.back()
+  } else {
+    void router.replace('/me')
+  }
+}
+
 function ticketAction(ticket: ProfileTicket) {
   ticketId.value = ticket.id
   open('ticketInfo', platformId.value, ticket.id)
@@ -148,6 +159,8 @@ watch(
     panel.value = null
     earningsTab.value = route.query.tab === 'records' ? 'records' : 'bindings'
     readFollowed()
+    const requestedPanel = String(route.query.panel ?? '')
+    if (['help', 'feedback', 'about'].includes(requestedPanel)) open(requestedPanel as ProfilePanel)
   },
   { immediate: true },
 )
@@ -173,7 +186,7 @@ watch(
       </div>
     </header>
     <header v-else class="pf-header pf-header--sub">
-      <button class="pf-icon-button" aria-label="返回我的" @click="navigate('overview')">
+      <button class="pf-icon-button" aria-label="返回上一级" @click="goBack">
         <ChevronLeft :size="22" />
       </button>
       <h1>{{ sections[section] }}</h1>
@@ -239,11 +252,7 @@ watch(
         <section v-else class="pf-card pf-empty-income">
           <h2>我的收益</h2>
           <p>
-            {{
-              dataMode === 'demo'
-                ? '登录后查看收益与绑定记录。'
-                : '暂无收益记录。'
-            }}
+            {{ dataMode === 'demo' ? '登录后查看收益与绑定记录。' : '暂无收益记录。' }}
           </p>
           <button class="pf-text-button" @click="open('login')">
             登录与身份说明<ChevronRight :size="16" />
@@ -515,7 +524,7 @@ watch(
         </section>
         <RouterLink
           class="pf-card pf-ai-help"
-          to="/ai?q=帮我整理出金进度咨询的事实和材料，不要自动提交"
+          to="/ai?analyze=1&amp;q=帮我整理出金进度咨询的事实和材料，不要自动提交"
           ><AiOrb /><span
             ><strong>让 AI 帮我整理事实</strong><small>整理描述与材料，不自动提交工单</small></span
           ><ChevronRight :size="16"

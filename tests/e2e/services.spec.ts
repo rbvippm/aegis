@@ -94,7 +94,8 @@ test('代理团队需求、规划面板与辅助入口', async ({ page }) => {
     .locator('.svc-support')
     .getByRole('link', { name: /问 Aegis AI/ })
     .click()
-  await expect(page.getByRole('textbox', { name: '输入你的问题' })).toHaveValue(/代理佣金/)
+  await expect(page.getByRole('heading', { name: '代理佣金与扣减解读', exact: true })).toBeVisible()
+  await expect(page.locator('.ac-message')).toHaveCount(1)
 })
 
 for (const width of [360, 390, 430]) {

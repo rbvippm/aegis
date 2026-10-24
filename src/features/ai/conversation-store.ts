@@ -45,7 +45,7 @@ export const useConversation = defineStore('ai-conversation', () => {
         conversation.messages.findIndex((item) => item.id === message.id),
       )
       .reverse()
-      .find((item) => item.answer && item.answer.kind !== 'clarify')?.answer?.kind
+      .find((item) => item.answer && item.answer.kind !== 'clarify')?.answer
     try {
       const answer = await requestChat(
         [message.question, message.context].filter(Boolean).join('\n'),

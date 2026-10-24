@@ -229,6 +229,38 @@ onMounted(() => {
     /* Corrupt or unavailable local preferences do not block the page. */
   }
 })
+// Homepage links resolve only known views, events and markets; untrusted query values are ignored.
+watch(
+  () => route.fullPath,
+  () => {
+    const nextView = String(route.query.view ?? '')
+    if (['odds', 'arbitrage', 'ranking'].includes(nextView)) view.value = nextView
+    if (dataMode !== 'demo') return
+    const event = sportsMatches.find((m) => m.id === route.query.match)
+    const selectedMarket =
+      event?.markets.find((m) => m.id === route.query.market) ?? event?.markets[0]
+    if (event) {
+      sport.value = event.sport
+      activeMatch.value = event
+      if (selectedMarket) activeMarket.value = selectedMarket
+    }
+    const operator = String(route.query.platform ?? '')
+    if (['A', 'B', 'C', 'D', 'E', 'F'].includes(operator)) platform.value = operator
+    const kind = String(route.query.panel ?? '')
+    if (kind === 'movements') open('滚球变动', event, selectedMarket)
+    else if (event && selectedMarket) {
+      if (
+        kind === 'quote' &&
+        selectedMarket.quotes.some((q) => q.platform === operator && q.status === 'active')
+      )
+        quote(event, selectedMarket, operator, 'home')
+      else if (kind === 'market') open('盘口与结算规则', event, selectedMarket)
+      else if (kind === 'opportunity' && selectedMarket.calculationEligible)
+        open('机会核验', event, selectedMarket)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -647,9 +679,7 @@ onMounted(() => {
           <p class="sp-tool-subtitle">{{ item.text }}</p>
         </div>
         <p class="sp-notice sp-notice--blue">足球 / 全场亚洲让球 / 近7天 / 共同样本128场</p>
-        <p class="sp-small-note">
-          样本不足、过期报价不参与排名。
-        </p>
+        <p class="sp-small-note">样本不足、过期报价不参与排名。</p>
         <RouterLink class="sp-sheet-link" to="/monitor" @click="close"
           >平台安全与资金详情 → 前往监测<ChevronRight :size="15" /></RouterLink
       ></template>
@@ -689,6 +719,26 @@ onMounted(() => {
         </div>
         <p v-else class="sp-notice">请输入有效预算。</p></template
       >
+      <RouterLink
+        v-if="
+          dataMode === 'demo' &&
+          ['报价详情', '盘口与结算规则', '机会核验', '滚球变动'].includes(panel ?? '')
+        "
+        class="sp-sheet-link"
+        :to="{
+          path: '/ai',
+          query: {
+            analyze: '1',
+            q:
+              panel === '机会核验'
+                ? '帮我分析当前套利机会与预算分配'
+                : panel === '滚球变动'
+                  ? '帮我解读滚球盘口与水位变化'
+                  : `${activeMatch.home}对${activeMatch.away}的${activeMarket.line}，同盘口报价怎么比较？`,
+          },
+        }"
+        >让 AI 解读当前数据<ChevronRight :size="16"
+      /></RouterLink>
       <p v-if="feedback" class="sp-feedback" role="status">{{ feedback }}</p>
     </SportsSheet>
   </div>

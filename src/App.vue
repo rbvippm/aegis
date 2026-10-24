@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Menu, Bell } from '@lucide/vue'
+import { Menu, Bell, Search } from '@lucide/vue'
 import { useRoute } from 'vue-router'
 import AegisMark from '@/shared/ui/AegisMark.vue'
 import LanguageMenu from '@/shared/ui/LanguageMenu.vue'
@@ -35,8 +35,18 @@ const customHeader = computed(() => route.name === 'ai' || profilePage.value)
           aria-label="提醒中心"
           ><Bell :size="22"
         /></RouterLink>
-        <LanguageMenu v-if="route.name !== 'compare'" />
-        <RouterLink v-if="route.name !== 'compare'" custom to="/me" v-slot="{ href, navigate }"
+        <RouterLink v-if="route.name === 'home'" to="/me?section=messages" aria-label="消息中心"
+          ><Bell :size="22"
+        /></RouterLink>
+        <RouterLink v-if="route.name === 'home'" to="/?panel=search" aria-label="搜索平台与赛事"
+          ><Search :size="22"
+        /></RouterLink>
+        <LanguageMenu v-if="!['compare', 'home'].includes(String(route.name))" />
+        <RouterLink
+          v-if="!['compare', 'home'].includes(String(route.name))"
+          custom
+          to="/me"
+          v-slot="{ href, navigate }"
           ><a
             :href="href"
             aria-label="菜单"

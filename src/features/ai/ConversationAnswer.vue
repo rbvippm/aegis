@@ -8,6 +8,7 @@ import {
   Database,
   ThumbsUp,
 } from '@lucide/vue'
+import ProjectAnswer from './ProjectAnswer.vue'
 import AiOrb from '@/shared/ui/AiOrb.vue'
 import { aiFunding, aiOffers, aiScope } from '@/mocks/ai-conversation'
 import type { ChatAnswer, DetailPanel } from './conversation-types'
@@ -20,7 +21,12 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
     <div class="ac-identity">
       <AiOrb /><span>模型分析</span><span><BookOpen :size="12" />内部资料</span>
     </div>
-    <template v-if="answer.kind === 'sports'">
+    <ProjectAnswer
+      v-if="answer.project"
+      :report="answer.project"
+      @detail="emit('detail', $event)"
+    />
+    <template v-else-if="answer.kind === 'sports'">
       <div class="ac-card ac-fixture">
         <div class="ac-fixture-teams">
           <span class="ac-crest ac-crest--villa">AV</span><strong>阿斯顿维拉</strong
@@ -45,8 +51,7 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
           <li>密集赛程下的体能变数。</li>
         </ol>
         <button class="ac-warning" @click="emit('detail', 'analysis')">
-          <CircleAlert :size="14" /><span>首发与伤停待确认</span
-          ><ChevronRight :size="15" />
+          <CircleAlert :size="14" /><span>首发与伤停待确认</span><ChevronRight :size="15" />
         </button>
         <button class="ac-text-link" @click="emit('detail', 'analysis')">
           完整分析与依据<ChevronRight :size="16" />
@@ -58,7 +63,9 @@ const emit = defineEmits<{ detail: [panel: DetailPanel]; followup: [question: st
           <span>主队 +0.75 · 港盘</span>
         </div>
         <table class="ac-table">
-          <caption class="ac-sr-only">同盘口报价</caption>
+          <caption class="ac-sr-only">
+            同盘口报价
+          </caption>
           <thead>
             <tr>
               <th>平台</th>

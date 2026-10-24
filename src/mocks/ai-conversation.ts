@@ -70,7 +70,7 @@ export function mockChatAnswer(kind: AnswerKind): ChatAnswer {
   return {
     kind,
     summary:
-      '请补充赛事名称、市场与盘口，或要比较的平台出入金。',
+      '当前固定资料尚不能回答任意实时问题。请补充赛事名称、市场与盘口，或要比较的平台出入金。',
     sources: [],
     followups: [aiSuggestions[0].text, aiSuggestions[2].text],
   }

@@ -197,7 +197,6 @@ function toggleSort(value: string) {
             ? '匿名排行与盲拍说明'
             : `${selected.name} · VIP 完整条款`
       "
-      subtitle="VIP 条款"
       @close="panel = null"
     >
       <div class="svc-panel">

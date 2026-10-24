@@ -7,7 +7,9 @@ test('AI 欢迎页、赛事分析、详情与同盘口对比', async ({ page }) 
   await page.goto('/ai')
   await expect(page.getByRole('heading', { name: '你好，我是 Aegis AI' })).toBeVisible()
   await expect(page.locator('.ae-dock [aria-current="page"]')).toHaveText('AI')
-  await expect(page.getByText('关键结论附依据', { exact: true })).toBeVisible()
+  await expect(
+    page.locator('.ac-header').getByText('关键结论附依据', { exact: true }),
+  ).toBeVisible()
   await page.getByRole('button', { name: sports, exact: true }).click()
   const answer = page.locator('.ac-answer')
   await expect(answer.getByRole('region', { name: '方向参考' })).toContainText('维拉 +0.75')
@@ -144,3 +146,31 @@ test('缩小视口、减少动效和减少透明度时输入与导航仍可用',
   await expect(page.getByRole('region', { name: '方向参考' })).toBeVisible()
   await page.screenshot({ path: 'outputs/ai-implementation/compact-viewport.png' })
 })
+
+for (const [width, height] of [
+  [360, 667],
+  [390, 844],
+  [430, 932],
+]) {
+  test(`${width}×${height} 欢迎页一屏完整显示且不能横向滚动`, async ({ page }) => {
+    await page.setViewportSize({ width: width!, height: height! })
+    await page.goto('/ai')
+    await expect(page.locator('.ac-welcome')).toBeVisible()
+    await expect(page.locator('.page-enter-active')).toHaveCount(0)
+    const sizes = await page.locator('.ac-thread').evaluate((el) => ({
+      width: el.clientWidth,
+      scrollWidth: el.scrollWidth,
+      height: el.clientHeight,
+      scrollHeight: el.scrollHeight,
+    }))
+    expect(sizes.scrollWidth).toBeLessThanOrEqual(sizes.width)
+    expect(sizes.scrollHeight).toBeLessThanOrEqual(sizes.height + 1)
+    await expect(page.locator('.ac-capabilities')).toBeInViewport({ ratio: 1 })
+    await expect(page.locator('.ac-composer')).toBeInViewport({ ratio: 1 })
+    await page.locator('.ac-thread').evaluate((el) => {
+      el.scrollLeft = 100
+    })
+    expect(await page.locator('.ac-thread').evaluate((el) => el.scrollLeft)).toBe(0)
+    await page.screenshot({ path: `outputs/ai-implementation/compact-welcome-${width}.png` })
+  })
+}

@@ -17,7 +17,7 @@ describe('对话上下文与请求隔离', () => {
     expect(resolveChatKind('TRON 小额出金')).toBe('funding')
     expect(resolveChatKind('为什么选受让？', 'sports')).toBe('sports')
     expect(resolveChatKind('皇马 vs 巴萨怎么看？', 'sports')).toBe('clarify')
-    expect(resolveChatKind('同盘口哪家更好？')).toBe('clarify')
+    expect(resolveChatKind('同盘口哪家更好？')).toBe('project')
   })
   it('停止后旧请求不能覆盖新会话，重试保留同一问题', async () => {
     const store = useConversation()

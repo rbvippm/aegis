@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Search,
@@ -69,16 +69,17 @@ function resetFilters() {
   search.value = ''
 }
 function submitDemo() {
-  feedback.value =
-    panel.value?.kind === '绑定 UID'
-      ? 'UID 已校验。'
-      : '异常说明已提交。'
+  feedback.value = panel.value?.kind === '绑定 UID' ? 'UID 已校验。' : '异常说明已提交。'
 }
-onMounted(async () => {
-  if (dataMode !== 'demo') return
-  const platform = researchPlatforms.find((item) => item.id === route.query.platform)
-  if (platform) await open('详情', platform)
-})
+watch(
+  () => route.fullPath,
+  () => {
+    if (dataMode !== 'demo') return
+    const platform = researchPlatforms.find((item) => item.id === route.query.platform)
+    if (platform) open(route.query.panel === 'flow' ? '异动详情' : '详情', platform)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -158,16 +159,11 @@ onMounted(async () => {
         ><span>查看详情 <ChevronRight :size="13" /></span>
       </button>
     </template>
-    <StatePanel
-      v-else
-      title="暂无监测数据"
-      description="稍后再查看链上监测与平台研究。"
-    />
+    <StatePanel v-else title="暂无监测数据" description="稍后再查看链上监测与平台研究。" />
 
     <BottomDrawer
       :open="panel !== null"
-      :title="panel?.kind ?? ''"
-      :subtitle="panel?.platform?.name ?? '平台监测'"
+      :title="panel?.platform ? `${panel.platform.name} · ${panel.kind}` : (panel?.kind ?? '')"
       close-label="关闭弹窗"
       @close="close"
     >
@@ -202,9 +198,7 @@ onMounted(async () => {
             </div>
           </template>
           <template v-else-if="panel.kind === '绑定 UID'">
-            <p>
-              额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算以平台规则为准。
-            </p>
+            <p>额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算以平台规则为准。</p>
             <form @submit.prevent="submitDemo">
               <label class="research-field"
                 >{{ panel.platform?.name }} UID<input
@@ -243,7 +237,10 @@ onMounted(async () => {
                 }}{{ panel.platform?.taint === null ? '' : '%' }}</span
               >
             </div>
-            <p>统计近7天热钱包流入中，与黑客、电诈、混币器标记地址 ≤3 跳关联的污染占比。不代表交易所放行或资金安全承诺。</p>
+            <p>
+              统计近7天热钱包流入中，与黑客、电诈、混币器标记地址 ≤3
+              跳关联的污染占比。不代表交易所放行或资金安全承诺。
+            </p>
             <button class="research-sheet-link" @click="open('评级口径与来源', panel.platform)">
               查看评级口径 <ChevronRight :size="15" />
             </button>
@@ -253,18 +250,14 @@ onMounted(async () => {
               <TriangleAlert :size="22" />平台 B · 24h 净流出 28%
             </div>
             <p>
-              热钱包余额 $21.6M；24h 净流出 $6.0M。口径为净流出额 ÷
-              当前钱包余额，结果四舍五入。
+              热钱包余额 $21.6M；24h 净流出 $6.0M。口径为净流出额 ÷ 当前钱包余额，结果四舍五入。
             </p>
             <p>钱包异动不等同于平台违约。需结合地址归属、资金去向与历史流向核查。</p>
             <p class="research-sheet-note">快照 {{ researchSnapshot }}</p>
           </template>
           <template v-else-if="panel.kind === '评级口径与来源' || panel.kind === '评分依据'">
             <p><strong>独立评分 · 赞助不影响排名</strong></p>
-            <p>
-              盾牌分 = 储备充足率40% + 出金纯净度30% +
-              客诉解决率30%。分项归一化后计算。
-            </p>
+            <p>盾牌分 = 储备充足率40% + 出金纯净度30% + 客诉解决率30%。分项归一化后计算。</p>
             <p>
               储备充足率须结合可核验负债，不能仅用热钱包余额替代；客诉解决率须有真实工单及解决口径。
             </p>
@@ -283,10 +276,19 @@ onMounted(async () => {
           <template v-else-if="panel.kind === '地址清单'">
             <p>覆盖链：{{ panel.platform?.chains.join('、') }}。</p>
           </template>
-          <template v-else-if="panel.kind === '历史评测'"
-            ><p>暂无历史评测。</p></template
-          >
+          <template v-else-if="panel.kind === '历史评测'"><p>暂无历史评测。</p></template>
           <template v-else-if="panel.kind === '详情'">
+            <RouterLink
+              class="research-sheet-link"
+              :to="{
+                path: '/ai',
+                query: {
+                  analyze: '1',
+                  q: `解读${panel.platform?.name}的盾牌分、热钱包、纯净度与出金评级`,
+                },
+              }"
+              >让 AI 解读平台数据<ChevronRight :size="16"
+            /></RouterLink>
             <p>
               {{
                 panel.platform?.score === null
@@ -305,7 +307,9 @@ onMounted(async () => {
           </template>
           <template v-else
             ><p>快照：2026/{{ researchSnapshot }}。</p>
-            <p>平台 A 共 126 笔、平台 B 共 64 笔耗时样本；平台 C 仅 8 笔，样本不足，不参与排名。</p></template
+            <p>
+              平台 A 共 126 笔、平台 B 共 64 笔耗时样本；平台 C 仅 8 笔，样本不足，不参与排名。
+            </p></template
           >
           <p v-if="feedback" class="research-feedback" role="status">{{ feedback }}</p>
         </div>

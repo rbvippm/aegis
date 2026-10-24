@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 
 for (const route of ['monitor', 'compare']) {
-  test(`${route} 抽屉按距离关闭，短距离下滑保持展开`, async ({ page }) => {
+  test(`${route} 抽屉上拉最高、慢拉半收起、快拉与长拉关闭`, async ({ page }) => {
     await page.goto(`/${route}`)
     const trigger = page.getByRole('button', {
       name: route === 'monitor' ? '筛选平台' : '识别',
@@ -24,7 +24,15 @@ for (const route of ['monitor', 'compare']) {
     expect(ratio).toBeGreaterThanOrEqual(0.59)
     expect(ratio).toBeLessThanOrEqual(0.81)
     const session = await page.context().newCDPSession(page)
-    async function pull(distance: number) {
+    async function pull(distance: number, stepDelay = 60) {
+      await drawer.evaluate((el) =>
+        Promise.all(el.getAnimations().map((animation) => animation.finished.catch(() => {}))),
+      )
+      await expect
+        .poll(() =>
+          drawer.evaluate((el) => Math.abs(el.getBoundingClientRect().bottom - innerHeight)),
+        )
+        .toBeLessThan(2)
       const box = await drawer.locator('.ae-drawer__header').boundingBox()
       if (!box) throw new Error('Missing drawer header')
       const x = box.x + 28
@@ -35,6 +43,7 @@ for (const route of ['monitor', 'compare']) {
         touchPoints: [{ x, y }],
       })
       for (let step = 1; step <= 8; step++) {
+        await page.waitForTimeout(stepDelay)
         await session.send('Input.dispatchTouchEvent', {
           type: 'touchMove',
           touchPoints: [{ x, y: y + (distance * step) / 8 }],
@@ -43,6 +52,25 @@ for (const route of ['monitor', 'compare']) {
       await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
       return leftBefore
     }
+    await expect(drawer).toBeFocused()
+    expect(await handle.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('none')
+    await pull(-180)
+    await expect(drawer).toHaveAttribute('data-detent', 'expanded')
+    await expect.poll(heightRatio).toBeGreaterThan(0.79)
+    expect(await heightRatio()).toBeLessThanOrEqual(0.801)
+    await page.screenshot({ path: `outputs/drawer-review/${route}-manual-max.png` })
+    await pull(90)
+    await expect(drawer).toHaveAttribute('data-detent', 'half')
+    await expect.poll(heightRatio).toBeLessThan(0.62)
+    await page.screenshot({ path: `outputs/drawer-review/${route}-half.png` })
+    await pull(-120)
+    await expect(drawer).toHaveAttribute('data-detent', 'expanded')
+    await expect.poll(heightRatio).toBeGreaterThan(0.79)
+    expect(await heightRatio()).toBeLessThanOrEqual(0.801)
+    await pull(150, 5)
+    await expect(drawer).not.toBeVisible()
+    await trigger.click()
+    await expect(drawer).toHaveAttribute('data-detent', 'fit')
     const leftBefore = await pull(48)
     await expect(drawer).toBeVisible()
     await expect.poll(heightRatio).toBeGreaterThanOrEqual(0.59)
@@ -102,6 +130,10 @@ test('减少动效时抽屉键盘操作与关闭仍可用', async ({ page }) => 
   const handle = drawer.locator('.ae-drawer__handle')
   await handle.focus()
   await expect(drawer).toHaveAttribute('data-detent', 'fit')
+  await page.keyboard.press('ArrowUp')
+  await expect(drawer).toHaveAttribute('data-detent', 'expanded')
+  await page.keyboard.press('ArrowDown')
+  await expect(drawer).toHaveAttribute('data-detent', 'half')
   await page.keyboard.press('ArrowDown')
   await expect(drawer).not.toBeVisible()
 })

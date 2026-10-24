@@ -99,8 +99,7 @@ watch(
 )
 function bind() {
   error.value = profile.bind(selectedPlatform.value, uid.value)
-  if (!error.value)
-    status.value = 'UID 已保存，奖励资格待验证。'
+  if (!error.value) status.value = 'UID 已保存，奖励资格待验证。'
 }
 function filesChanged(event: Event) {
   const input = event.target as HTMLInputElement
@@ -162,8 +161,7 @@ function saveProfile() {
 }
 function validateEmail() {
   error.value = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()) ? '' : '请输入有效邮箱。'
-  if (!error.value)
-    status.value = '邮箱格式有效。'
+  if (!error.value) status.value = '邮箱格式有效。'
 }
 function saveNotifications() {
   if (dataMode !== 'demo') {
@@ -186,9 +184,7 @@ async function copyUid() {
 <template>
   <BottomDrawer :open="panel !== null" :title="title" @close="emit('close')">
     <div class="pf-drawer-content">
-      <p class="pf-mode">
-        个人中心
-      </p>
+      <p class="pf-mode">个人中心</p>
       <template v-if="panel === 'settings'">
         <h3 class="pf-group-label">登录与绑定</h3>
         <div class="pf-setting-group">
@@ -240,9 +236,7 @@ async function copyUid() {
         </button>
       </template>
       <template v-else-if="panel === 'identity'"
-        ><div class="pf-info">
-          <UserRound :size="18" /><span>当前账号</span>
-        </div>
+        ><div class="pf-info"><UserRound :size="18" /><span>当前账号</span></div>
         <form @submit.prevent="saveProfile">
           <label class="pf-field"
             >昵称<input v-model="nickname" maxlength="20" autocomplete="off" /></label
@@ -253,9 +247,7 @@ async function copyUid() {
       ></template>
       <template v-else-if="panel === 'login'"
         ><div class="pf-info">
-          <ShieldCheck :size="18" /><span
-            >支持 Telegram 或邮箱登录。</span
-          >
+          <ShieldCheck :size="18" /><span>支持 Telegram 或邮箱登录。</span>
         </div>
         <button class="pf-outline pf-wide" @click="emit('open', 'telegram')">
           <Send :size="16" />Telegram 登录说明</button
@@ -267,9 +259,7 @@ async function copyUid() {
         <p class="pf-helper">登录后可查看绑定、收益和工单。</p></template
       >
       <template v-else-if="panel === 'email'"
-        ><p class="pf-body-text">
-          填写邮箱并检查格式。
-        </p>
+        ><p class="pf-body-text">填写邮箱并检查格式。</p>
         <form @submit.prevent="validateEmail">
           <label class="pf-field"
             >邮箱<input
@@ -302,9 +292,7 @@ async function copyUid() {
         </section></template
       >
       <template v-else-if="panel === 'notifications'"
-        ><div class="pf-info">
-          <Bell :size="18" /><span>选择需要接收的提醒。</span>
-        </div>
+        ><div class="pf-info"><Bell :size="18" /><span>选择需要接收的提醒。</span></div>
         <form @submit.prevent="saveNotifications">
           <h3 class="pf-group-label">提醒内容</h3>
           <label
@@ -324,16 +312,13 @@ async function copyUid() {
             ><span>Telegram</span
             ><input v-model="notificationDraft.telegram" type="checkbox" /></label
           ><label class="pf-check-row"
-            ><span>邮箱</span
-            ><input v-model="notificationDraft.email" type="checkbox" /></label
+            ><span>邮箱</span><input v-model="notificationDraft.email" type="checkbox" /></label
           ><button class="pf-primary pf-wide">保存</button>
         </form></template
       >
       <template v-else-if="panel === 'binding'"
         ><div class="pf-info">
-          <LockKeyhole :size="18" /><span
-            >绑定 UID 后，奖励资格仍需单独核验。</span
-          >
+          <LockKeyhole :size="18" /><span>绑定 UID 后，奖励资格仍需单独核验。</span>
         </div>
         <form @submit.prevent="bind">
           <label class="pf-field"
@@ -350,9 +335,7 @@ async function copyUid() {
               placeholder="输入平台 UID"
               required
           /></label>
-          <p class="pf-helper">
-            修改 UID 后，奖励资格回到待验证。
-          </p>
+          <p class="pf-helper">修改 UID 后，奖励资格回到待验证。</p>
           <button class="pf-primary pf-wide">保存 UID</button>
         </form></template
       >
@@ -389,18 +372,13 @@ async function copyUid() {
           <p>
             展示待结算和已结算记录，由平台或人工在站外结算。本产品不保管资金，不提供充值或提现。
           </p>
-          <p>
-            UID
-            绑定、渠道奖励资格和实际结算是独立状态。比例、周期及资格未核验时显示待确认。
-          </p>
+          <p>UID 绑定、渠道奖励资格和实际结算是独立状态。比例、周期及资格未核验时显示待确认。</p>
           <p>此页展示各平台的结算记录。</p>
         </section></template
       >
       <template v-else-if="panel === 'ticketForm' || panel === 'ticketInfo'">
         <div class="pf-info">
-          <LockKeyhole :size="18" /><span
-            >请勿填写助记词、私钥或其他敏感信息。</span
-          >
+          <LockKeyhole :size="18" /><span>请勿填写助记词、私钥或其他敏感信息。</span>
         </div>
         <section v-if="panel === 'ticketInfo' && ticket" class="pf-card">
           <h3>{{ ticket.id }} · 平台 {{ ticket.platform }}</h3>
@@ -454,9 +432,7 @@ async function copyUid() {
               multiple
               @change="filesChanged"
           /></label>
-          <p class="pf-helper">
-            最多 5 个，每个 10MB 以内。请勿上传助记词、私钥或其他敏感文件。
-          </p>
+          <p class="pf-helper">最多 5 个，每个 10MB 以内。请勿上传助记词、私钥或其他敏感文件。</p>
           <ul v-if="evidence.length" class="pf-file-list">
             <li v-for="(file, index) in evidence" :key="index">
               {{ file.name }}<button type="button" @click="evidence.splice(index, 1)">移除</button>
@@ -467,7 +443,7 @@ async function copyUid() {
           </button>
         </form>
         <RouterLink
-          to="/ai?q=帮我整理一份出金进度咨询需要提供的事实和材料，不要自动提交"
+          to="/ai?analyze=1&amp;q=帮我整理一份出金进度咨询需要提供的事实和材料，不要自动提交"
           class="pf-text-button"
           @click="emit('close')"
           >让 AI 整理材料<ChevronRight :size="16"
@@ -510,7 +486,10 @@ async function copyUid() {
         </section>
         <section class="pf-card">
           <h3>我们提供什么</h3>
-          <p>通过链上资金监测、同盘口报价对比和可追溯的 AI 分析，帮助用户理解数据与规则。不保管用户资金，不承诺收益或赔付。</p>
+          <p>
+            通过链上资金监测、同盘口报价对比和可追溯的 AI
+            分析，帮助用户理解数据与规则。不保管用户资金，不承诺收益或赔付。
+          </p>
         </section>
         <button class="pf-text-button" @click="emit('open', 'feedback')">
           意见反馈<ChevronRight :size="16" /></button
@@ -523,7 +502,7 @@ async function copyUid() {
         <button class="pf-text-button" @click="emit('navigate', 'tickets')">
           <FileText :size="18" />我的工单<ChevronRight :size="16" /></button
         ><RouterLink
-          to="/ai?q=如何核对平台UID、奖励资格和出金记录？"
+          to="/ai?analyze=1&amp;q=如何核对平台UID、奖励资格和出金记录？"
           class="pf-text-button"
           @click="emit('close')"
           ><CircleHelp :size="18" />询问 Aegis AI<ChevronRight :size="16" /></RouterLink
@@ -540,9 +519,7 @@ async function copyUid() {
       <template v-else-if="panel === 'logout'"
         ><section class="pf-card">
           <h3>切换为游客浏览？</h3>
-          <p>
-            退出后将以游客身份浏览，昵称、UID 和草稿会被清空。
-          </p>
+          <p>退出后将以游客身份浏览，昵称、UID 和草稿会被清空。</p>
         </section>
         <button class="pf-primary pf-wide" @click="exitPreview">切换为游客</button></template
       >

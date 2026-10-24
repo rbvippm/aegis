@@ -218,8 +218,7 @@ function resetFilters() {
           }}</span
           ><strong>{{ policy.name }}</strong
           ><span
-            ><span class="svc-badge">样本不足，暂不评级</span
-            ><small>结算记录待核验</small></span
+            ><span class="svc-badge">样本不足，暂不评级</span><small>结算记录待核验</small></span
           ><ChevronRight :size="14" />
         </button>
         <button class="svc-text" @click="evidence(agentPolicies[0]!)">
@@ -259,7 +258,6 @@ function resetFilters() {
                 ? '信誉评级方法'
                 : '第三方担保与仲裁规划'
       "
-      subtitle="代理条款"
       @close="panel = null"
     >
       <div class="svc-panel">
@@ -335,18 +333,13 @@ function resetFilters() {
             <div>
               <dt>净收益与场馆费</dt>
               <dd>
-                已结算有效投注形成的净收益，先扣 {{ selected.venueFee }}%
-                场馆费及其他成本，再按 {{ selected.commission }}%
-                分成；各场馆费率以原始账单为准。
+                已结算有效投注形成的净收益，先扣 {{ selected.venueFee }}% 场馆费及其他成本，再按
+                {{ selected.commission }}% 分成；各场馆费率以原始账单为准。
               </dd>
             </div>
             <div>
               <dt>其他扣减</dt>
-              <dd>
-                {{
-                  selected.deductions
-                }}。主页面试算未计入其他扣减，完整结算以政策明细为准。
-              </dd>
+              <dd>{{ selected.deductions }}。主页面试算未计入其他扣减，完整结算以政策明细为准。</dd>
             </div>
             <div>
               <dt>负盈利结转</dt>

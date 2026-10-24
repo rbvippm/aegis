@@ -65,6 +65,7 @@ defineEmits<{ request: [] }>()
         :to="{
           path: '/ai',
           query: {
+            analyze: '1',
             q:
               kind === 'vip'
                 ? '比较 VIP 方案时，应该核对哪些条款？'

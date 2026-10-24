@@ -25,6 +25,7 @@ import ConversationAnswer from '@/features/ai/ConversationAnswer.vue'
 import ConversationDetails from '@/features/ai/ConversationDetails.vue'
 import { useConversation } from '@/features/ai/conversation-store'
 import type { ChatMessage, DetailPanel } from '@/features/ai/conversation-types'
+import { resolveProjectScenario } from '@/mocks/ai-project'
 import { aiSuggestions } from '@/mocks/ai-conversation'
 import { dataMode } from '@/shared/api/config'
 
@@ -140,12 +141,18 @@ function pickTool(kind: string) {
   else void send(aiSuggestions[0].text)
 }
 watch(
-  () => route.query.q,
-  async (value) => {
+  () => [route.query.q, route.query.analyze] as const,
+  async ([value, analyze]) => {
     if (typeof value !== 'string' || !value.trim()) return
     draft.value = value.slice(0, 2000)
     await nextTick()
     resizeInput()
+    // Only explicit business analysis links start a mock request; plain q remains editable.
+    if (dataMode === 'demo' && analyze === '1' && resolveProjectScenario(value)) {
+      chat.newConversation()
+      await router.replace({ path: '/ai', query: { ...route.query, analyze: undefined } })
+      await send(value.slice(0, 2000))
+    }
   },
   { immediate: true },
 )
@@ -361,9 +368,7 @@ onBeforeUnmount(() => chat.stop())
             </button></div
         ></template>
         <template v-else-if="utility === 'context'"
-          ><p class="ac-prose">
-            补充赛事、盘口或平台背景，用于当前问题。
-          </p>
+          ><p class="ac-prose">补充赛事、盘口或平台背景，用于当前问题。</p>
           <label class="ac-field"
             >背景信息<textarea
               v-model="contextDraft"
