@@ -184,7 +184,6 @@ async function copyUid() {
 <template>
   <BottomDrawer :open="panel !== null" :title="title" @close="emit('close')">
     <div class="pf-drawer-content">
-      <p class="pf-mode">个人中心</p>
       <template v-if="panel === 'settings'">
         <h3 class="pf-group-label">登录与绑定</h3>
         <div class="pf-setting-group">
@@ -492,8 +491,9 @@ async function copyUid() {
           </p>
         </section>
         <button class="pf-text-button" @click="emit('open', 'feedback')">
-          意见反馈<ChevronRight :size="16" /></button
-      ></template>
+          意见反馈<ChevronRight :size="16" />
+        </button>
+      </template>
       <template v-else-if="panel === 'help'"
         ><section class="pf-card">
           <h3>帮助与客服</h3>

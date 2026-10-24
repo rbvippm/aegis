@@ -85,9 +85,10 @@ for (const width of [360, 390, 430]) {
     await page.setViewportSize({ width, height: 844 })
     const errors: string[] = []
     page.on('pageerror', (e) => errors.push(e.message))
-    for (const section of ['', 'earnings', 'tickets']) {
+    for (const section of ['', 'earnings', 'tickets', 'messages', 'follows', 'history']) {
       await page.goto('/me' + (section ? '?section=' + section : ''))
       await expect(page.locator('.page-enter-active')).toHaveCount(0)
+      await expect(page.locator('.pf-mode')).toHaveCount(0)
       await page.screenshot({
         path: `outputs/profile-implementation/${section || 'overview'}-${width}.png`,
         animations: 'disabled',

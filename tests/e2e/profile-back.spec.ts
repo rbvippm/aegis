@@ -38,3 +38,14 @@ test('消息页刷新仍保留返回来源，直接打开无来源则回我的',
   await expect(direct).toHaveURL(/\/me$/)
   await direct.close()
 })
+
+test('监测页仅保留消息入口，返回监测页', async ({ page }) => {
+  await page.goto('/monitor')
+  const actions = page.locator('.home-header-actions')
+  await expect(actions.getByRole('link')).toHaveCount(1)
+  await expect(actions.locator('.lang-switch')).toHaveCount(0)
+  await page.getByRole('button', { name: '7d', exact: true }).click()
+  await actions.getByRole('link', { name: '消息中心', exact: true }).click()
+  await page.getByRole('button', { name: '返回上一级', exact: true }).click()
+  await expect(page).toHaveURL(/\/monitor$/)
+})

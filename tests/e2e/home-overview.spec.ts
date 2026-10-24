@@ -46,7 +46,7 @@ test('制式偏好、滚球记录、资金抽屉与搜索', async ({ page }) => 
   await expect(drawer).toContainText('净流向 −$6.0M')
   await drawer.getByRole('button', { name: '收起抽屉', exact: true }).click()
   await expect(drawer).not.toBeVisible()
-  await page.getByRole('link', { name: '搜索平台与赛事', exact: true }).click()
+  await page.goto('/?panel=search')
   await drawer.getByRole('searchbox').fill('不存在')
   await expect(drawer.getByText('暂无匹配结果')).toBeVisible()
   await drawer.getByRole('searchbox').fill('海港')

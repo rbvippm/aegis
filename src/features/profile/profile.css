@@ -72,25 +72,7 @@
   letter-spacing: -0.4px;
 }
 .pf-content {
-  padding: 0 12px;
-}
-.pf-mode {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #526581;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.5;
-  margin: 2px 4px 10px;
-}
-.pf-mode::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #8aa3c0;
-  flex-shrink: 0;
+  padding: 12px 12px 0;
 }
 .pf-identity {
   position: relative;
@@ -1189,4 +1171,13 @@
   .pf-drawer-content button:active:not(:disabled) {
     transform: none;
   }
+}
+
+.pf-version {
+  margin: 16px 0 0;
+  color: var(--ae-muted);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
 }

@@ -199,7 +199,6 @@ watch(
       </button>
     </header>
     <div class="pf-content">
-      <p class="pf-mode">个人中心</p>
       <template v-if="section === 'overview'">
         <button class="pf-identity" @click="open(profile.previewIdentity ? 'identity' : 'login')">
           <span class="pf-identity-crystal" aria-hidden="true"><AegisMark /></span>
@@ -307,6 +306,7 @@ watch(
             ><ChevronRight :size="14" />
           </button>
         </div>
+        <p class="pf-version">version：v1.0.0</p>
       </template>
       <StatePanel
         v-else-if="dataMode !== 'demo'"
