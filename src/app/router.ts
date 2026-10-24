@@ -18,7 +18,7 @@ const router = createRouter({
     {
       path: '/ai',
       name: 'ai',
-      component: () => import('@/pages/PlaceholderPage.vue'),
+      component: () => import('@/pages/AiPage.vue'),
       meta: { title: 'Aegis AI' },
     },
     {
@@ -31,7 +31,7 @@ const router = createRouter({
     {
       path: '/me',
       name: 'me',
-      component: () => import('@/pages/PlaceholderPage.vue'),
+      component: () => import('@/pages/MePage.vue'),
       meta: { title: '我的' },
     },
     {
@@ -46,6 +46,12 @@ const router = createRouter({
   },
 })
 router.afterEach((to) => {
-  document.title = `${String(to.meta.title ?? 'Aegis')} · Aegis`
+  const title =
+    to.name === 'me' && to.query.section === 'vip'
+      ? 'VIP 服务'
+      : to.name === 'me' && to.query.section === 'agents'
+        ? '代理比价'
+        : String(to.meta.title ?? 'Aegis')
+  document.title = `${title} · Aegis`
 })
 export default router

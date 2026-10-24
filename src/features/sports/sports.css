@@ -42,13 +42,13 @@
   font-size: 13px;
   font-weight: 500;
   margin-top: 5px;
-  color: #416caa;
+  color: #36567f;
 }
 .sp-format-button {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   border-radius: 24px;
   font-size: 13px;
@@ -66,7 +66,7 @@
 .sp-pill-tabs button {
   border: 0;
   border-radius: 22px;
-  min-height: 40px;
+  min-height: 44px;
   background: none;
   color: #416494;
   font-size: 13px;
@@ -213,11 +213,11 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  min-height: 29px;
+  min-height: 44px;
   border: 0;
   background: none;
-  color: #6180a8;
-  font-size: 11px;
+  color: #0759e6;
+  font-size: 13px;
   padding: 0 2px;
 }
 .sp-card {
@@ -243,8 +243,8 @@
   align-items: center;
   gap: 6px;
   min-height: 25px;
-  color: #5d7da5;
-  font-size: 11px;
+  color: #526581;
+  font-size: 12px;
 }
 .sp-match-meta > span:first-child {
   display: flex;
@@ -255,11 +255,11 @@
 .sp-match-meta > button {
   display: grid;
   place-items: center;
-  min-height: 30px;
-  width: 28px;
+  min-height: 44px;
+  width: 44px;
   border: 0;
   background: none;
-  color: #0874ff;
+  color: #0864ff;
   padding: 0;
 }
 .sp-live {
@@ -267,7 +267,7 @@
   background: #fff0f3;
   border-radius: 12px;
   color: #d82d4c;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 .sp-teams {
@@ -333,14 +333,14 @@
   justify-content: center;
   gap: 5px;
   width: 100%;
-  min-height: 29px;
+  min-height: 44px;
   padding: 0 4px;
   margin: 5px 0;
   background: #edf5ff;
   border: 0;
   border-radius: 8px;
-  color: #2b5188;
-  font-size: 12px;
+  color: #14213d;
+  font-size: 13px;
 }
 .sp-quotes,
 .sp-allocation,
@@ -361,13 +361,15 @@
   padding: 0;
   text-align: center;
   font-size: 13px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .sp-quotes thead th {
-  font-size: 11px;
-  font-weight: 400;
+  font-size: 12px;
+  font-weight: 500;
   background: #eff7ff;
-  color: #6982a4;
-  height: 25px;
+  color: #526581;
+  height: 32px;
 }
 .sp-quotes th:last-child,
 .sp-quotes td:last-child {
@@ -441,12 +443,13 @@
   background: #e3f1ff;
 }
 .sp-best-tag {
-  font-size: 9px;
+  font-size: 12px;
+  font-weight: 600;
   color: #fff;
-  background: #67aaff;
+  background: #0759e6;
   border-radius: 4px;
   padding: 0 4px;
-  line-height: 13px;
+  line-height: 16px;
 }
 .sp-paused {
   display: flex;
@@ -455,7 +458,7 @@
   gap: 4px;
   min-height: 44px;
   background: #f0f5fb;
-  color: #8296b1;
+  color: #526581;
   font-size: 12px;
 }
 .sp-table-empty {
@@ -467,9 +470,9 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  font-size: 11px;
-  color: #2c75d4;
-  min-height: 27px;
+  font-size: 12px;
+  color: #0759e6;
+  min-height: 32px;
   background: #f0f7ff;
   border-radius: 0 0 8px 8px;
 }
@@ -492,8 +495,8 @@
   border: 0;
   background: none;
   padding: 0 3px;
-  color: #0874ff;
-  font-size: 12px;
+  color: #0759e6;
+  font-size: 13px;
 }
 .sp-expand {
   display: flex;
@@ -501,11 +504,11 @@
   justify-content: center;
   gap: 5px;
   width: 100%;
-  min-height: 30px;
+  min-height: 44px;
   background: none;
   border: 0;
-  font-size: 12px;
-  color: #5c7ba5;
+  font-size: 13px;
+  color: #526581;
 }
 .sp-rotate {
   transform: rotate(180deg);
@@ -514,7 +517,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  min-height: 35px;
+  min-height: 44px;
   padding: 6px 10px;
   border: 1px solid white;
   border-radius: 12px;
@@ -543,17 +546,17 @@
   display: block;
 }
 .sp-prediction small {
-  font-size: 11px;
-  color: #5e7aa0;
+  font-size: 12px;
+  color: #526581;
   display: block;
   margin-top: 3px;
 }
 .sp-prediction > b {
   display: flex;
   align-items: center;
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
-  color: #0874ff;
+  color: #0759e6;
   margin-left: auto;
   font-weight: 500;
 }
@@ -592,12 +595,12 @@
 .sp-section-title button {
   background: none;
   border: 0;
-  min-width: 30px;
-  min-height: 35px;
-  color: #53759f;
+  min-width: 44px;
+  min-height: 44px;
+  color: #0759e6;
 }
 .sp-status-chip {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   border-radius: 12px;
   background: #edf5ff;
@@ -614,8 +617,8 @@
   padding: 8px 16px;
   border: 1px solid #c0ddff;
   border-radius: 25px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
 }
 .sp-secondary {
   color: #0874ff;
@@ -670,7 +673,7 @@
   gap: 6px;
   width: 100%;
   margin-top: 10px;
-  min-height: 40px;
+  min-height: 44px;
   border: 1px solid #b9dcff;
   border-radius: 20px;
   background: #eaf5ff;
@@ -707,9 +710,9 @@
   border: 0;
   background: none;
   padding: 0 3px;
-  font-size: 12px;
-  min-height: 35px;
-  color: #4d719f;
+  font-size: 13px;
+  min-height: 44px;
+  color: #0759e6;
 }
 .sp-rank-row {
   display: flex;
@@ -779,7 +782,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  min-height: 28px;
+  min-height: 44px;
   padding: 0;
   background: none;
   border: 0;
@@ -965,13 +968,13 @@
   border: 0;
   background: none;
   font-size: 20px;
-  min-height: 35px;
+  min-height: 44px;
   color: #14213d;
   font-weight: 600;
 }
 .sp-budget small {
   font-size: 12px;
-  color: #5c7da7;
+  color: #526581;
 }
 .sp-allocation th,
 .sp-allocation td,
@@ -983,6 +986,8 @@
   border-right: 1px solid #e6effb;
   border-bottom: 1px solid #e6effb;
   font-size: 12px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .sp-allocation thead th,
 .sp-full-quotes thead th {
@@ -1001,9 +1006,9 @@
   font-weight: 400;
 }
 .sp-unit {
-  font-size: 10px;
+  font-size: 12px;
   text-align: right;
-  color: #6682a4;
+  color: #526581;
   margin-top: 3px;
 }
 .sp-gross {
@@ -1104,9 +1109,9 @@
   border-radius: 10px;
   background: white;
   color: #14213d;
-  min-height: 40px;
+  min-height: 44px;
   padding: 5px 10px;
-  font-size: 14px;
+  font-size: 16px;
 }
 .sp-setting-row input[type='checkbox'] {
   appearance: none;
@@ -1139,8 +1144,8 @@
 .sp-setting-row button {
   border: 0;
   background: none;
-  min-width: 36px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   color: #617c9d;
 }
 .sp-sheet-link {
@@ -1166,8 +1171,8 @@
   color: #086cff;
 }
 .sp-local-move span {
-  font-size: 11px;
-  color: #5d7fa4;
+  font-size: 12px;
+  color: #526581;
 }
 .sp-local-move strong {
   font-size: 22px;
@@ -1192,7 +1197,7 @@
   }
   .sp-format-button {
     padding-inline: 9px;
-    font-size: 12px;
+    font-size: 13px;
   }
   .sp-teams {
     gap: 4px;
@@ -1214,7 +1219,7 @@
     margin-right: 4px;
   }
   .sp-card-actions button {
-    font-size: 11px;
+    font-size: 13px;
     gap: 3px;
   }
   .sp-rank-row {
@@ -1275,8 +1280,8 @@
   min-height: 44px;
 }
 .sp-data-line button {
-  font-size: 12px;
-  color: #526581;
+  font-size: 13px;
+  color: #0759e6;
 }
 .sp-match-meta > button {
   min-width: 44px;

@@ -35,6 +35,7 @@ let moved = false
 let pointerId: number | null = null
 let closeTimer: ReturnType<typeof setTimeout> | undefined
 let disposed = false
+let closeNotified = false
 
 function resize() {
   viewport.value = window.visualViewport?.height ?? window.innerHeight
@@ -43,6 +44,7 @@ function resize() {
 function finishClose() {
   if (!dialog.value?.open) return
   dialog.value.close()
+  onClosed()
 }
 function close() {
   if (closing.value || !dialog.value?.open) return
@@ -55,6 +57,9 @@ function close() {
   )
 }
 function onClosed() {
+  // A native close event can arrive after a different panel has already opened.
+  if (dialog.value?.open || closeNotified) return
+  closeNotified = true
   clearTimeout(closeTimer)
   closing.value = false
   window.visualViewport?.removeEventListener('resize', resize)
@@ -113,7 +118,14 @@ watch(
       close()
       return
     }
-    if (dialog.value?.open) return
+    if (dialog.value?.open) {
+      if (closing.value) {
+        clearTimeout(closeTimer)
+        closing.value = false
+      }
+      return
+    }
+    closeNotified = false
     clearTimeout(closeTimer)
     resize()
     closing.value = false

@@ -1,29 +1,22 @@
 import { test, expect } from '@playwright/test'
 
-test('首页入口进入占位页，导航可返回首页', async ({ page }) => {
+test('首页问题带入 AI，导航可返回首页', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /看清平台/ })).toBeVisible()
   await page.getByRole('button', { name: /试着问/ }).click()
-  await expect(page.getByRole('heading', { name: 'Aegis AI' })).toBeVisible()
-  await expect(page.getByText('页面设计中，敬请期待。')).toBeVisible()
-  await expect(page.getByRole('textbox')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Aegis AI', exact: true })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: '输入你的问题' })).toHaveValue(/海港/)
+  await expect(page.getByRole('list', { name: '对话消息' })).toHaveCount(0)
   await page.getByRole('navigation').getByRole('link', { name: '首页', exact: true }).click()
   await expect(page.getByRole('heading', { name: /看清平台/ })).toBeVisible()
 })
 
-test('导航页及二级入口仅显示对应占位文案', async ({ page }) => {
-  for (const [path, title] of [
-    ['/ai?q=演示问题', 'Aegis AI'],
-    ['/me', '我的'],
-    ['/me?section=vip', 'VIP 服务'],
-    ['/me?section=agents', '代理比价'],
-  ]) {
-    await page.goto(path!)
-    await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
-    await expect(page.getByText('页面设计中，敬请期待。')).toBeVisible()
-    await expect(page.locator('.main-content table, .main-content form')).toHaveCount(0)
-    await expect(page.locator('.ae-dock [aria-current="page"]')).toHaveCount(1)
-  }
+test('我的导航进入个人中心', async ({ page }) => {
+  await page.goto('/me')
+  await expect(page.getByRole('heading', { name: '我的', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '意见反馈', exact: true })).toBeVisible()
+  await expect(page.locator('.ae-dock [aria-current="page"]')).toHaveText('我的')
+  await expect(page.getByText('页面设计中，敬请期待。')).toHaveCount(0)
 })
 
 for (const width of [360, 390, 430]) {

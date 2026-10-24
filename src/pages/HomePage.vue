@@ -27,14 +27,14 @@ const shortcuts = [
   },
   {
     label: 'VIP 服务',
-    detail: '专属服务规划中',
+    detail: '匿名比较专属 VIP 待遇',
     icon: Crown,
     to: '/me?section=vip',
     color: 'gold',
   },
   {
     label: '代理比价',
-    detail: '合作服务规划中',
+    detail: '佣金政策透明对比',
     icon: UsersRound,
     to: '/me?section=agents',
     color: 'teal',
