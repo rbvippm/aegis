@@ -32,10 +32,10 @@ function ask(text: string) {
       <AiComposer compact @submit="ask" />
       <div class="hr-prompts">
         <button
-          aria-label="试着问：今晚海港队对山城队，你怎么看？"
-          @click="ask('今晚海港队对山城队，你怎么看？')"
+          aria-label="试着问：今晚维拉 vs 曼城，怎么看？"
+          @click="ask('今晚维拉 vs 曼城，怎么看？')"
         >
-          今晚赛事怎么看？
+          今晚维拉 vs 曼城，怎么看？
         </button>
         <button @click="ask('哪家平台出金更稳定？请结合链、金额范围和样本分析。')">
           哪家出金更稳定？

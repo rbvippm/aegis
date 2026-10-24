@@ -11,7 +11,7 @@ import { totalCents, validateTicket, validateUid } from './logic'
 import type { EvidenceFile, TicketInput } from './types'
 export const useProfile = defineStore('profile-center', () => {
   const previewIdentity = ref(dataMode === 'demo')
-  const nickname = ref('御盾用户')
+  const nickname = ref('AE小子')
   const bindings = ref(dataMode === 'demo' ? structuredClone(profileBindings) : [])
   const records = ref(dataMode === 'demo' ? structuredClone(profileSettlements) : [])
   const tickets = ref(dataMode === 'demo' ? structuredClone(profileTickets) : [])
@@ -90,7 +90,7 @@ export const useProfile = defineStore('profile-center', () => {
     feedback.value = []
     bindings.value = dataMode === 'demo' ? structuredClone(profileBindings) : []
     tickets.value = dataMode === 'demo' ? structuredClone(profileTickets) : []
-    nickname.value = '御盾用户'
+    nickname.value = 'AE小子'
   }
   return {
     previewIdentity,

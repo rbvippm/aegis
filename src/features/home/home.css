@@ -74,6 +74,7 @@
 }
 .home-rich .hr-prompts {
   display: flex;
+  flex-wrap: wrap;
   gap: 7px;
   margin-top: 9px;
 }
@@ -674,8 +675,26 @@
 .home-rich .ae-composer textarea::placeholder {
   color: var(--ae-muted);
 }
-.home-rich .hr-market > svg {
-  flex-shrink: 0;
+.home-rich label.hr-market {
+  position: relative;
+}
+.home-rich label.hr-market select {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  text-align: center;
+  text-align-last: center;
+  padding: 8px 28px;
+  cursor: pointer;
+}
+.home-rich label.hr-market > svg {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
 }
 .hr-sheet {
   color: var(--ae-text);

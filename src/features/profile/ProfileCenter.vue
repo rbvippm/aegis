@@ -210,7 +210,7 @@ watch(
                 profile.previewIdentity ? '普通用户' : '未登录'
               }}</small></span
             ><span class="pf-user-id">{{
-              profile.previewIdentity ? 'ID: AE 00128' : '登录后查看个人记录'
+              profile.previewIdentity ? 'ID: AE00128' : '登录后查看个人记录'
             }}</span
             ><span class="pf-connections"
               ><small><Send :size="11" />Telegram</small
@@ -231,7 +231,9 @@ watch(
         <section v-if="dataMode === 'demo' && profile.previewIdentity" class="pf-card pf-income">
           <div class="pf-section-heading">
             <h2>我的收益</h2>
-            <span class="pf-badge pf-badge--blue">平台 / 人工结算</span>
+            <button class="pf-income-link" @click="navigate('earnings', 'records')">
+              查看记录<ChevronRight :size="16" />
+            </button>
           </div>
           <div class="pf-income-metrics">
             <div>
@@ -243,9 +245,6 @@ watch(
               <strong>{{ formatCents(profile.settledCents) }}</strong>
             </div>
           </div>
-          <button class="pf-text-button" @click="navigate('earnings', 'records')">
-            查看结算记录<ChevronRight :size="16" />
-          </button>
           <p class="pf-helper">收益记录，不是平台钱包余额</p>
         </section>
         <section v-else class="pf-card pf-empty-income">

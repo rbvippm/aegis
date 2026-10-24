@@ -34,11 +34,14 @@ try {
 }
 const formatName = computed(() => formats.find((f) => f.id === format.value)!.label)
 const match = sportsMatches.find((m) => m.id === 'harbor-mountain')!
-const market = match.markets[0]!
-const quotes = computed(() =>
-  market.quotes.filter((q) => q.status === 'active' && q.home !== null).slice(0, 2),
+const marketId = ref(match.markets[0]!.id)
+const market = computed(
+  () => match.markets.find((item) => item.id === marketId.value) ?? match.markets[0]!,
 )
-const best = computed(() => bestPrice(market, 'home'))
+const quotes = computed(() =>
+  market.value.quotes.filter((q) => q.status === 'active' && q.home !== null).slice(0, 2),
+)
+const best = computed(() => bestPrice(market.value, 'home'))
 const opportunities = demo ? findOpportunities(sportsMatches) : []
 const wallet = walletSummary(demo ? researchPlatforms : [])
 const measured = demo ? researchPlatforms[0]! : null
@@ -81,14 +84,14 @@ function compare(
   })
 }
 function quoteDetail(platform: string) {
-  compare('odds', match, market, 'quote', platform)
+  compare('odds', match, market.value, 'quote', platform)
 }
 function ask() {
   void router.push({
     path: '/ai',
     query: {
       analyze: '1',
-      q: `${match.home}对${match.away}怎么看？请确认赛事、${market.scope}、${market.line}及数据时间后分析。`,
+      q: `${match.home}对${match.away}怎么看？请确认赛事、${market.value.scope}、${market.value.line}及数据时间后分析。`,
     },
   })
 }
@@ -149,9 +152,14 @@ watch(
             >{{ match.away }}<i>{{ match.away[0] }}</i></span
           >
         </div>
-        <button class="hr-market" @click="compare('odds', match, market, 'market')">
-          {{ market.scope }} · {{ market.line }}<ChevronDown :size="14" />
-        </button>
+        <label class="hr-market">
+          <select v-model="marketId" :aria-label="`${market.scope} · ${market.line}`">
+            <option v-for="item in match.markets" :key="item.id" :value="item.id">
+              {{ item.scope }} · {{ item.line }}
+            </option>
+          </select>
+          <ChevronDown :size="14" aria-hidden="true" />
+        </label>
         <div class="hr-quotes">
           <button
             v-for="q in quotes"

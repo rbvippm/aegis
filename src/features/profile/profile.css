@@ -322,6 +322,21 @@
 .pf-income .pf-helper {
   margin-top: 0;
 }
+.pf-income-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  margin: -8px -4px -8px 0;
+  border: 0;
+  background: none;
+  color: #0759e6;
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+}
 .pf-empty-income h2 {
   font-size: 15px;
 }

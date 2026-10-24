@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ChevronLeft, ChevronRight, Crown, UsersRound, LockKeyhole, Activity } from '@lucide/vue'
 import { dataMode } from '@/shared/api/config'
 import type { ServiceKind } from './types'
@@ -10,14 +12,28 @@ defineProps<{
   steps: string[]
 }>()
 defineEmits<{ request: [] }>()
+const router = useRouter()
+const route = useRoute()
+const backHref = ref('/')
+function syncBack() {
+  const back = window.history.state?.back
+  backHref.value = typeof back === 'string' && back ? back : '/'
+}
+function goBack(event: MouseEvent) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+  event.preventDefault()
+  const back = window.history.state?.back
+  if (typeof back === 'string' && back) router.back()
+  else void router.push('/')
+}
+onMounted(syncBack)
+watch(() => route.fullPath, syncBack)
 </script>
 
 <template>
   <div class="service-page" :class="`service-${kind}`">
     <div class="svc-subnav">
-      <RouterLink custom to="/me" v-slot="{ href, navigate }"
-        ><a :href="href" @click="navigate"><ChevronLeft :size="20" />返回我的</a></RouterLink
-      >
+      <a :href="backHref" @click="goBack"><ChevronLeft :size="20" />返回</a>
       <span>{{ kind === 'vip' ? 'VIP 服务' : '代理比价' }}</span>
     </div>
     <section class="svc-hero">

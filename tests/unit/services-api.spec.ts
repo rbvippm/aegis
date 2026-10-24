@@ -1,17 +1,23 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { mount } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 vi.mock('@/shared/api/config', () => ({ dataMode: 'api' }))
 import VipService from '@/features/services/VipService.vue'
 import AgentQuotes from '@/features/services/AgentQuotes.vue'
 import { useServiceRequests } from '@/features/services/store'
+
+const router = createRouter({
+  history: createMemoryHistory(),
+  routes: [{ path: '/', component: { template: '<div />' } }],
+})
 
 describe('真实模式不回退演示报价', () => {
   it('两个页面不展示演示报价、评级或匿名榜，禁止提交', () => {
     for (const component of [VipService, AgentQuotes]) {
       setActivePinia(createPinia())
       const wrapper = mount(component, {
-        global: { stubs: { RouterLink: true, BottomDrawer: true } },
+        global: { plugins: [router], stubs: { RouterLink: true, BottomDrawer: true } },
       })
       expect(wrapper.text()).toMatch(/暂无/)
       expect(wrapper.text()).not.toContain('平台 A')
