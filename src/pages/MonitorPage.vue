@@ -127,19 +127,19 @@ watch(
       <ResearchChart :window="window" />
       <div class="research-list-heading">
         <h2>平台综合对比</h2>
-        <label
-          ><span class="sr-only">平台排序</span
-          ><GlassSelect v-model="sort" aria-label="平台排序">
-            <option value="score">盾牌分</option>
-            <option value="deposit">真实存款</option></GlassSelect
-          ></label
-        >
       </div>
       <div class="research-region-filter">
         <GlassSelect v-model="region" label="平台地区"
           ><option value="">全部地区</option>
           <option value="asia">亚洲平台</option>
           <option value="europe">欧洲平台</option></GlassSelect
+        >
+        <label
+          ><span class="sr-only">平台排序</span
+          ><GlassSelect v-model="sort" aria-label="平台排序">
+            <option value="score">盾牌分</option>
+            <option value="deposit">真实存款</option></GlassSelect
+          ></label
         >
       </div>
       <div class="research-platforms">

@@ -2,7 +2,7 @@
 import HomeEvents from './HomeEvents.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, ShieldCheck, Search } from '@lucide/vue'
+import { ChevronRight, ShieldCheck, Search, Clock3, Wallet, Info } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import { dataMode } from '@/shared/api/config'
@@ -109,27 +109,32 @@ watch(
       <h2>平台资金监测</h2>
       <RouterLink to="/monitor">查看监测<ChevronRight :size="14" /></RouterLink>
     </div>
-    <section class="hr-card" aria-label="平台资金监测">
+    <section class="hr-card hr-funding" aria-label="平台资金监测">
       <StatePanel v-if="!demo" title="暂无监测数据" description="资金与出金服务尚未接入。" />
       <template v-else>
         <div class="hr-stats">
           <div>
-            <small>小额实测平均出款</small
+            <small class="hr-metric-label"><Clock3 :size="14" />小额实测平均出款</small
             ><strong>{{ measured?.smallMinutes ?? '—' }} <span>min</span></strong
             ><small>平台 A · USDT · &lt;1,000 U</small>
           </div>
           <div>
-            <small>已标记热钱包总额</small
+            <small class="hr-metric-label"><Wallet :size="14" />已标记热钱包总额</small
             ><strong class="hr-balance">{{ wallet.amount ?? '—' }}</strong
             ><small>{{ wallet.covered }} / {{ platforms.length }} 家有余额数据</small>
           </div>
         </div>
         <button class="hr-source-row" @click="panel = 'funding'">
-          平台 A · {{ measured?.samples }} 笔样本<span>口径与来源<ChevronRight :size="13" /></span>
+          <span class="hr-sample"><Info :size="13" />平台 A · {{ measured?.samples }} 笔样本</span
+          ><span>口径与来源<ChevronRight :size="13" /></span>
         </button>
-        <button v-if="warning" class="hr-notice" @click="panel = 'warning'">
-          <ShieldCheck :size="17" /><span
-            >{{ warning.name }}热钱包净流出 {{ Math.abs(warning.flowPercent!) }}%，需关注</span
+        <button v-if="warning" class="hr-notice hr-funding-warning" @click="panel = 'warning'">
+          <span class="hr-warning-icon"><ShieldCheck :size="18" /></span
+          ><span class="hr-warning-copy"
+            ><strong>{{ warning.name }} · 资金异动</strong
+            ><small
+              >热钱包净流出 <b>{{ Math.abs(warning.flowPercent!) }}%</b>，需关注</small
+            ></span
           ><ChevronRight :size="14" />
         </button>
       </template>

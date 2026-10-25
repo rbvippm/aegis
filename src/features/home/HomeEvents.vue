@@ -583,14 +583,20 @@ const panelTitle = computed(() =>
   height: 28px;
   padding: 5px;
   border-radius: 9px;
-  background: linear-gradient(160deg, #8ec4ff, #5aa2f8);
-  box-shadow:
-    inset 0 1px 0 #ffffffb3,
-    0 1px 2px #4b93eb24;
-  transition: background-color 150ms ease;
+  background: var(--ae-pill);
+  box-shadow: var(--ae-pill-shadow);
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
+}
+@media (hover: hover) {
+  .he-pager button:hover svg {
+    filter: brightness(1.06);
+  }
 }
 .he-pager button:active svg {
-  background: #3d8cf2;
+  filter: brightness(0.92);
+  transform: scale(0.94);
 }
 .he-pager span {
   min-width: 38px;
@@ -1031,6 +1037,7 @@ const panelTitle = computed(() =>
   .he-play .glass-select__trigger {
     transition: none;
   }
+  .he-pager button:active svg,
   .he-quote:active {
     transform: none;
   }

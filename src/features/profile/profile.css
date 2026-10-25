@@ -364,10 +364,10 @@
 .pf-shortcuts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 18px 8px;
   padding: 12px 0;
 }
-.pf-shortcuts > button {
+.pf-shortcuts > :is(button, a) {
   position: relative;
   min-width: 0;
   display: flex;
@@ -382,7 +382,7 @@
   font-weight: 500;
   line-height: 1.4;
 }
-.pf-shortcuts > button > span {
+.pf-shortcuts > :is(button, a) > span {
   position: relative;
   display: grid;
   place-items: center;
@@ -894,6 +894,111 @@
   line-height: 1.7;
   color: var(--ae-muted);
   margin-top: 4px;
+}
+.pf-message-heading {
+  margin-bottom: 12px;
+}
+.pf-message-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pf-message-count {
+  font-size: 12px;
+  color: var(--ae-muted);
+  white-space: nowrap;
+}
+.pf-message-read-all {
+  min-height: 44px;
+  padding: 0 2px 0 8px;
+  border: 0;
+  background: none;
+  color: var(--ae-highlight);
+  font-size: 12px;
+  font-weight: 500;
+}
+.pf-message-read-all:disabled {
+  color: var(--ae-muted);
+  cursor: default;
+}
+.pf-message-center .pf-tabs {
+  margin-bottom: 12px;
+}
+.pf-message-center .pf-notice {
+  padding: 13px 12px;
+  gap: 10px;
+  margin-top: 8px;
+  border: 1px solid #e5edf8;
+  border-radius: 18px;
+  background: #ffffffed;
+  box-shadow: 0 3px 10px #4b93eb08;
+}
+.pf-message-center .pf-notice--unread {
+  border-color: #cfe2fa;
+}
+.pf-message-center .pf-notice > .pf-message-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 36px;
+  align-self: flex-start;
+  height: 36px;
+  margin-top: 2px;
+  border-radius: 12px;
+  color: var(--ae-highlight);
+  background: #eaf3ff;
+}
+.pf-message-center .pf-message-icon--ticket {
+  background: #fff3df;
+  color: #9b640d;
+}
+.pf-message-center .pf-message-icon--platform {
+  background: #e7f7f3;
+  color: #087f6b;
+}
+.pf-message-icon .pf-notice-mark {
+  position: absolute;
+  right: -1px;
+  top: -1px;
+  border: 2px solid #fff;
+  box-sizing: content-box;
+}
+.pf-message-icon .pf-notice-mark.read {
+  display: none;
+}
+.pf-message-center .pf-message-kind {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--ae-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.pf-message-center .pf-notice strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.pf-message-center .pf-notice small {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.pf-message-chevron {
+  flex-shrink: 0;
+  color: #7c98ba;
+}
+.pf-message-center .pf-message-preferences {
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid #e0eaf7;
+  border-radius: 14px;
+  background: #ffffffb3;
+  gap: 8px;
+  font-size: 13px;
+}
+.pf-message-preferences span {
+  flex: 1;
+  text-align: left;
 }
 .pf-notice-mark {
   width: 7px;

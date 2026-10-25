@@ -18,7 +18,8 @@ test('目录、搜索联想、日期和分页联动', async ({ page }) => {
   await expect(page.locator('.pw-fixture')).toHaveCount(1)
   await expect(card(page)).toContainText('海港队')
   await page.getByRole('button', { name: '更多体育', exact: true }).click()
-  await page.getByRole('searchbox', { name: '搜索体育项目' }).fill('无畏')
+  await expect(page.getByRole('dialog').getByRole('searchbox')).toHaveCount(0)
+  await page.getByRole('dialog').getByRole('button', { name: '电竞', exact: true }).click()
   await page
     .getByRole('dialog')
     .getByRole('button', { name: /无畏契约.*场/ })

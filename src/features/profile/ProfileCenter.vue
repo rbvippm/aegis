@@ -299,7 +299,7 @@ watch(
             登录与身份说明<ChevronRight :size="16" />
           </button>
         </section>
-        <div class="pf-shortcuts">
+        <div class="pf-shortcuts" role="group" aria-label="个人中心快捷入口">
           <button @click="navigate('earnings')">
             <span
               ><Link :size="22" /><i v-if="profile.previewIdentity && profile.boundCount">{{
@@ -319,28 +319,21 @@ watch(
               ></span
             >我的工单
           </button>
-        </div>
-        <div class="pf-menu">
           <button @click="open('invite')">
-            <span class="pf-menu-icon"><UsersRound :size="18" /></span><span>邀请好友</span
-            ><small>奖励规则待公布</small><ChevronRight :size="14" /></button
-          ><RouterLink custom to="/me?section=agents" v-slot="{ href, navigate }"
-            ><a
-              :href="href"
-              :aria-current="route.query.section === 'agents' ? 'page' : undefined"
-              @click="navigate"
-              ><span class="pf-menu-icon"><UsersRound :size="18" /></span><span>代理服务</span
-              ><small>申请规则待公布</small><ChevronRight :size="14" /></a
-          ></RouterLink>
+            <span><UsersRound :size="22" /></span>邀请好友
+          </button>
+          <RouterLink to="/me?section=agents"
+            ><span><UsersRound :size="22" /></span>代理服务</RouterLink
+          >
+          <button @click="open('settings')">
+            <span><ShieldCheck :size="22" /></span>账户与隐私
+          </button>
+          <button @click="open('help')">
+            <span><Headphones :size="22" /></span>帮助与客服
+          </button>
         </div>
         <div class="pf-menu pf-menu--utility">
-          <button @click="open('settings')">
-            <span class="pf-menu-icon"><ShieldCheck :size="18" /></span><span>账户与隐私</span
-            ><ChevronRight :size="14" /></button
-          ><button @click="open('help')">
-            <span class="pf-menu-icon"><Headphones :size="18" /></span><span>帮助与客服</span
-            ><ChevronRight :size="14" /></button
-          ><button @click="open('feedback')">
+          <button @click="open('feedback')">
             <span class="pf-menu-icon"><FileText :size="18" /></span><span>意见反馈</span
             ><ChevronRight :size="14" /></button
           ><button @click="open('about')">
@@ -575,46 +568,73 @@ watch(
         <p class="pf-bottom-note"><ShieldCheck :size="12" />工单内容仅自己可见</p>
       </template>
       <template v-else-if="section === 'messages'"
-        ><div class="pf-section-heading">
-          <h2>我的消息</h2>
+        ><div class="pf-message-center">
+          <div class="pf-section-heading pf-message-heading">
+            <div>
+              <h2>我的消息</h2>
+              <span class="pf-message-count">{{
+                profile.unreadCount ? `${profile.unreadCount} 条未读` : '全部已读'
+              }}</span>
+            </div>
+            <button
+              class="pf-message-read-all"
+              :disabled="!profile.unreadCount"
+              @click="profile.notices.forEach((item) => (item.read = true))"
+            >
+              全部标为已读
+            </button>
+          </div>
+          <div class="pf-tabs pf-tabs--four">
+            <button
+              v-for="(label, key) in {
+                all: '全部',
+                platform: '平台',
+                ticket: '工单',
+                system: '系统',
+              }"
+              :key="key"
+              :class="{ active: messageFilter === key }"
+              :aria-pressed="messageFilter === key"
+              @click="messageFilter = key"
+            >
+              {{ label }}
+            </button>
+          </div>
           <button
-            class="pf-small-button"
-            @click="profile.notices.forEach((item) => (item.read = true))"
+            v-for="notice in visibleNotices"
+            :key="notice.id"
+            class="pf-card pf-notice"
+            :class="{ 'pf-notice--unread': !notice.read }"
+            @click="showNotice(notice.id)"
           >
-            全部标为已读
+            <span class="pf-message-icon" :class="`pf-message-icon--${notice.type}`"
+              ><component
+                :is="
+                  notice.type === 'ticket'
+                    ? FileText
+                    : notice.type === 'platform'
+                      ? ShieldCheck
+                      : Bell
+                "
+                :size="19" /><i
+                class="pf-notice-mark"
+                :class="{ read: notice.read }"
+                :aria-label="notice.read ? '已读' : '未读'"
+              ></i></span
+            ><span class="pf-message-copy"
+              ><span class="pf-message-kind">{{
+                { platform: '平台通知', ticket: '工单进度', system: '系统通知' }[notice.type]
+              }}</span
+              ><strong>{{ notice.title }}</strong
+              ><small>{{ notice.description }}</small></span
+            ><ChevronRight class="pf-message-chevron" :size="15" />
+          </button>
+          <p v-if="!visibleNotices.length" class="pf-empty">暂无消息</p>
+          <button class="pf-text-button pf-message-preferences" @click="open('notifications')">
+            <Settings :size="17" /><span>通知渠道与偏好</span><ChevronRight :size="16" />
           </button>
         </div>
-        <div class="pf-tabs pf-tabs--four">
-          <button
-            v-for="(label, key) in {
-              all: '全部',
-              platform: '平台',
-              ticket: '工单',
-              system: '系统',
-            }"
-            :key="key"
-            :class="{ active: messageFilter === key }"
-            @click="messageFilter = key"
-          >
-            {{ label }}
-          </button>
-        </div>
-        <button
-          v-for="notice in visibleNotices"
-          :key="notice.id"
-          class="pf-card pf-notice"
-          @click="showNotice(notice.id)"
-        >
-          <span class="pf-notice-mark" :class="{ read: notice.read }"></span
-          ><span
-            ><strong>{{ notice.title }}</strong
-            ><small>{{ notice.description }}</small></span
-          ><ChevronRight :size="15" />
-        </button>
-        <p v-if="!visibleNotices.length" class="pf-empty">暂无消息</p>
-        <button class="pf-text-button" @click="open('notifications')">
-          通知渠道与偏好<ChevronRight :size="16" /></button
-      ></template>
+      </template>
       <template v-else-if="section === 'follows'"
         ><div class="pf-tabs">
           <button :class="{ active: followsTab === 'sports' }" @click="followsTab = 'sports'">

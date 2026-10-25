@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Star, ChevronRight, Activity, Bell, ChartNoAxesColumn } from '@lucide/vue'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
+import { dataMode } from '@/shared/api/config'
 import SportIcon from '../SportIcon.vue'
 import type { OddsFormat } from '../types'
 import type { Fixture, Family, Market, Quote } from './model'
@@ -32,8 +33,64 @@ const actualFamily = computed(() =>
 const children = computed(() =>
   props.fixture.markets.filter((m) => m.family === actualFamily.value),
 )
-const market = computed(
+const baseMarket = computed(
   () => children.value.find((m) => m.id === selected.value) ?? children.value[0]!,
+)
+const demoOffsets = ref<Record<string, number>>({})
+const card = ref<HTMLElement>()
+let demoTimer: ReturnType<typeof setInterval> | undefined
+const market = computed(() => {
+  const base = baseMarket.value
+  if (!base || dataMode !== 'demo') return base
+  return {
+    ...base,
+    quotes: base.quotes.map((q) => ({
+      ...q,
+      prices: q.prices.map((price, i) =>
+        price == null
+          ? null
+          : Number((price + (demoOffsets.value[`${q.operator}:${i}`] ?? 0)).toFixed(2)),
+      ),
+    })),
+  }
+})
+function demoTick() {
+  if (document.visibilityState !== 'visible' || !market.value) return
+  const cells = [
+    ...(card.value?.querySelectorAll<HTMLButtonElement>('.pw-matrix .sp-price') ?? []),
+  ].filter((cell) => {
+    const rect = cell.getBoundingClientRect()
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      rect.top >= 0 &&
+      rect.bottom <= window.innerHeight &&
+      rect.left >= 0 &&
+      rect.right <= window.innerWidth
+    )
+  })
+  const startUp = Math.random() > 0.5
+  for (let n = 0; n < 2 && cells.length; n++) {
+    const cell = cells.splice(Math.floor(Math.random() * cells.length), 1)[0]!
+    const operator = cell.dataset.operator!
+    const index = Number(cell.dataset.selectionIndex)
+    const quote = market.value.quotes.find((q) => q.operator === operator)
+    const base = baseMarket.value.quotes.find((q) => q.operator === operator)?.prices[index]
+    if (quote?.status !== 'active' || base == null || quote.prices[index] == null) continue
+    const key = `${operator}:${index}`
+    const previous = demoOffsets.value[key] ?? 0
+    const step = (n === 0 ? startUp : !startUp) ? 0.02 : -0.02
+    const next = Number((previous + step).toFixed(2))
+    // Keep the demonstration near its starting quote and decimal odds above 1.
+    demoOffsets.value[key] =
+      Math.abs(next) > 0.06 || base + next <= 1 ? Number((previous - step).toFixed(2)) : next
+  }
+}
+watch(
+  () => baseMarket.value?.id,
+  () => {
+    demoOffsets.value = {}
+  },
 )
 const value = computed(() => (market.value ? analysis(market.value) : null))
 const periods = computed(() => [...new Set(children.value.map((m) => m.period))])
@@ -52,17 +109,25 @@ function period(value: string) {
   selected.value = children.value.find((m) => m.period === value)!.id
 }
 onMounted(() => {
+  if (dataMode === 'demo') demoTimer = setInterval(demoTick, 10000)
   measureGroups()
   if (groupsEl.value) {
     groupsObserver = new ResizeObserver(measureGroups)
     groupsObserver.observe(groupsEl.value)
   }
 })
-onBeforeUnmount(() => groupsObserver?.disconnect())
+onBeforeUnmount(() => {
+  groupsObserver?.disconnect()
+  clearInterval(demoTimer)
+})
 watch(groups, measureGroups, { flush: 'post' })
 </script>
 <template>
-  <article class="sp-card sp-match pw-fixture" :aria-label="`${fixture.home}对${fixture.away}`">
+  <article
+    ref="card"
+    class="sp-card sp-match pw-fixture"
+    :aria-label="`${fixture.home}对${fixture.away}`"
+  >
     <div class="pw-fixture-meta">
       <span class="pw-fixture-meta-copy"
         ><span class="pw-fixture-league"

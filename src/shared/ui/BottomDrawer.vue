@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
           @pointerdown.stop
           @click="close"
         >
-          <X :size="20" />
+          <X :size="20" :stroke-width="2.25" aria-hidden="true" />
         </button>
       </header>
       <div ref="body" class="ae-drawer__body">
@@ -388,7 +388,7 @@ onBeforeUnmount(() => {
   line-height: 1.4;
   overflow-wrap: anywhere;
 }
-.ae-drawer__close {
+.ae-drawer button.ae-drawer__close {
   position: relative;
   z-index: 1;
   display: grid;
@@ -396,11 +396,42 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border: 1px solid #ffffffef;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  appearance: none;
+  border: 1px solid #c9ddf1;
   border-radius: 50%;
-  color: #526581;
+  color: #3d5d86;
   background: #e7f0f9;
   box-shadow: inset 0 1px #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+.ae-drawer button.ae-drawer__close svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+@media (hover: hover) {
+  .ae-drawer button.ae-drawer__close:hover {
+    color: #14213d;
+    background: #dcecff;
+    border-color: #aacaf0;
+  }
+}
+.ae-drawer button.ae-drawer__close:active {
+  color: #14213d;
+  background: #cfe3fa;
+  border-color: #9cbee7;
+}
+.ae-drawer button.ae-drawer__close:focus:not(:focus-visible) {
+  outline: none;
 }
 .ae-drawer__body {
   flex: 1;
@@ -432,7 +463,8 @@ html:has(.ae-drawer[open]) .home-shell .main-content {
   background: #edf5ff;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ae-drawer {
+  .ae-drawer,
+  .ae-drawer button.ae-drawer__close {
     transition: none;
   }
 }

@@ -13,17 +13,13 @@ test('紧凑头部、分组子玩法与三秒涨跌反馈', async ({ page }) => 
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await card.getByRole('button', { name: '大小分', exact: true }).click()
   await expect(card.locator('.pw-periods')).toContainText('上半场')
+  await expect(card.locator('.sp-price-arrow')).toHaveCount(0)
+  await page.getByRole('button', { name: '切换快照 · 当前A', exact: true }).click()
   await expect(card.locator('.sp-change-up')).not.toHaveCount(0)
   await expect(card.locator('.sp-change-down')).not.toHaveCount(0)
   const arrow = card.locator('.sp-price-arrow').first()
   expect(await arrow.evaluate((el) => getComputedStyle(el).animationIterationCount)).toBe('3')
-  await expect
-    .poll(
-      () =>
-        arrow.evaluate((el) => el.getAnimations().filter((a) => a.playState === 'running').length),
-      { timeout: 5000 },
-    )
-    .toBe(0)
+  await expect(card.locator('.sp-price-arrow')).toHaveCount(0, { timeout: 5000 })
   await page.getByRole('button', { name: '玩法与赔率设置 · 港盘 HK', exact: true }).click()
   const drawer = page.getByRole('dialog')
   await drawer.getByRole('button', { name: /欧盘 DEC/ }).click()

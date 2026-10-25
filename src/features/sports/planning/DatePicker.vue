@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ChevronLeft, ChevronRight } from '@lucide/vue'
-defineProps<{ selected: string }>()
+import { ChevronLeft, ChevronRight, Clock3 } from '@lucide/vue'
+import { planningDate } from '@/mocks/sports-planning'
+const props = defineProps<{ selected: string }>()
 const emit = defineEmits<{ choose: [date: string] }>()
-const year = ref(2026),
-  month = ref(9)
+const initial = new Date(`${props.selected || planningDate}T00:00:00Z`)
+const year = ref(initial.getUTCFullYear()),
+  month = ref(initial.getUTCMonth())
+const tomorrowDate = new Date(`${planningDate}T00:00:00Z`)
+tomorrowDate.setUTCDate(tomorrowDate.getUTCDate() + 1)
+const tomorrow = tomorrowDate.toISOString().slice(0, 10)
+const shortDate = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`
 const cells = computed(() => [
   ...Array(new Date(Date.UTC(year.value, month.value, 1)).getUTCDay()).fill(0),
   ...Array.from(
@@ -36,18 +42,37 @@ const iso = (day: number) =>
           v-if="day"
           :aria-label="iso(day)"
           :aria-pressed="selected === iso(day)"
-          :class="{ selected: selected === iso(day) }"
+          :aria-current="iso(day) === planningDate ? 'date' : undefined"
+          :class="{ selected: selected === iso(day), 'is-today': iso(day) === planningDate }"
           @click="emit('choose', iso(day))"
         >
           {{ day }}
         </button></span
       >
     </div>
-    <div class="pw-tabs">
-      <button @click="emit('choose', '')">全部日期</button
-      ><button @click="emit('choose', '2026-10-25')">今天 10/25</button
-      ><button @click="emit('choose', '2026-10-26')">明天 10/26</button>
+    <div class="pw-calendar-shortcuts" aria-label="快捷日期">
+      <button
+        :aria-pressed="!selected"
+        :class="{ selected: !selected }"
+        @click="emit('choose', '')"
+      >
+        全部日期
+      </button>
+      <button
+        :aria-pressed="selected === planningDate"
+        :class="{ selected: selected === planningDate }"
+        @click="emit('choose', planningDate)"
+      >
+        今天 {{ shortDate(planningDate) }}
+      </button>
+      <button
+        :aria-pressed="selected === tomorrow"
+        :class="{ selected: selected === tomorrow }"
+        @click="emit('choose', tomorrow)"
+      >
+        明天 {{ shortDate(tomorrow) }}
+      </button>
     </div>
-    <p class="pw-muted">按 UTC+8 查看开赛日期</p>
+    <p class="pw-calendar-note"><Clock3 :size="13" />按 UTC+8 查看开赛日期</p>
   </div>
 </template>

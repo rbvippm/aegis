@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import DatePicker from '@/features/sports/planning/DatePicker.vue'
 import {
   analysis,
   bestQuote,
@@ -93,5 +95,33 @@ describe('体育规划数据与多赛果计算', () => {
     const league = planningMatches[0]!.league
     const ambiguous = matchSlip(league, planningMatches)[0]!
     if (ambiguous.matches.length > 1) expect(ambiguous.selected).toBe('')
+  })
+})
+
+describe('日期筛选', () => {
+  it('打开已选月份并保留日期选中、跨年翻月与快捷日期', async () => {
+    const wrapper = mount(DatePicker, { props: { selected: '2026-12-31' } })
+    try {
+      expect(wrapper.find('.pw-calendar-heading').text()).toContain('2026年12月')
+      expect(wrapper.get('button[aria-label="2026-12-31"]').attributes('aria-pressed')).toBe('true')
+      await wrapper.get('button[aria-label="下个月"]').trigger('click')
+      expect(wrapper.find('.pw-calendar-heading').text()).toContain('2027年1月')
+      await wrapper.get('button[aria-label="2027-01-01"]').trigger('click')
+      expect(wrapper.emitted('choose')?.at(-1)).toEqual(['2027-01-01'])
+      await wrapper.findAll('.pw-calendar-shortcuts button')[0]!.trigger('click')
+      expect(wrapper.emitted('choose')?.at(-1)).toEqual([''])
+    } finally {
+      wrapper.unmount()
+    }
+  })
+  it('今天有独立标记，全部日期有明确选中态', () => {
+    const wrapper = mount(DatePicker, { props: { selected: '' } })
+    try {
+      expect(wrapper.find('button[aria-current="date"]').text()).toBe('25')
+      expect(wrapper.find('.pw-calendar-shortcuts .selected').text()).toBe('全部日期')
+      expect(wrapper.findAll('input')).toHaveLength(0)
+    } finally {
+      wrapper.unmount()
+    }
   })
 })

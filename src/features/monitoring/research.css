@@ -397,9 +397,24 @@
 }
 .research-region-filter {
   display: flex;
-  margin: -2px 0 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 10px;
+}
+.research-region-filter > .glass-select,
+.research-region-filter > label {
+  min-width: 0;
+  flex: 1;
+}
+.research-region-filter > label {
+  display: flex;
+}
+.research-region-filter > label > .glass-select {
+  width: 100%;
 }
 .research-region-filter .glass-select__trigger {
+  width: 100%;
   min-height: 44px;
   font-size: 12px;
   background: #f7fbffb0;

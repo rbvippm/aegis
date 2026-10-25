@@ -1605,7 +1605,7 @@
 .sp-trend-summary b {
   font-size: 20px;
 }
-.sp-trend-chart svg {
+.sp-trend-chart > svg {
   display: block;
   width: 100%;
   margin-top: 10px;

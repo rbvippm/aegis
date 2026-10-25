@@ -25,3 +25,7 @@
 新增回归：`tests/e2e/compact-comparison.spec.ts`；更新体育及通用UI回归以匹配本次确认的布局。使用桌面Chrome移动视口；未声称Safari或Telegram真机通过。不自动提交或推送。
 
 最终验证：`npm run check`、`npm run build`均通过；62项单元测试、138项移动端回归全部通过。
+
+## 后续：下拉搜索焦点修复
+
+联赛、平台等共用可搜索下拉展开时取消输入框自动focus，默认聚焦选项列表；点击搜索框或主动Tab进入后才输入。完成360/390/430px与抽屉内专项检查，并另存两轮截图及焦点记录于 `outputs/select-focus/`。Chrome移动视口验证的是焦点行为，未声称已实测真机软键盘。

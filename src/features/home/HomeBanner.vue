@@ -27,28 +27,106 @@ const slides = [
     label: '出金观察',
   },
 ]
+const renderedSlides = [slides[slides.length - 1]!, ...slides, slides[0]!]
 const active = ref(0)
 const track = ref<HTMLDivElement>()
+const dragging = ref(false)
 let timer: ReturnType<typeof setTimeout> | undefined
+let settleTimer: ReturnType<typeof setTimeout> | undefined
 let interacting = false
+let mouseStart: { x: number; left: number; pointer: number } | undefined
+let observer: ResizeObserver | undefined
 function stopRotation() {
   clearTimeout(timer)
 }
 function scheduleRotation() {
   stopRotation()
-  if (document.hidden || interacting) return
-  timer = setTimeout(() => selectSlide((active.value + 1) % slides.length, true), 5000)
+  if (document.hidden || interacting || dragging.value) return
+  timer = setTimeout(() => moveTo(active.value + 2), 5000)
 }
 function beginInteraction() {
   interacting = true
   stopRotation()
 }
 function endInteraction() {
+  if (mouseStart) {
+    const start = mouseStart
+    mouseStart = undefined
+    dragging.value = false
+    if (track.value?.hasPointerCapture(start.pointer))
+      track.value.releasePointerCapture(start.pointer)
+    if (track.value?.clientWidth) {
+      const distance = track.value.scrollLeft - start.left
+      const step =
+        Math.abs(distance) > Math.min(48, track.value.clientWidth * 0.18) ? Math.sign(distance) : 0
+      moveTo(Math.round(start.left / track.value.clientWidth) + step)
+    }
+  }
   if (!interacting) return
   interacting = false
   scheduleRotation()
 }
+function settle() {
+  if (!track.value?.clientWidth || dragging.value) return
+  const position = Math.round(track.value.scrollLeft / track.value.clientWidth)
+  active.value = (position - 1 + slides.length) % slides.length
+  // Identical end slides allow one continuous step, then reset offscreen without animation.
+  if (position === 0 || position === slides.length + 1) {
+    track.value.scrollTo({
+      left: (active.value + 1) * track.value.clientWidth,
+      behavior: 'instant',
+    })
+  }
+  scheduleRotation()
+}
+function syncSlide() {
+  if (!track.value?.clientWidth) return
+  stopRotation()
+  const position = Math.round(track.value.scrollLeft / track.value.clientWidth)
+  active.value = (position - 1 + slides.length) % slides.length
+  clearTimeout(settleTimer)
+  settleTimer = setTimeout(settle, 140)
+}
+function moveTo(position: number) {
+  if (!track.value?.clientWidth) return
+  clearTimeout(settleTimer)
+  stopRotation()
+  const instant = matchMedia('(prefers-reduced-motion: reduce)').matches
+  track.value.scrollTo({
+    left: Math.max(0, Math.min(slides.length + 1, position)) * track.value.clientWidth,
+    behavior: instant ? 'instant' : 'smooth',
+  })
+  if (instant) settle()
+}
+function selectSlide(index: number) {
+  moveTo(index < 0 ? 0 : index >= slides.length ? slides.length + 1 : index + 1)
+}
+function startDrag(event: PointerEvent) {
+  if (event.pointerType !== 'mouse' || event.button !== 0 || !track.value) return
+  track.value.scrollTo({ left: track.value.scrollLeft, behavior: 'instant' })
+  mouseStart = { x: event.clientX, left: track.value.scrollLeft, pointer: event.pointerId }
+}
+function drag(event: PointerEvent) {
+  if (!mouseStart || !track.value) return
+  const distance = event.clientX - mouseStart.x
+  if (Math.abs(distance) < 5 && !dragging.value) return
+  dragging.value = true
+  if (!track.value.hasPointerCapture(event.pointerId))
+    track.value.setPointerCapture(event.pointerId)
+  track.value.scrollLeft = mouseStart.left - distance
+}
 onMounted(() => {
+  if (track.value) {
+    track.value.scrollTo({ left: track.value.clientWidth, behavior: 'instant' })
+    observer = new ResizeObserver(() => {
+      if (!track.value || dragging.value) return
+      track.value.scrollTo({
+        left: (active.value + 1) * track.value.clientWidth,
+        behavior: 'instant',
+      })
+    })
+    observer.observe(track.value)
+  }
   scheduleRotation()
   document.addEventListener('visibilitychange', scheduleRotation)
   window.addEventListener('pointerup', endInteraction)
@@ -56,26 +134,12 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   stopRotation()
+  clearTimeout(settleTimer)
+  observer?.disconnect()
   document.removeEventListener('visibilitychange', scheduleRotation)
   window.removeEventListener('pointerup', endInteraction)
   window.removeEventListener('pointercancel', endInteraction)
 })
-function syncSlide() {
-  if (!track.value?.clientWidth) return
-  active.value = Math.round(track.value.scrollLeft / track.value.clientWidth)
-}
-function selectSlide(index: number, automatic = false) {
-  if (!track.value) return
-  const target = (index + slides.length) % slides.length
-  // Automatic rotation switches whole slides, so unattended animation never cuts a heading in half.
-  const instant = automatic || matchMedia('(prefers-reduced-motion: reduce)').matches
-  track.value.scrollTo({
-    left: target * track.value.clientWidth,
-    behavior: instant ? 'instant' : 'smooth',
-  })
-  if (instant) syncSlide()
-  scheduleRotation()
-}
 </script>
 
 <template>
@@ -91,18 +155,26 @@ function selectSlide(index: number, automatic = false) {
     "
     @focusout="endInteraction"
   >
-    <div ref="track" class="home-banner__track" @scroll.passive="syncSlide">
+    <div
+      ref="track"
+      class="home-banner__track"
+      :class="{ 'is-dragging': dragging }"
+      @scroll.passive="syncSlide"
+      @pointerdown="startDrag"
+      @pointermove="drag"
+      @dragstart.prevent
+    >
       <article
-        v-for="(slide, index) in slides"
-        :key="slide.theme"
+        v-for="(slide, index) in renderedSlides"
+        :key="`${slide.theme}-${index}`"
         class="home-banner__slide"
         :class="`home-banner__slide--${slide.theme}`"
-        :aria-hidden="index !== active"
-        :aria-label="`${index + 1} / ${slides.length}：${slide.label}`"
+        :aria-hidden="index === 0 || index === slides.length + 1 || index - 1 !== active"
+        :aria-label="`${((index - 1 + slides.length) % slides.length) + 1} / ${slides.length}：${slide.label}`"
         aria-roledescription="幻灯片"
       >
         <div class="home-banner__copy">
-          <component :is="index === 0 ? 'h1' : 'h2'">{{ slide.title }}</component>
+          <component :is="index === 1 ? 'h1' : 'h2'">{{ slide.title }}</component>
           <p>{{ slide.description }}</p>
         </div>
       </article>
@@ -143,6 +215,12 @@ function selectSlide(index: number, automatic = false) {
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   touch-action: pan-x pan-y pinch-zoom;
+  user-select: none;
+  cursor: grab;
+}
+.home-banner__track.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
 }
 .home-banner__track::-webkit-scrollbar {
   display: none;

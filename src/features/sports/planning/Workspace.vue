@@ -102,7 +102,6 @@ const followed = ref<string[]>([]),
   compared = ref<Record<string, string>>({}),
   visibleCount = ref(6),
   opportunityCount = ref(6),
-  catalogSearch = ref(''),
   catalogGroup = ref('all'),
   scenario = ref('normal'),
   snapshot = ref(0)
@@ -212,8 +211,7 @@ const scope = computed(
 const catalogue = computed(() =>
   sportsCatalog.filter(
     (s) =>
-      (catalogGroup.value === 'all' || (catalogGroup.value === 'esports' ? s.esport : !s.esport)) &&
-      s.name.toLowerCase().includes(catalogSearch.value.toLowerCase()),
+      catalogGroup.value === 'all' || (catalogGroup.value === 'esports' ? s.esport : !s.esport),
   ),
 )
 function save(key: string, value: unknown) {
@@ -551,10 +549,8 @@ const faqs = [
       </div>
       <div class="pw-data-row">
         <span class="pw-list-summary"
-          ><b>{{ fixtures.length }}</b> 场赛事<i aria-hidden="true"></i><b>{{
-            operators.length
-          }}</b>
-          家平台</span
+          ><b>{{ fixtures.length }}</b> 场赛事<i aria-hidden="true"></i
+          ><b>{{ operators.length }}</b> 家平台</span
         >
         <div class="pw-data-tools">
           <button
@@ -588,7 +584,7 @@ const faqs = [
       <template v-if="view === 'odds'">
         <FixtureCard
           v-for="f in fixtures.slice(0, visibleCount)"
-          :key="`${f.id}-${snapshot}-${scenario}`"
+          :key="`${f.id}-${scenario}`"
           :fixture="f"
           :format="format"
           :enabled="enabled"
@@ -628,7 +624,11 @@ const faqs = [
             <strong>+{{ number(item.result.roi) }}%</strong><small>理论毛收益率</small>
           </div>
           <div class="pw-opportunity-legs">
-            <div v-for="(selection, i) in item.market.selections" :key="i" class="pw-opportunity-leg">
+            <div
+              v-for="(selection, i) in item.market.selections"
+              :key="i"
+              class="pw-opportunity-leg"
+            >
               <i class="pw-brand-mark">{{ operatorOf(item.result.best[i]!.operator)?.mark }}</i>
               <span
                 ><b>{{ operatorOf(item.result.best[i]!.operator)?.name }}</b
@@ -727,14 +727,7 @@ const faqs = [
           </div>
           <button class="sp-primary sp-full" @click="close">完成设置</button></template
         >
-        <template v-else-if="panel === '体育项目'"
-          ><label class="sp-field"
-            >搜索体育项目<input
-              v-model="catalogSearch"
-              type="search"
-              aria-label="搜索体育项目"
-              placeholder="输入项目名称"
-          /></label>
+        <template v-else-if="panel === '体育项目'">
           <div class="pw-tabs">
             <button
               v-for="(name, id) in { all: '全部', sports: '体育', esports: '电竞' }"

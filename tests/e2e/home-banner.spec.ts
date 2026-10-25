@@ -34,19 +34,21 @@ for (const width of [360, 390, 430]) {
         .poll(() =>
           banner
             .locator('.home-banner__track')
-            .evaluate((el, position) => Math.abs(el.scrollLeft - el.clientWidth * position), index),
+            .evaluate(
+              (el, position) => Math.abs(el.scrollLeft - el.clientWidth * (position + 1)),
+              index,
+            ),
         )
         .toBeLessThan(1)
       await expect(banner.getByRole('heading', { name: title })).toBeVisible()
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
         false,
       )
-      await page.screenshot({ path: `outputs/home-banner/${width}-${index + 1}.png` })
     }
     // Native scrolling (touch swipe) and pagination share the same active state.
     await banner
       .locator('.home-banner__track')
-      .evaluate((el) => el.scrollTo({ left: 0, behavior: 'instant' }))
+      .evaluate((el) => el.scrollTo({ left: el.clientWidth, behavior: 'instant' }))
     await expect(dots.nth(0)).toHaveAttribute('aria-current', 'true')
     await dots.nth(0).focus()
     await page.keyboard.press('ArrowRight')
@@ -62,20 +64,21 @@ test('Banner 每 5 秒循环，手动切换重新计时', async ({ page }) => {
   const banner = page.getByRole('region', { name: '平台能力介绍' })
   const dots = banner.getByRole('button')
   await expect(dots.nth(0)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(4999)
+  await page.clock.runFor(200)
+  await page.clock.runFor(4799)
   await expect(dots.nth(0)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(1)
+  await page.clock.runFor(201)
   await expect(dots.nth(1)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(5000)
+  await page.clock.runFor(5200)
   await expect(dots.nth(2)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(5000)
+  await page.clock.runFor(5200)
   await expect(dots.nth(3)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(5000)
+  await page.clock.runFor(5200)
   await expect(dots.nth(0)).toHaveAttribute('aria-current', 'true')
   await dots.nth(2).click()
   await expect(dots.nth(2)).toHaveAttribute('aria-current', 'true')
   await page.clock.runFor(4999)
   await expect(dots.nth(2)).toHaveAttribute('aria-current', 'true')
-  await page.clock.runFor(1)
+  await page.clock.runFor(201)
   await expect(dots.nth(3)).toHaveAttribute('aria-current', 'true')
 })

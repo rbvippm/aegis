@@ -116,8 +116,8 @@ async function show() {
   )
   open.value = true
   await nextTick()
-  if (props.searchable) searchInput.value?.focus({ preventScroll: true })
-  else menu.value?.focus({ preventScroll: true })
+  // Opening options must not summon the mobile keyboard. Search is opt-in.
+  menu.value?.focus({ preventScroll: true })
   revealOption(highlighted.value)
 }
 function revealOption(index: number) {
@@ -152,6 +152,11 @@ function navigate(event: KeyboardEvent) {
     return
   }
   if (event.key === 'Tab') {
+    if (props.searchable && event.target === menu.value && !event.shiftKey) {
+      event.preventDefault()
+      searchInput.value?.focus({ preventScroll: true })
+      return
+    }
     close(true)
     return
   }
