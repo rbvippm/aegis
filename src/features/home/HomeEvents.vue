@@ -204,6 +204,22 @@ const panelTitle = computed(() =>
     </div>
     <StatePanel v-if="!demo" title="暂无赛事数据" description="赛事和报价服务尚未接入。" />
     <template v-else-if="section === 'popular'">
+      <div class="he-meta">
+        <span class="he-league"
+          ><SportIcon :sport="match.sport" :size="17" />{{ sportName(match.sport) }} ·
+          {{ match.league }}</span
+        >
+        <div class="he-pager" aria-label="热门赛事切换">
+          <button aria-label="上一场热门赛事" @click="next(-1)">
+            <ChevronLeft :size="16" :stroke-width="2.5" /></button
+          ><span
+            ><b>{{ matchIndex + 1 }}</b> / {{ popular.length }}</span
+          ><button aria-label="下一场热门赛事" @click="next(1)">
+            <ChevronRight :size="16" :stroke-width="2.5" />
+          </button>
+        </div>
+      </div>
+
       <div
         class="he-swipe"
         @pointerdown="swipeStart"
@@ -213,57 +229,45 @@ const panelTitle = computed(() =>
         @click.capture="guardSwipeClick"
       >
         <div class="he-swipe-pane" :class="{ 'is-animating': animating }" :style="swipeStyle">
-      <div class="he-meta">
-        <span class="he-league"
-          ><SportIcon :sport="match.sport" :size="17" />{{ sportName(match.sport) }} ·
-          {{ match.league }}</span
-        >
-        <div class="he-pager" aria-label="热门赛事切换">
-          <button aria-label="上一场热门赛事" @click="next(-1)">
-            <ChevronLeft :size="16" :stroke-width="2.5" /></button
-          ><span><b>{{ matchIndex + 1 }}</b> / {{ popular.length }}</span
-          ><button aria-label="下一场热门赛事" @click="next(1)">
-            <ChevronRight :size="16" :stroke-width="2.5" />
-          </button>
+          <div class="hr-teams he-teams">
+            <span
+              ><i>{{ match.home[0] }}</i
+              >{{ match.home }}</span
+            >
+            <div class="he-score">
+              <strong>{{ match.score }}</strong
+              ><small :class="{ 'he-live': match.phase === 'live' }">{{ match.stage }}</small>
+            </div>
+            <span
+              >{{ match.away }}<i>{{ match.away[0] }}</i></span
+            >
+          </div>
+          <label class="he-play"
+            ><span class="he-field-label">推荐玩法</span
+            ><GlassSelect v-model="marketId" label="推荐玩法"
+              ><option v-for="item in match.markets" :key="item.id" :value="item.id">
+                {{ item.label }} · {{ item.scope }} · {{ item.line }}
+              </option></GlassSelect
+            ></label
+          >
+          <div class="he-quotes">
+            <button
+              v-for="item in recommended"
+              :key="item.side"
+              class="he-quote"
+              :aria-label="`平台 ${item.quote.platform} · ${item.selection} · 报价详情`"
+              @click="showQuote(item.quote.platform, item.side)"
+            >
+              <span class="he-quote__head"
+                ><PlatformBadge :platform="item.quote.platform" /><small>{{
+                  item.ties > 1 ? '并列较优' : '当前较优'
+                }}</small></span
+              ><span class="he-selection">{{ item.selection }}</span
+              ><strong>{{ formatOdds(item.decimal, format) }}</strong
+              ><span class="he-quote__more">查看报价<ChevronRight :size="12" /></span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="hr-teams he-teams">
-        <span
-          ><i>{{ match.home[0] }}</i
-          >{{ match.home }}</span
-        >
-        <div class="he-score">
-          <strong>{{ match.score }}</strong
-          ><small :class="{ 'he-live': match.phase === 'live' }">{{ match.stage }}</small>
-        </div>
-        <span
-          >{{ match.away }}<i>{{ match.away[0] }}</i></span
-        >
-      </div>
-      <label class="he-play"
-        ><span class="he-field-label">推荐玩法</span
-        ><GlassSelect v-model="marketId" label="推荐玩法"
-          ><option v-for="item in match.markets" :key="item.id" :value="item.id">
-            {{ item.label }} · {{ item.scope }} · {{ item.line }}
-          </option></GlassSelect
-        ></label
-      >
-      <div class="he-quotes">
-        <button
-          v-for="item in recommended"
-          :key="item.side"
-          class="he-quote"
-          :aria-label="`平台 ${item.quote.platform} · ${item.selection} · 报价详情`"
-          @click="showQuote(item.quote.platform, item.side)"
-        >
-          <span class="he-quote__head"
-            ><PlatformBadge :platform="item.quote.platform" /><small>{{
-              item.ties > 1 ? '并列较优' : '当前较优'
-            }}</small></span
-          ><span class="he-selection">{{ item.selection }}</span
-          ><strong>{{ formatOdds(item.decimal, format) }}</strong
-          ><span class="he-quote__more">查看报价<ChevronRight :size="12" /></span>
-        </button>
       </div>
       <div class="he-foot">
         <button @click="panel = 'market'">同场 · 同盘 · 同选项<Info :size="12" /></button
@@ -276,20 +280,9 @@ const panelTitle = computed(() =>
           }}</b></span
         ><ChevronRight :size="14" />
       </button>
-        </div>
-      </div>
     </template>
     <template v-else-if="section === 'opportunities'">
       <template v-if="opportunity">
-        <div
-          class="he-swipe"
-          @pointerdown="swipeStart"
-          @pointermove="swipeMove"
-          @pointerup="swipeEnd"
-          @pointercancel="swipeEnd"
-          @click.capture="guardSwipeClick"
-        >
-          <div class="he-swipe-pane" :class="{ 'is-animating': animating }" :style="swipeStyle">
         <div class="he-meta">
           <span class="he-league"
             ><SportIcon :sport="opportunity.match.sport" :size="17" />{{
@@ -300,36 +293,47 @@ const panelTitle = computed(() =>
           <div class="he-pager" aria-label="套利机会切换">
             <button aria-label="上一个套利机会" @click="next(-1)">
               <ChevronLeft :size="16" :stroke-width="2.5" /></button
-            ><span><b>{{ opportunityIndex + 1 }}</b> / {{ opportunities.length }}</span
+            ><span
+              ><b>{{ opportunityIndex + 1 }}</b> / {{ opportunities.length }}</span
             ><button aria-label="下一个套利机会" @click="next(1)">
               <ChevronRight :size="16" :stroke-width="2.5" />
             </button>
           </div>
         </div>
-        <h3 class="he-opportunity-title">
-          {{ opportunity.match.home }} <span>vs</span> {{ opportunity.match.away }}
-        </h3>
-        <div class="he-market-summary">
-          <strong>{{ opportunity.market.label }} · {{ opportunity.market.line }}</strong
-          ><small>{{ opportunity.market.scope }} · 两项完整结果</small>
-        </div>
-        <div class="he-profit">
-          <span>1,000 USDT 预算 · 理论毛收益</span
-          ><strong>+{{ amount(opportunity.result.gross) }}<small> USDT</small></strong
-          ><span class="he-roi">理论收益率 {{ opportunity.result.roi.toFixed(2) }}%</span>
-        </div>
-        <div class="he-opportunity-legs">
-          <span v-for="leg in recommendedQuotes(opportunity.market)" :key="leg.side"
-            ><PlatformBadge :platform="leg.quote.platform" /><span>{{ leg.selection }}</span
-            ><b>{{ formatOdds(leg.decimal, format) }}</b></span
-          >
+
+        <div
+          class="he-swipe"
+          @pointerdown="swipeStart"
+          @pointermove="swipeMove"
+          @pointerup="swipeEnd"
+          @pointercancel="swipeEnd"
+          @click.capture="guardSwipeClick"
+        >
+          <div class="he-swipe-pane" :class="{ 'is-animating': animating }" :style="swipeStyle">
+            <h3 class="he-opportunity-title">
+              {{ opportunity.match.home }} <span>vs</span> {{ opportunity.match.away }}
+            </h3>
+            <div class="he-market-summary">
+              <strong>{{ opportunity.market.label }} · {{ opportunity.market.line }}</strong
+              ><small>{{ opportunity.market.scope }} · 两项完整结果</small>
+            </div>
+            <div class="he-profit">
+              <span>1,000 USDT 预算 · 理论毛收益</span
+              ><strong>+{{ amount(opportunity.result.gross) }}<small> USDT</small></strong
+              ><span class="he-roi">理论收益率 {{ opportunity.result.roi.toFixed(2) }}%</span>
+            </div>
+            <div class="he-opportunity-legs">
+              <span v-for="leg in recommendedQuotes(opportunity.market)" :key="leg.side"
+                ><PlatformBadge :platform="leg.quote.platform" /><span>{{ leg.selection }}</span
+                ><b>{{ formatOdds(leg.decimal, format) }}</b></span
+              >
+            </div>
+          </div>
         </div>
         <button class="he-plan-action" @click="panel = 'plan'">
           查看分配试算<ChevronRight :size="16" />
         </button>
         <p class="he-qualification">发现理论价差；费用、限额与报价有效期待核验，净收益待核算。</p>
-          </div>
-        </div>
       </template>
       <StatePanel
         v-else
