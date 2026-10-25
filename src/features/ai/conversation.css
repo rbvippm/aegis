@@ -341,7 +341,7 @@
   place-items: center;
   width: 26px;
   height: 31px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   border-radius: 3px 3px 10px 10px;
   border: 1px solid #c8d9ec;
@@ -537,11 +537,9 @@
 }
 .ac-primary {
   color: #fff;
-  border-color: #c5e4ff;
-  background: linear-gradient(150deg, #48a4ff, #0871fd 65%, #2d8dff);
-  box-shadow:
-    inset 0 1px 1px #ffffff7f,
-    0 3px 7px #5b9de721;
+  border-color: transparent;
+  background: var(--ae-pill);
+  box-shadow: var(--ae-pill-shadow);
 }
 .ac-outline {
   color: #0869e7;
@@ -883,8 +881,8 @@
 }
 .ac-detail-tabs .active {
   color: white;
-  background: linear-gradient(140deg, #379bff, #0769f6);
-  box-shadow: inset 0 1px 2px #fff5;
+  background: var(--ae-pill);
+  box-shadow: var(--ae-pill-shadow);
 }
 .ac-detail-reason {
   display: flex;

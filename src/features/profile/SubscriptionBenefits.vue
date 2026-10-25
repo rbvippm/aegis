@@ -16,6 +16,7 @@ import {
   Headphones,
   UsersRound,
   Check,
+  UserRound,
 } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import { useProfile } from './store'
@@ -114,7 +115,7 @@ function select(id: SubscriptionLevel) {
         @keydown.right.prevent="move(1)"
         :aria-controls="`subscription-${plan.id}`"
         :id="`tab-${plan.id}`"
-        :class="{ selected: selected === plan.id }"
+        :class="['sb-level', `sb-level--${plan.id}`, { selected: selected === plan.id }]"
         @click="select(plan.id)"
       >
         <strong>{{ plan.id }}</strong
@@ -122,7 +123,7 @@ function select(id: SubscriptionLevel) {
       </button>
     </div>
     <section
-      class="sb-plan"
+      :class="['sb-plan', `sb-plan--${current.id}`]"
       role="tabpanel"
       :id="`subscription-${current.id}`"
       :aria-labelledby="`tab-${current.id}`"
@@ -132,7 +133,7 @@ function select(id: SubscriptionLevel) {
           <small>{{ current.id }} · {{ current.name }}订阅</small>
           <h2>{{ current.description }}</h2>
         </div>
-        <Crown :size="32" />
+        <span class="sb-plan-mark"><Crown :size="26" /></span>
       </div>
       <div class="sb-plan-points">
         <strong>{{ current.monthlyPoints.toLocaleString('en-US') }}</strong
@@ -143,7 +144,20 @@ function select(id: SubscriptionLevel) {
       <div class="sb-key-benefits">
         <span><Check :size="14" />{{ current.alert }}</span
         ><span><Check :size="14" />{{ current.quote }}</span
-        ><span><Check :size="14" />{{ current.support }}</span>
+        ><span><Check :size="14" />{{ current.manager }}</span>
+      </div>
+      <div class="sb-manager">
+        <div class="sb-manager-head">
+          <span class="sb-manager-mark"><UserRound :size="18" /></span>
+          <div>
+            <small>服务跟进</small>
+            <strong>{{ current.manager }}</strong>
+          </div>
+        </div>
+        <p>{{ current.managerDetail }}</p>
+        <ul>
+          <li v-for="item in current.managerScope" :key="item">{{ item }}</li>
+        </ul>
       </div>
       <button class="pf-primary pf-wide" @click="panel = 'plan'">
         了解 {{ current.id }} 订阅方案<ArrowUpRight :size="16" />
@@ -161,13 +175,35 @@ function select(id: SubscriptionLevel) {
         <thead>
           <tr>
             <th>权益</th>
-            <th v-for="plan in subscriptionPlans" :key="plan.id">{{ plan.id }}</th>
+            <th
+              v-for="plan in subscriptionPlans"
+              :key="plan.id"
+              :class="{ 'is-current': plan.id === selected }"
+            >
+              {{ plan.id }}
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="benefit in subscriptionBenefits" :key="benefit.id">
             <th>{{ benefit.title }}</th>
-            <td v-for="(value, i) in benefit.values" :key="i">{{ value }}</td>
+            <td
+              v-for="(value, i) in benefit.values"
+              :key="i"
+              :class="{ 'is-current': i === index }"
+            >
+              {{ value }}
+            </td>
+          </tr>
+          <tr>
+            <th>服务跟进</th>
+            <td
+              v-for="plan in subscriptionPlans"
+              :key="plan.id"
+              :class="{ 'is-current': plan.id === selected }"
+            >
+              {{ plan.manager }}
+            </td>
           </tr>
           <tr>
             <th>积分重置</th>
@@ -240,6 +276,10 @@ function select(id: SubscriptionLevel) {
             <div>
               <dt>VIP 转移</dt>
               <dd>{{ current.quote }}</dd>
+            </div>
+            <div>
+              <dt>服务跟进</dt>
+              <dd>{{ current.manager }}</dd>
             </div>
             <div>
               <dt>订阅价格</dt>

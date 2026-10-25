@@ -54,6 +54,9 @@ import '@/features/sports/sports.css'
 import './planning.css'
 defineOptions({ name: 'SportsPlanningWorkspace' })
 const searchWrap = ref<HTMLElement>()
+function operatorOf(id: string) {
+  return planningOperators.find((item) => item.id === id)
+}
 function outsideSearch(event: PointerEvent) {
   if (!searchWrap.value?.contains(event.target as Node)) searchOpen.value = false
 }
@@ -76,6 +79,12 @@ const formats = [
   { id: 'ID' as const, label: '印尼盘 ID', description: '正负赔率' },
   { id: 'DEC' as const, label: '欧盘 DEC', description: '十进制 · 含本金的总返还倍数' },
 ]
+const scenarios = [
+  { id: 'normal', name: '完整数据', detail: '展示当前范围内的有效报价' },
+  { id: 'locked', name: '锁盘较多', detail: '部分盘口显示为锁盘' },
+  { id: 'partial', name: '部分缺失', detail: '个别选项暂无价格' },
+  { id: 'empty', name: '筛选空结果', detail: '当前条件不返回赛事' },
+] as const
 const format = ref<OddsFormat>('HK'),
   enabled = ref<Family[]>(Object.keys(familyNames) as Family[]),
   formatName = computed(() => formats.find((f) => f.id === format.value)?.label ?? '港盘 HK')
@@ -471,18 +480,18 @@ const faqs = [
           :class="{ selected: sport === id }"
           @click="chooseSport(id)"
         >
-          <SportIcon :sport="id" :size="20" />{{ sportName(id) }}</button
+          <SportIcon :sport="id" :size="18" /><span>{{ sportName(id) }}</span></button
         ><button
           :class="{ selected: !['football', 'basketball', 'tennis'].includes(sport) }"
           @click="open('体育项目')"
         >
-          <SportIcon sport="all" :size="20" />{{
+          <SportIcon sport="all" :size="18" /><span>{{
             sport === 'all'
               ? '全部体育'
               : !['football', 'basketball', 'tennis'].includes(sport)
                 ? sportName(sport)
                 : '更多体育'
-          }}
+          }}</span>
         </button>
       </div>
       <div class="pw-status-row">
@@ -542,7 +551,10 @@ const faqs = [
       </div>
       <div class="pw-data-row">
         <span class="pw-list-summary"
-          >{{ fixtures.length }} 场赛事 · {{ operators.length }} 家平台</span
+          ><b>{{ fixtures.length }}</b> 场赛事<i aria-hidden="true"></i><b>{{
+            operators.length
+          }}</b>
+          家平台</span
         >
         <div class="pw-data-tools">
           <button
@@ -569,7 +581,7 @@ const faqs = [
             title="切换数据快照"
             @click="snapshot++"
           >
-            <RefreshCw :size="16" /><span>{{ snapshot % 2 ? 'B' : 'A' }}</span>
+            <RefreshCw :size="16" /><span class="pw-snapshot">{{ snapshot % 2 ? 'B' : 'A' }}</span>
           </button>
         </div>
       </div>
@@ -605,22 +617,29 @@ const faqs = [
           :key="`${item.fixture.id}-${item.market.id}`"
           class="sp-card pw-opportunity"
         >
-          <p class="pw-muted">{{ sportName(item.fixture.sport) }} · {{ item.fixture.league }}</p>
-          <h3>{{ item.fixture.home }} vs {{ item.fixture.away }}</h3>
-          <p class="pw-muted">
+          <p class="pw-opportunity-league">
+            {{ sportName(item.fixture.sport) }} · {{ item.fixture.league }}
+          </p>
+          <h3>{{ item.fixture.home }} <span>vs</span> {{ item.fixture.away }}</h3>
+          <p class="pw-opportunity-market">
             {{ item.market.label }} · {{ item.market.scope }} · {{ item.market.line }}
           </p>
-          <strong class="pw-opportunity-profit"
-            >+{{ number(item.result.roi) }}%<small>理论毛收益率</small></strong
-          >
-          <div v-for="(selection, i) in item.market.selections" :key="i" class="pw-opportunity-leg">
-            <span
-              >{{ planningOperators.find((p) => p.id === item.result.best[i]!.operator)?.name }} ·
-              {{ selection }}</span
-            ><b>{{ formatOdds(item.result.best[i]!.prices[i]!, format) }}</b>
+          <div class="pw-opportunity-yield">
+            <strong>+{{ number(item.result.roi) }}%</strong><small>理论毛收益率</small>
+          </div>
+          <div class="pw-opportunity-legs">
+            <div v-for="(selection, i) in item.market.selections" :key="i" class="pw-opportunity-leg">
+              <i class="pw-brand-mark">{{ operatorOf(item.result.best[i]!.operator)?.mark }}</i>
+              <span
+                ><b>{{ operatorOf(item.result.best[i]!.operator)?.name }}</b
+                ><small>{{ selection }}</small></span
+              ><b class="pw-opportunity-odds">{{
+                formatOdds(item.result.best[i]!.prices[i]!, format)
+              }}</b>
+            </div>
           </div>
           <button class="sp-primary sp-full" @click="tool('对冲试算', item.fixture, item.market)">
-            查看方案<ChevronRight :size="14" />
+            查看方案<ChevronRight :size="16" />
           </button>
         </article>
         <StatePanel
@@ -677,21 +696,36 @@ const faqs = [
             ><b>{{ formatOdds(1.9, f.id) }}</b>
           </button>
           <h3>显示的玩法分组</h3>
-          <label v-for="(name, id) in familyNames" :key="id" class="sp-setting-row"
-            >{{ name
-            }}<input
-              v-model="enabled"
-              type="checkbox"
-              :value="id"
-              :disabled="enabled.length === 1 && enabled.includes(id)" /></label
-          ><label class="sp-field"
-            >数据场景<GlassSelect v-model="scenario" label="数据场景"
-              ><option value="normal">完整数据</option>
-              <option value="locked">锁盘较多</option>
-              <option value="partial">部分报价缺失</option>
-              <option value="empty">筛选空结果</option></GlassSelect
-            ></label
-          ><button class="sp-primary sp-full" @click="close">完成设置</button></template
+          <div class="pw-family-list">
+            <label
+              v-for="(name, id) in familyNames"
+              :key="id"
+              class="sp-setting-row pw-family"
+              :class="{ 'is-on': enabled.includes(id) }"
+              >{{ name
+              }}<input
+                v-model="enabled"
+                type="checkbox"
+                :value="id"
+                :disabled="enabled.length === 1 && enabled.includes(id)"
+            /></label>
+          </div>
+          <h3>数据场景</h3>
+          <div class="pw-scenarios" aria-label="数据场景">
+            <button
+              v-for="item in scenarios"
+              :key="item.id"
+              type="button"
+              class="pw-scenario"
+              :aria-pressed="scenario === item.id"
+              :class="{ selected: scenario === item.id }"
+              @click="scenario = item.id"
+            >
+              <strong>{{ item.name }}</strong>
+              <small>{{ item.detail }}</small>
+            </button>
+          </div>
+          <button class="sp-primary sp-full" @click="close">完成设置</button></template
         >
         <template v-else-if="panel === '体育项目'"
           ><label class="sp-field"
@@ -718,11 +752,15 @@ const faqs = [
             <button
               v-for="s in catalogue"
               :key="s.id"
+              :aria-pressed="sport === s.id"
               :class="{ selected: sport === s.id }"
               @click="chooseCatalog(s.id)"
             >
-              <SportIcon :sport="s.id" :size="22" /><span>{{ s.name }}</span
-              ><small>{{ planningMatches.filter((f) => f.sport === s.id).length }} 场</small>
+              <span class="pw-catalog-mark"><SportIcon :sport="s.id" :size="24" /></span
+              ><span>{{ s.name }}</span
+              ><small
+                ><b>{{ planningMatches.filter((f) => f.sport === s.id).length }}</b> 场</small
+              >
             </button>
           </div></template
         >

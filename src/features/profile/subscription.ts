@@ -8,6 +8,9 @@ export interface SubscriptionPlan {
   alert: string
   quote: string
   support: string
+  manager: string
+  managerDetail: string
+  managerScope: string[]
 }
 export const subscriptionPlans: SubscriptionPlan[] = [
   {
@@ -18,6 +21,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     alert: '关注赛事提醒',
     quote: 'VIP 转移报价咨询',
     support: '标准工单跟进',
+    manager: '工单跟进',
+    managerDetail: '需求进入工单队列，按提交顺序处理，不指定专属经理。',
+    managerScope: ['工单受理', '处理记录'],
   },
   {
     id: 'L2',
@@ -27,6 +33,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     alert: '多赛事条件提醒与归并',
     quote: 'VIP 转移优先报价',
     support: '工单优先跟进',
+    manager: '经理协助跟进',
+    managerDetail: '工单优先处理，经理协助核对方案与报价，不固定为专属经理。',
+    managerScope: ['优先响应', '方案核对'],
   },
   {
     id: 'L3',
@@ -36,6 +45,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     alert: '多赛事、多玩法组合提醒',
     quote: 'VIP 转移优先报价与定制方案',
     support: '复杂工单专属跟进',
+    manager: '专属经理跟进',
+    managerDetail: '一位经理持续跟进订阅、报价与复杂工单。开通后才会指定人选。',
+    managerScope: ['一对一跟进', '报价协同', '复杂工单'],
   },
 ]
 export const subscriptionReset = '每月 1 日 00:00（UTC+8）'

@@ -322,9 +322,7 @@ onBeforeUnmount(() => chat.stop())
           <Send :size="20" fill="currentColor" />
         </button>
       </form>
-      <p class="ac-composer-note">
-        {{ chat.busy ? '正在整理回答' : '关键结论附依据' }}
-      </p>
+      <p v-if="chat.busy" class="ac-composer-note" role="status">正在整理回答</p>
     </footer>
     <ConversationDetails
       :open="detail !== null"

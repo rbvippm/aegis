@@ -50,33 +50,36 @@ const icon = computed(
           · {{ market?.selections[movement.side === 'home' ? 0 : 1] }}</span
         ></small
       ></span
-    ><ChevronRight :size="14" />
+    ><ChevronRight :size="16" />
   </button>
 </template>
 <style>
 .he-movement {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   min-width: 0;
   width: 100%;
   border: 0;
-  border-bottom: 1px solid #e4edf8;
-  padding: 13px 0;
+  border-bottom: 1px solid #e7eef8;
+  padding: 12px 2px;
   background: none;
   text-align: left;
   color: #14213d;
   cursor: pointer;
 }
+.he-movement:last-of-type {
+  border-bottom: 0;
+}
 .he-movement__icon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 11px;
-  background: #edf4ff;
-  color: #3978c9;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #e7f1ff;
+  color: #0864ff;
 }
 .he-movement__main {
   flex: 1;
@@ -85,49 +88,78 @@ const icon = computed(
 .he-movement__top {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  line-height: 1.5;
+  gap: 6px;
+  min-width: 0;
+  line-height: 1.4;
 }
 .he-movement time {
   margin-left: auto;
+  flex-shrink: 0;
   font-size: 12px;
-  color: var(--ae-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: #526581;
 }
 .he-movement__label {
-  color: #526581;
-  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  color: #14213d;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .he-movement__value {
   display: block;
-  margin: 5px 0 3px;
-  font-size: 16px;
-  line-height: 1.5;
-  font-weight: 650;
+  margin: 2px 0 1px;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.2px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .he-movement small {
   display: block;
-  color: var(--ae-muted);
+  overflow: hidden;
+  color: #526581;
   font-size: 12px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
+  font-weight: 500;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.he-movement > svg {
+  flex-shrink: 0;
+  color: #8eacd0;
 }
 .he-movement--up .he-movement__value,
+.he-movement--up .he-movement__label,
 .he-movement--up .he-movement__icon {
   color: #087f6b;
 }
 .he-movement--down .he-movement__value,
+.he-movement--down .he-movement__label,
 .he-movement--down .he-movement__icon {
-  color: #bd3348;
+  color: #c4273d;
 }
 .he-movement--up .he-movement__icon {
-  background: #e6f7f0;
+  background: #e5f7f1;
 }
 .he-movement--down .he-movement__icon {
   background: #fff0f3;
 }
+.he-movement--suspended .he-movement__icon,
+.he-movement--suspended .he-movement__label {
+  color: #8a6424;
+}
 .he-movement--suspended .he-movement__icon {
-  color: #94702e;
-  background: #fff5df;
+  background: #fff6e4;
+}
+.he-movement--suspended .he-movement__value {
+  font-size: 16px;
+  font-weight: 650;
 }
 </style>

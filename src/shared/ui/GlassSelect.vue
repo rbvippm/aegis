@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
   gap: 8px;
   width: 100%;
   min-height: 44px;
-  border: 1px solid #d6e5f8;
+  border: 1px solid #d7e6f8;
   border-radius: 14px;
   padding: 8px 12px;
   background: #f8fbff;
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
   width: 100%;
   min-width: 0;
   min-height: 44px;
-  border: 1px solid #d6e5f8;
+  border: 1px solid #d7e6f8;
   border-radius: 10px;
   padding: 8px;
   background: white;

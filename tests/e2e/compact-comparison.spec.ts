@@ -42,9 +42,15 @@ for (const width of [360, 390, 430]) {
     await expect(card.locator('.pw-score')).toHaveCount(0)
     await expect(card.getByRole('combobox', { name: '北辰队盘口线' })).toBeVisible()
     await card.getByRole('button', { name: '上半场', exact: true }).click()
-    await expect(card.locator('.pw-market-context')).toContainText('上半场')
+    await expect(card.getByRole('button', { name: '上半场', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await chooseOption(page, card.getByRole('combobox', { name: '北辰队盘口线' }), 'handicap')
-    await expect(card.locator('.pw-market-context')).toContainText('全场')
+    await expect(card.getByRole('button', { name: '全场', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await card.getByRole('button', { name: '结算规则', exact: true }).click()
     await expect(page.getByRole('dialog')).toContainText('玩法规则')
     await page.keyboard.press('Escape')

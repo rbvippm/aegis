@@ -16,7 +16,7 @@ test('目录、搜索联想、日期和分页联动', async ({ page }) => {
   await page.getByRole('combobox', { name: '搜索球队或联赛' }).fill('海港')
   await page.getByRole('option', { name: /海港队 vs 山城队/ }).click()
   await expect(page.locator('.pw-fixture')).toHaveCount(1)
-  await expect(card(page)).toContainText('3 项结果')
+  await expect(card(page)).toContainText('海港队')
   await page.getByRole('button', { name: '更多体育', exact: true }).click()
   await page.getByRole('searchbox', { name: '搜索体育项目' }).fill('无畏')
   await page
@@ -136,7 +136,7 @@ test('可搜索平台、平台类型、排序、欧盘与空状态', async ({ pa
   await d.getByRole('button', { name: /查看.*场/ }).click()
   await page.getByRole('button', { name: '玩法与赔率设置 · 港盘 HK', exact: true }).click()
   await d.getByRole('button', { name: /欧盘 DEC/ }).click()
-  await chooseOption(page, d.getByRole('combobox', { name: '数据场景' }), 'empty')
+  await d.getByRole('button', { name: /筛选空结果/ }).click()
   await d.getByRole('button', { name: '完成设置' }).click()
   await expect(page.getByText('暂无匹配赛事', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '重置筛选', exact: true }).click()

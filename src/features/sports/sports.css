@@ -80,20 +80,22 @@
 .sports-page .active,
 .sp-primary {
   color: white !important;
-  background: linear-gradient(170deg, #83c5ff, #1486ff 42%, #0663f9 74%, #56b3ff) !important;
-  box-shadow:
-    inset 0 1px 2px white,
-    0 3px 7px #69a4ef50;
+  background: var(--ae-pill) !important;
+  box-shadow: var(--ae-pill-shadow);
 }
 .sp-count {
   display: grid;
   place-items: center;
-  min-width: 17px;
-  height: 17px;
-  border-radius: 50%;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
   background: #f33558;
   color: white;
   font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 .sp-search-row {
   display: flex;
@@ -460,6 +462,21 @@
   background: #f0f5fb;
   color: #526581;
   font-size: 12px;
+  line-height: 1;
+}
+.sp-paused--locked {
+  background: #eef3f9;
+  color: #526581;
+}
+.sp-paused--sealed {
+  background: #f8f0f2;
+  color: #9a3d4e;
+}
+.sp-price,
+.sp-paused {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 .sp-table-empty {
   padding: 15px !important;
@@ -509,6 +526,9 @@
   border: 0;
   font-size: 13px;
   color: #526581;
+}
+.sp-expand svg {
+  transition: transform 150ms ease;
 }
 .sp-rotate {
   transform: rotate(180deg);
@@ -1629,6 +1649,11 @@
 @media (prefers-reduced-motion: reduce) {
   .sp-price-arrow {
     animation: none;
+  }
+  .sp-price,
+  .sp-paused,
+  .sp-expand svg {
+    transition: none;
   }
 }
 @media (max-width: 375px) {

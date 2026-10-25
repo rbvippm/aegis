@@ -30,7 +30,7 @@ for (const width of [360, 390, 430]) {
       ).toBe(false)
       const small = await page
         .locator(
-          '.pw-market-context,.pw-fixture-meta-copy small,.pw-brand,.sb-proposal,.sb-reset small,.he-field-label,.he-selection,.he-movement small,.research-region-badge',
+          '.pw-fixture-meta-copy small,.pw-brand,.sb-proposal,.sb-reset small,.he-field-label,.he-selection,.he-movement small,.research-region-badge',
         )
         .evaluateAll((nodes) =>
           nodes

@@ -17,7 +17,9 @@ const budget = ref(1000),
 const choices = ref<Record<number, string>>(
   props.selected ? { [props.selected.index]: props.selected.quote.operator } : {},
 )
-const name = (id: string) => planningOperators.find((p) => p.id === id)?.name ?? id
+const operator = (id: string) => planningOperators.find((p) => p.id === id)
+const name = (id: string) => operator(id)?.name ?? id
+const mark = (id: string) => operator(id)?.mark ?? id.slice(0, 1)
 const legs = computed(() =>
   props.market.selections.map((label, i) => ({
     label,
@@ -81,11 +83,17 @@ const net = computed(() =>
             <tbody>
               <tr v-for="(leg, i) in legs" :key="i">
                 <th>
-                  {{ name(leg.quote!.operator) }} · {{ leg.label
-                  }}<small>{{ formatOdds(leg.quote!.prices[i]!, format) }}</small>
+                  <span class="pw-alloc-leg"
+                    ><i class="pw-brand-mark">{{ mark(leg.quote!.operator) }}</i
+                    ><b class="pw-alloc-name">{{ name(leg.quote!.operator) }}</b
+                    ><small>{{ leg.label }}</small
+                    ><b class="pw-alloc-odds">{{
+                      formatOdds(leg.quote!.prices[leg.index]!, format)
+                    }}</b></span
+                  >
                 </th>
-                <td>{{ number(result.stakes[i]!) }}</td>
-                <td>{{ number(result.returns[i]!) }}</td>
+                <td class="pw-alloc-num">{{ number(result.stakes[i]!) }}</td>
+                <td class="pw-alloc-num">{{ number(result.returns[i]!) }}</td>
               </tr>
             </tbody>
           </table>

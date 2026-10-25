@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Star, ChevronRight, Activity, Bell, ChartNoAxesColumn } from '@lucide/vue'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import SportIcon from '../SportIcon.vue'
@@ -37,6 +37,13 @@ const market = computed(
 )
 const value = computed(() => (market.value ? analysis(market.value) : null))
 const periods = computed(() => [...new Set(children.value.map((m) => m.period))])
+const groupsEl = ref<HTMLElement>()
+const groupsFade = ref(false)
+let groupsObserver: ResizeObserver | undefined
+function measureGroups() {
+  const el = groupsEl.value
+  groupsFade.value = !!el && el.scrollWidth > el.clientWidth + 1
+}
 function chooseGroup(value: Family) {
   family.value = value
   selected.value = ''
@@ -44,6 +51,15 @@ function chooseGroup(value: Family) {
 function period(value: string) {
   selected.value = children.value.find((m) => m.period === value)!.id
 }
+onMounted(() => {
+  measureGroups()
+  if (groupsEl.value) {
+    groupsObserver = new ResizeObserver(measureGroups)
+    groupsObserver.observe(groupsEl.value)
+  }
+})
+onBeforeUnmount(() => groupsObserver?.disconnect())
+watch(groups, measureGroups, { flush: 'post' })
 </script>
 <template>
   <article class="sp-card sp-match pw-fixture" :aria-label="`${fixture.home}对${fixture.away}`">
@@ -51,8 +67,6 @@ function period(value: string) {
       <span class="pw-fixture-meta-copy"
         ><span class="pw-fixture-league"
           ><SportIcon :sport="fixture.sport" :size="14" />{{ fixture.league }}</span
-        ><small v-if="market"
-          >{{ market.quotes.length }} 家平台 · {{ market.selections.length }} 项结果</small
         ></span
       ><button
         :aria-label="`${followed ? '取消关注' : '关注'}${fixture.home}`"
@@ -74,7 +88,12 @@ function period(value: string) {
       ><strong>{{ fixture.away }}</strong
       ><ChevronRight :size="14" />
     </button>
-    <div class="pw-market-groups" aria-label="玩法分组">
+    <div
+      ref="groupsEl"
+      class="pw-market-groups"
+      :class="{ 'pw-market-groups--fade': groupsFade }"
+      aria-label="玩法分组"
+    >
       <button
         v-for="m in groups"
         :key="m.family"
@@ -108,7 +127,6 @@ function period(value: string) {
           </option>
         </GlassSelect>
       </div>
-      <p class="pw-market-context">{{ market.scope }}</p>
       <QuoteMatrix
         :market="market"
         :format="format"

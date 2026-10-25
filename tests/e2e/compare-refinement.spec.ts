@@ -41,7 +41,7 @@ test('比价卡不显示平台分，Web3报价与跨平台对冲可操作', asyn
   await expect(card).not.toContainText('平台分')
   await card.getByRole('button', { name: /展开其余平台/ }).click()
   await expect(card).toContainText('Azuro')
-  await expect(card).toContainText('赔率最优')
+  await expect(card).toContainText('最优')
   await expect(card).toContainText('锁盘')
   await expect(card).toContainText('封盘')
   await page.getByRole('button', { name: /^套利机会/ }).click()

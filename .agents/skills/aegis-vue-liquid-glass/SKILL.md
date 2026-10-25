@@ -9,9 +9,9 @@ description: Build or refine Aegis Vue 3 mobile interfaces in the approved glaci
 
 ## 当前已确认阶段
 
-先读 [当前实现基准](references/current-baseline.md)，查看其中列出的首页与占位截图。当前仅首页保留完整界面；其他导航页与二级页保持文案占位，用户指定哪个页面再逐页设计。不要因为历史功能契约或概念图而自动恢复其他页面。
+先读 [当前实现基准](references/current-baseline.md) 的「UI 模板」。首页、监测、AI、体育对比、我的、订阅和服务页都已按后续指令实现。新界面按该模板的颜色、字号、间距、胶囊、下拉和抽屉制作，不再另起一套蓝色或字号。早期占位说明只保留历史，不授权把已实现页面退回占位，也不要因为历史功能契约自动恢复已删除页面。
 
-Codex 与 Cursor 共用本技能；`.cursor/rules/aegis.mdc` 只是入口，不维护第二套规范。当前实现基准记录已确认的字体、过渡、底栏和页面范围；概念图细则用于方向，不覆盖后续已确认的实现与用户新要求。
+Codex 与 Cursor 共用本技能；`.cursor/rules/aegis.mdc` 与根目录 `AGENTS.md` 只是入口，不维护第二套规范。概念图细则用于方向，不覆盖模板和用户新要求。
 
 ## 先确定边界
 
@@ -21,7 +21,7 @@ Codex 与 Cursor 共用本技能；`.cursor/rules/aegis.mdc` 只是入口，不�
 
 ## 不应漂移的设计
 
-- 主色 #2563EB，辅助 #60A5FA，背景 #F5F8FF，表面 #FFFFFF，正文 #14213D。优先复用仓库现有 token 与 `reference-home.css`；`assets/aegis-tokens.css` 仅为早期基础模板，不覆盖当前实现基准。
+- 颜色以 `src/shared/styles/tokens.css` 为准：正文 `#14213D`，次级 `#526581`，标签 `#3D5D86`，高光 `#0864FF`，页面底 `#F5F8FF`，表面 `#FFFFFF`，控件边 `#D7E6F8`。选中胶囊和主按钮使用 `--ae-pill`（`#57AEFF` 到 `#0872ED`）与 `--ae-pill-shadow`。涨 `#087F6B`，跌 `#C4273D`。订阅 L1/L2/L3 保留各自等级色，不套这颗胶囊。`assets/aegis-tokens.css` 仅为早期基础模板，不覆盖当前实现。
 - 液态玻璃集中在悬浮导航、胶囊按钮、搜索/聊天输入框、少量浮层。包含半透明底、边缘高光、有限模糊和层次阴影；长表格、分析正文使用接近实色的浅底。
 - 这是 H5/WebView 中对 iOS 26 Liquid Glass 的视觉近似；CSS 不是苹果原生材质。不要承诺原生实时折射，也不要把产品限定为 iOS 26，兼顾 Android TG 与普通浏览器。
 - 保持清晰信息层级和中文阅读密度。不要把效果图中的手机外框、Safari 地址栏、TG 原生标题栏、方案标题或手机外的雪山布景复制成产品界面。手机内标题区的低对比冰川/冰晶装饰属于视觉语言，可局部使用，不能因此删成纯色空白。

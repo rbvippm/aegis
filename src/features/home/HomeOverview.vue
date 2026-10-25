@@ -178,7 +178,9 @@ watch(
         >
       </template>
       <template v-else>
-        <p class="hr-rank-scope">足球 · 全场亚洲让球 · 近7天 · 共同样本128场</p>
+        <p class="hr-rank-scope">
+          <span>足球</span><span>全场亚洲让球</span><span>近7天</span><b>共同样本 128 场</b>
+        </p>
         <button
           v-for="(p, index) in oddsRanks"
           :key="p.id"

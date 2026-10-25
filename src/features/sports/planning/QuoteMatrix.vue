@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ArrowUp, ArrowDown, LockKeyhole, ChevronDown } from '@lucide/vue'
+import { ArrowUp, ArrowDown, Ban, ChevronDown, LockKeyhole } from '@lucide/vue'
 import { formatOdds } from '../logic'
 import type { OddsFormat } from '../types'
 import type { Market, Quote } from './model'
@@ -57,16 +57,25 @@ const change = (q: Quote, i: number) =>
                 }}<component
                   v-if="change(q, i)"
                   :is="change(q, i) === 'up' ? ArrowUp : ArrowDown"
-                  :size="11"
+                  :size="13"
+                  :stroke-width="2.75"
                   class="sp-price-arrow"
                   :class="change(q, i) === 'up' ? 'sp-change-up' : 'sp-change-down'" /></strong
               ><small
                 v-if="valid(q) && q.prices[i] === bestQuote(market, i)?.prices[i]"
                 class="sp-best-tag"
-                >赔率最优</small
+                >最优</small
               ><small v-if="!q.matched" class="pw-micro">独立规则</small></button
-            ><span v-else class="sp-paused"
-              ><LockKeyhole :size="11" />{{
+            ><span
+              v-else
+              class="sp-paused"
+              :class="{
+                'sp-paused--locked': q.status === 'suspended',
+                'sp-paused--sealed': q.status === 'stale',
+              }"
+              ><LockKeyhole v-if="q.status === 'suspended'" :size="13" /><Ban
+                v-else-if="q.status === 'stale'"
+                :size="13" />{{
                 q.status === 'stale' ? '封盘' : q.status === 'suspended' ? '锁盘' : '暂无'
               }}</span
             >
@@ -80,6 +89,6 @@ const change = (q: Quote, i: number) =>
   </div>
   <button v-if="market.quotes.length > 5 && !full" class="sp-expand" @click="expanded = !expanded">
     {{ expanded ? '收起平台' : `展开其余平台（${market.quotes.length - 5}）`
-    }}<ChevronDown :size="14" />
+    }}<ChevronDown :size="14" :class="{ 'sp-rotate': expanded }" />
   </button>
 </template>

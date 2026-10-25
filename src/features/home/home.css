@@ -6,17 +6,9 @@
 }
 .home-rich .hr-tabs .active {
   color: #fff;
-  background: linear-gradient(
-    165deg,
-    #9bd7ff -30%,
-    var(--ae-primary) 40%,
-    #0959dc 75%,
-    #55baff 135%
-  );
-  box-shadow:
-    inset 0 2px 3px #fff9,
-    0 3px 7px #2180e52b;
-  border: 1px solid #a2d4ff;
+  background: var(--ae-pill);
+  border-color: transparent;
+  box-shadow: var(--ae-pill-shadow);
 }
 .home-rich .home-banner__slide {
   height: 119px;
@@ -84,9 +76,14 @@
   border: 1px solid #d9eaff;
   border-radius: 18px;
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: #2869bc;
   background: #f7fbff;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
 }
 .home-rich .shortcut-grid {
   gap: 8px;
@@ -458,9 +455,44 @@
   color: var(--ae-muted);
 }
 .home-rich .hr-rank-scope {
-  font-size: 12px;
-  color: var(--ae-muted);
-  margin: 12px 0 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  row-gap: 4px;
+  min-height: 40px;
+  margin: 10px 0 2px;
+  padding: 8px 12px;
+  border: 1px solid #d5e6f8;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff, #f4f8ff);
+  box-shadow: inset 0 1px 0 #fff;
+  color: #3d5d86;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.home-rich .hr-rank-scope span {
+  display: inline-flex;
+  align-items: center;
+}
+.home-rich .hr-rank-scope span + span::before {
+  content: '';
+  width: 3px;
+  height: 3px;
+  margin: 0 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #8eacd0;
+}
+.home-rich .hr-rank-scope b {
+  margin-left: auto;
+  padding-left: 12px;
+  color: #0864ff;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 .home-rich .hr-support {
   display: flex;
@@ -659,6 +691,12 @@
 .home-rich a {
   -webkit-tap-highlight-color: transparent;
 }
+@media (prefers-reduced-motion: reduce) {
+  .home-rich .hr-prompts button,
+  .home-rich label.hr-market {
+    transition: none;
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   .home-rich .hr-tabs button,
   .home-rich .hr-quotes button {
@@ -677,6 +715,9 @@
 }
 .home-rich label.hr-market {
   position: relative;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .home-rich label.hr-market :is(select, .glass-select__trigger) {
   width: 100%;

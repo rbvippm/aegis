@@ -73,6 +73,79 @@ function next(direction: number) {
     opportunityIndex.value =
       (opportunityIndex.value + direction + opportunities.length) % opportunities.length
 }
+const dragX = ref(0)
+const animating = ref(false)
+const swipeStyle = computed(() => ({ '--he-x': `${dragX.value}px` }))
+let swipePointer = -1
+let swipeOriginX = 0
+let swipeOriginY = 0
+let swipeAxis: '' | 'x' | 'y' = ''
+let suppressSwipeClick = false
+function swipeCount() {
+  return section.value === 'popular' ? popular.length : opportunities.length
+}
+function swipeStart(event: PointerEvent) {
+  if (swipeCount() < 2 || animating.value) return
+  if ((event.target as HTMLElement).closest('.he-pager, a')) return
+  swipePointer = event.pointerId
+  swipeOriginX = event.clientX
+  swipeOriginY = event.clientY
+  swipeAxis = ''
+  suppressSwipeClick = false
+}
+function swipeMove(event: PointerEvent) {
+  if (event.pointerId !== swipePointer) return
+  const dx = event.clientX - swipeOriginX
+  const dy = event.clientY - swipeOriginY
+  if (!swipeAxis) {
+    if (Math.hypot(dx, dy) < 8) return
+    swipeAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+    if (swipeAxis === 'y') {
+      swipePointer = -1
+      return
+    }
+    try {
+      ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+    } catch {
+      /* Pointer capture is unavailable for some synthetic or already-finished pointers. */
+    }
+  }
+  dragX.value = dx
+  if (Math.abs(dx) > 12) suppressSwipeClick = true
+}
+function swipeEnd(event: PointerEvent) {
+  if (event.pointerId !== swipePointer) return
+  const dx = dragX.value
+  const width = (event.currentTarget as HTMLElement).clientWidth || 320
+  swipePointer = -1
+  swipeAxis = ''
+  window.setTimeout(() => {
+    suppressSwipeClick = false
+  }, 0)
+  if (Math.abs(dx) < Math.min(56, width * 0.18)) {
+    dragX.value = 0
+    return
+  }
+  const direction = dx < 0 ? 1 : -1
+  const pane = section.value
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    dragX.value = 0
+    next(direction)
+    return
+  }
+  animating.value = true
+  dragX.value = direction === 1 ? -width : width
+  window.setTimeout(() => {
+    animating.value = false
+    dragX.value = 0
+    if (section.value === pane) next(direction)
+  }, 180)
+}
+function guardSwipeClick(event: MouseEvent) {
+  if (!suppressSwipeClick) return
+  event.preventDefault()
+  event.stopPropagation()
+}
 function showQuote(platform: string, side: 'home' | 'away') {
   selectedPlatform.value = platform
   selectedSide.value = side
@@ -131,15 +204,27 @@ const panelTitle = computed(() =>
     </div>
     <StatePanel v-if="!demo" title="暂无赛事数据" description="赛事和报价服务尚未接入。" />
     <template v-else-if="section === 'popular'">
+      <div
+        class="he-swipe"
+        @pointerdown="swipeStart"
+        @pointermove="swipeMove"
+        @pointerup="swipeEnd"
+        @pointercancel="swipeEnd"
+        @click.capture="guardSwipeClick"
+      >
+        <div class="he-swipe-pane" :class="{ 'is-animating': animating }" :style="swipeStyle">
       <div class="he-meta">
         <span class="he-league"
           ><SportIcon :sport="match.sport" :size="17" />{{ sportName(match.sport) }} ·
           {{ match.league }}</span
         >
         <div class="he-pager" aria-label="热门赛事切换">
-          <button aria-label="上一场热门赛事" @click="next(-1)"><ChevronLeft :size="17" /></button
-          ><span>{{ matchIndex + 1 }} / {{ popular.length }}</span
-          ><button aria-label="下一场热门赛事" @click="next(1)"><ChevronRight :size="17" /></button>
+          <button aria-label="上一场热门赛事" @click="next(-1)">
+            <ChevronLeft :size="16" :stroke-width="2.5" /></button
+          ><span><b>{{ matchIndex + 1 }}</b> / {{ popular.length }}</span
+          ><button aria-label="下一场热门赛事" @click="next(1)">
+            <ChevronRight :size="16" :stroke-width="2.5" />
+          </button>
         </div>
       </div>
       <div class="hr-teams he-teams">
@@ -191,9 +276,20 @@ const panelTitle = computed(() =>
           }}</b></span
         ><ChevronRight :size="14" />
       </button>
+        </div>
+      </div>
     </template>
     <template v-else-if="section === 'opportunities'">
       <template v-if="opportunity">
+        <div
+          class="he-swipe"
+          @pointerdown="swipeStart"
+          @pointermove="swipeMove"
+          @pointerup="swipeEnd"
+          @pointercancel="swipeEnd"
+          @click.capture="guardSwipeClick"
+        >
+          <div class="he-swipe-pane" :class="{ 'is-animating': animating }" :style="swipeStyle">
         <div class="he-meta">
           <span class="he-league"
             ><SportIcon :sport="opportunity.match.sport" :size="17" />{{
@@ -202,10 +298,11 @@ const panelTitle = computed(() =>
             · {{ opportunity.match.league }}</span
           >
           <div class="he-pager" aria-label="套利机会切换">
-            <button aria-label="上一个套利机会" @click="next(-1)"><ChevronLeft :size="17" /></button
-            ><span>{{ opportunityIndex + 1 }} / {{ opportunities.length }}</span
+            <button aria-label="上一个套利机会" @click="next(-1)">
+              <ChevronLeft :size="16" :stroke-width="2.5" /></button
+            ><span><b>{{ opportunityIndex + 1 }}</b> / {{ opportunities.length }}</span
             ><button aria-label="下一个套利机会" @click="next(1)">
-              <ChevronRight :size="17" />
+              <ChevronRight :size="16" :stroke-width="2.5" />
             </button>
           </div>
         </div>
@@ -231,6 +328,8 @@ const panelTitle = computed(() =>
           查看分配试算<ChevronRight :size="16" />
         </button>
         <p class="he-qualification">发现理论价差；费用、限额与报价有效期待核验，净收益待核算。</p>
+          </div>
+        </div>
       </template>
       <StatePanel
         v-else
@@ -239,8 +338,8 @@ const panelTitle = computed(() =>
       />
     </template>
     <template v-else
-      ><div class="he-meta">
-        <span class="he-league">近期盘口与赔率变化</span
+      ><div class="he-meta he-feed-head">
+        <span class="he-feed-title">近期盘口与赔率变化</span
         ><button class="he-view-all" @click="panel = 'history'">
           查看全部<ChevronRight :size="14" />
         </button>
@@ -430,6 +529,16 @@ const panelTitle = computed(() =>
   </section>
 </template>
 <style>
+.he-swipe {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.he-swipe-pane {
+  transform: translateX(var(--he-x, 0px));
+}
+.he-swipe-pane.is-animating {
+  transition: transform 180ms ease;
+}
 .he-meta {
   display: flex;
   align-items: center;
@@ -454,6 +563,7 @@ const panelTitle = computed(() =>
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 0;
 }
 .he-pager button {
   display: grid;
@@ -463,14 +573,39 @@ const panelTitle = computed(() =>
   padding: 0;
   border: 0;
   background: none;
-  color: #5379ac;
+  color: #fff;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: 12px;
+}
+.he-pager button svg {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  padding: 5px;
+  border-radius: 9px;
+  background: linear-gradient(160deg, #8ec4ff, #5aa2f8);
+  box-shadow:
+    inset 0 1px 0 #ffffffb3,
+    0 1px 2px #4b93eb24;
+  transition: background-color 150ms ease;
+}
+.he-pager button:active svg {
+  background: #3d8cf2;
 }
 .he-pager span {
-  font-size: 12px;
-  color: var(--ae-muted);
+  min-width: 38px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1;
+  color: #14213d;
+  text-align: center;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.he-pager span b {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0864ff;
 }
 .home-rich .he-teams {
   margin: 4px 0 29px;
@@ -510,11 +645,16 @@ const panelTitle = computed(() =>
   width: 100%;
 }
 .he-play .glass-select__trigger {
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   min-height: 44px;
   background: #f0f6fe;
   border: 0;
   border-radius: 12px;
+  color: #14213d;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .he-quotes {
   display: grid;
@@ -532,6 +672,12 @@ const panelTitle = computed(() =>
   text-align: left;
   color: #14213d;
   cursor: pointer;
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+.he-quote:active {
+  transform: scale(0.98);
 }
 .he-quote__head {
   display: flex;
@@ -614,16 +760,26 @@ const panelTitle = computed(() =>
   font-size: 12px;
   font-weight: 600;
 }
+.he-feed-head {
+  margin: 12px 2px 2px;
+}
+.he-feed-title {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #14213d;
+}
 .he-view-all {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   min-height: 44px;
   padding: 0;
   border: 0;
   background: none;
   color: #0864ff;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
 }
 .he-opportunity-title {
@@ -840,13 +996,18 @@ const panelTitle = computed(() =>
   border: 0;
   padding: 0;
   background: none;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
   color: #0864ff;
   cursor: pointer;
 }
 @media (max-width: 374px) {
   .he-pager button {
-    width: 30px;
+    width: 40px;
+  }
+  .he-pager button svg {
+    width: 26px;
+    height: 26px;
   }
   .he-quote {
     padding: 8px;
@@ -862,6 +1023,19 @@ const panelTitle = computed(() =>
   }
   .he-opportunity-title {
     font-size: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .he-pager button svg,
+  .he-quote,
+  .he-play .glass-select__trigger {
+    transition: none;
+  }
+  .he-quote:active {
+    transform: none;
+  }
+  .he-swipe-pane.is-animating {
+    transition: none;
   }
 }
 </style>

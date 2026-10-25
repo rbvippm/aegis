@@ -6,7 +6,7 @@ Vue 3 + Vite + TypeScript + Router + Pinia。npm + package-lock.json，Node 24�
 
 Codex 与 Cursor 共用 `.agents/skills/aegis-vue-liquid-glass/SKILL.md`。批准图片在技能 assets；不把设备外框、地址栏、TG 原生标题栏画进应用。冰川蓝浅色、玻璃控制层、清晰内容层。
 
-首页材质、字体、过渡和底栏以技能 `references/current-baseline.md` 与已确认实际截图为基准。监测、AI、体育对比、我的、订阅和服务页已按用户后续逐页指令实现；保留当前已确认功能，不按早期占位阶段回退，也不自动恢复其他旧业务页。
+首页材质、字体、过渡和底栏以技能 `references/current-baseline.md` 的「UI 模板」为准。监测、AI、体育对比、我的、订阅和服务页已实现；后续主页面、二级页、弹框和下拉按该模板的胶囊色、字号、间距和 GlassSelect 制作，不另起一套蓝色。保留当前功能，不按早期占位阶段回退，也不自动恢复其他旧业务页。
 
 ## 工程边界
 

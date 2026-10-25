@@ -3,10 +3,17 @@
   color-scheme: light;
   --ae-primary: #2563eb;
   --ae-primary-soft: #60a5fa;
+  --ae-highlight: #0864ff;
   --ae-bg: #f5f8ff;
   --ae-surface: #fff;
   --ae-text: #14213d;
   --ae-muted: #526581;
+  --ae-label: #3d5d86;
+  --ae-line-strong: #d7e6f8;
+  --ae-pill: linear-gradient(155deg, #57aeff, #0872ed);
+  --ae-pill-shadow: inset 0 1px 2px #ffffffb3, 0 3px 8px #4b93eb25;
+  --ae-up: #087f6b;
+  --ae-down: #c4273d;
   --ae-success: #087f6b;
   --ae-warning: #9a5a00;
   --ae-danger: #b42318;
@@ -82,11 +89,9 @@
 }
 .ae-button--primary {
   color: #fff;
-  background: linear-gradient(160deg, #3676f5, #1d56d7);
+  background: var(--ae-pill);
   border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.6),
-    0 4px 14px rgba(37, 99, 235, 0.22);
+  box-shadow: var(--ae-pill-shadow);
 }
 .ae-button:active:not(:disabled) {
   transform: scale(0.98);
