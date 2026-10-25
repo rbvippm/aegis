@@ -1,7 +1,34 @@
 <script setup lang="ts">
-import { House, Database, Trophy, UserRound } from '@lucide/vue'
+import { House, Database, Trophy, UserRound, ArrowUpToLine } from '@lucide/vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 const route = useRoute()
+const scrolled = ref(false)
+let main: HTMLElement | null = null
+function updateScroll() {
+  scrolled.value = (main?.scrollTop ?? 0) > 180
+}
+function activate(event: MouseEvent, to: string) {
+  if (to === '/compare' && route.path === '/compare' && scrolled.value) {
+    event.preventDefault()
+    main?.scrollTo({
+      top: 0,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    })
+  }
+}
+onMounted(() => {
+  main = document.getElementById('main-content')
+  main?.addEventListener('scroll', updateScroll, { passive: true })
+  updateScroll()
+})
+onUnmounted(() => main?.removeEventListener('scroll', updateScroll))
+watch(
+  () => route.path,
+  () => {
+    scrolled.value = false
+  },
+)
 const items = [
   { to: '/', label: '首页', icon: House },
   { to: '/monitor', label: '监测', icon: Database },
@@ -16,6 +43,10 @@ const items = [
       v-for="item in items"
       :key="item.to"
       :to="item.to"
+      @click="activate($event, item.to)"
+      :aria-label="
+        item.to === '/compare' && route.path === '/compare' && scrolled ? '回到顶部' : item.label
+      "
       :class="{ 'ae-dock__ai': item.label === 'AI' }"
       :aria-current="route.path === item.to ? 'page' : undefined"
     >
@@ -26,11 +57,17 @@ const items = [
         /></svg
       ><component
         v-else
-        :is="item.icon"
+        :is="
+          item.to === '/compare' && route.path === '/compare' && scrolled
+            ? ArrowUpToLine
+            : item.icon
+        "
         :size="24"
         :stroke-width="1.9"
         aria-hidden="true"
-      /><span>{{ item.label }}</span>
+      /><span>{{
+        item.to === '/compare' && route.path === '/compare' && scrolled ? '顶部' : item.label
+      }}</span>
     </RouterLink>
   </nav>
 </template>

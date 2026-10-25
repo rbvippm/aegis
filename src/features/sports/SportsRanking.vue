@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ChevronRight, Info, ArrowDown } from '@lucide/vue'
+import { getSportsPlatform } from './platforms'
 import { sportsRankings } from '@/mocks/sports'
 const emit = defineEmits<{ explain: []; platform: [id: string] }>()
 const metric = ref<'hold' | 'edge' | 'share'>('hold')
-const names = { hold: '典型抽水', edge: '优势报价', share: '最优占比' }
+const names = { hold: '典型抽水', edge: '最优赔率', share: '最优占比' }
 const ranked = computed(() =>
   sportsRankings
     .filter((p) => p.status === 'active')
@@ -31,7 +32,7 @@ const ranked = computed(() =>
       <button class="sp-ranking-explain" @click="emit('explain')">
         {{
           metric === 'share'
-            ? '取得最优报价的结果占比'
+            ? '取得最优赔率的结果占比'
             : metric === 'hold'
               ? '抽水越低，报价成本通常越低'
               : '观察较低抽水分位的报价水平'
@@ -52,7 +53,12 @@ const ranked = computed(() =>
       ><span class="sp-avatar" :class="`sp-avatar--${row.id}`">{{ row.id }}</span>
       <div class="sp-rank-main">
         <div>
-          <h3>平台 {{ row.id }}</h3>
+          <h3>
+            平台 {{ row.id
+            }}<small class="sp-rank-score"
+              >平台分 {{ getSportsPlatform(row.id)?.score?.toFixed(1) ?? '未评分' }}</small
+            >
+          </h3>
           <strong>{{ row[metric]?.toFixed(metric === 'share' ? 0 : 2) }}%</strong>
         </div>
         <div class="sp-rank-bar">
@@ -64,7 +70,7 @@ const ranked = computed(() =>
         </div>
         <p>{{ names[metric] }} · 共同样本 {{ row.samples }} 场</p>
         <div class="sp-rank-bottom">
-          <span>最优报价占比 {{ row.share }}%</span
+          <span>最优赔率占比 {{ row.share }}%</span
           ><button @click="emit('platform', row.id)">查看报价<ChevronRight :size="13" /></button>
         </div>
       </div>
@@ -76,11 +82,14 @@ const ranked = computed(() =>
       class="sp-card sp-unranked"
     >
       <span class="sp-avatar" :class="`sp-avatar--${row.id}`">{{ row.id }}</span
-      ><strong>平台 {{ row.id }}</strong
+      ><strong
+        >平台 {{ row.id
+        }}<small class="sp-rank-score"
+          >平台分 {{ getSportsPlatform(row.id)?.score?.toFixed(1) ?? '未评分' }}</small
+        ></strong
       ><span :class="{ 'sp-amber': row.status === 'stale' }">{{
-        row.status === 'stale' ? '报价过期' : '样本不足'
+        row.status === 'stale' ? '封盘' : '样本不足'
       }}</span>
     </div>
-    <p class="sp-small-note"><Info :size="14" />赔率排名与平台安全分分别展示</p>
   </div>
 </template>

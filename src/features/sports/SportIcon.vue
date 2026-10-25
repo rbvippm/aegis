@@ -39,6 +39,50 @@ withDefaults(defineProps<{ sport: string; size?: number }>(), { size: 26 })
         transform="rotate(28 12 12)"
       />
     </template>
+    <template
+      v-else-if="
+        ['cs', 'dota', 'lol', 'valorant', 'ebasketball', 'esoccer', 'kog', 'aov'].includes(sport)
+      "
+    >
+      <path d="M7 7h10c3 0 4 3 4 7l-1 4h-3l-3-3h-4l-3 3H4l-1-4c0-4 1-7 4-7Z" />
+      <path d="M7 10v4m-2-2h4m7-1h.1m2 2h.1" />
+    </template>
+    <template v-else-if="['american-football', 'rugby', 'aussie-rules'].includes(sport)">
+      <ellipse cx="12" cy="12" rx="10" ry="6" transform="rotate(-35 12 12)" />
+      <path d="m8 15 8-6m-6 3 1 2m2-4 1 2" />
+    </template>
+    <template v-else-if="['ice-hockey', 'field-hockey', 'floorball', 'bandy'].includes(sport)">
+      <path d="m6 3 7 14h6l2 3h-9L4 4m14-1L9 18" />
+      <ellipse cx="5" cy="20" rx="3" ry="1" />
+    </template>
+    <template v-else-if="['boxing', 'mma'].includes(sport)">
+      <path d="M7 16c-4-1-5-4-4-7 1-2 3-2 4 0V5c0-3 3-3 4 0 1-3 4-2 4 0 3-1 5 1 5 4v4l-5 6H8Z" />
+      <path d="M8 19v3h7v-3" />
+    </template>
+    <template
+      v-else-if="
+        [
+          'baseball',
+          'cricket',
+          'volleyball',
+          'handball',
+          'netball',
+          'table-tennis',
+          'badminton',
+          'squash',
+        ].includes(sport)
+      "
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M5 6c6 1 7 10 1 13m12-14c-6 3-6 12 0 14m-15-7h18" />
+    </template>
+    <template
+      v-else-if="['golf', 'snooker', 'darts', 'pesapallo', 'kabaddi', 'futsal'].includes(sport)"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v4m0 12v4M2 12h4m12 0h4" />
+    </template>
     <template v-else>
       <circle
         v-for="x in [5, 12, 19]"

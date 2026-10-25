@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import { dataMode } from '@/shared/api/config'
 import {
@@ -8,7 +8,7 @@ import {
   profileTickets,
 } from '@/mocks/profile'
 import { totalCents, validateTicket, validateUid } from './logic'
-import type { EvidenceFile, TicketInput } from './types'
+import type { EvidenceFile, TicketInput, ProfileNotice } from './types'
 export const useProfile = defineStore('profile-center', () => {
   const previewIdentity = ref(dataMode === 'demo')
   const nickname = ref('AE小子')
@@ -16,6 +16,51 @@ export const useProfile = defineStore('profile-center', () => {
   const records = ref(dataMode === 'demo' ? structuredClone(profileSettlements) : [])
   const tickets = ref(dataMode === 'demo' ? structuredClone(profileTickets) : [])
   const notices = ref(dataMode === 'demo' ? structuredClone(profileNotices) : [])
+  if (dataMode === 'demo') {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem('aegis-sports-notices') ?? '[]')
+      if (Array.isArray(saved))
+        notices.value.unshift(
+          ...saved.filter(
+            (n): n is ProfileNotice =>
+              n &&
+              typeof n.id === 'string' &&
+              n.id.startsWith('sports:') &&
+              typeof n.title === 'string' &&
+              typeof n.description === 'string' &&
+              n.type === 'system' &&
+              typeof n.read === 'boolean' &&
+              typeof n.target === 'string' &&
+              n.target.startsWith('/compare?'),
+          ),
+        )
+    } catch {
+      /* Unavailable local storage keeps this session usable. */
+    }
+  }
+  watch(
+    notices,
+    (value) => {
+      try {
+        localStorage.setItem(
+          'aegis-sports-notices',
+          JSON.stringify(value.filter((n) => n.id.startsWith('sports:'))),
+        )
+      } catch {
+        /* Session-only. */
+      }
+    },
+    { deep: true },
+  )
+  function saveSportsNotice(key: string, title: string, description: string, target: string) {
+    if (dataMode !== 'demo') return
+    const id = `sports:${key}`
+    notices.value = notices.value.filter((n) => n.id !== id)
+    notices.value.unshift({ id, title, description, type: 'system', read: false, target })
+  }
+  function removeSportsNotice(key: string) {
+    notices.value = notices.value.filter((n) => n.id !== `sports:${key}`)
+  }
   const feedback = ref<{ category: string; content: string; contact: string }[]>([])
   const preferences = ref({
     platform: true,
@@ -30,11 +75,7 @@ export const useProfile = defineStore('profile-center', () => {
   const pendingCents = computed(() => totalCents(records.value, 'pending'))
   const settledCents = computed(() => totalCents(records.value, 'settled'))
   function guard() {
-    return dataMode !== 'demo'
-      ? '暂时无法保存。'
-      : !previewIdentity.value
-        ? '请先登录。'
-        : ''
+    return dataMode !== 'demo' ? '暂时无法保存。' : !previewIdentity.value ? '请先登录。' : ''
   }
   function bind(platform: string, uid: string) {
     const error = guard() || validateUid(uid)
@@ -93,6 +134,8 @@ export const useProfile = defineStore('profile-center', () => {
     nickname.value = 'AE小子'
   }
   return {
+    saveSportsNotice,
+    removeSportsNotice,
     previewIdentity,
     nickname,
     bindings,

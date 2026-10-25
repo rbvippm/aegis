@@ -804,20 +804,6 @@
 .ae-app .ae-dock a[aria-current='page'].ae-dock__ai {
   color: white;
 }
-.page-enter-active,
-.page-leave-active {
-  transition:
-    opacity 150ms ease,
-    transform 150ms ease;
-}
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(4px);
-}
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-3px);
-}
 [data-transparency='reduced'] .ae-dock {
   background: #f0f7ff;
   backdrop-filter: none;
@@ -843,14 +829,8 @@
   .reference-home .suggestion-link,
   .reference-home .shortcut-card,
   .reference-home .monitor-row,
-  .ae-app .ae-dock a,
-  .page-enter-active,
-  .page-leave-active {
+  .ae-app .ae-dock a {
     transition: none;
-  }
-  .page-enter-from,
-  .page-leave-to {
-    transform: none;
   }
 }
 @media (prefers-reduced-transparency: reduce) {

@@ -24,6 +24,7 @@ export interface AgentPolicy {
 }
 
 export interface AnonymousRequest {
+  subscriptionLevel?: 'L1' | 'L2' | 'L3'
   kind: ServiceKind
   volume: string
   tier: string

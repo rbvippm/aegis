@@ -555,7 +555,7 @@
   border: 1px solid #c9dfff;
   border-radius: 22px;
   background: white;
-  color: #678ab4;
+  color: var(--ae-muted);
 }
 .hr-search input {
   min-width: 0;
@@ -678,7 +678,7 @@
 .home-rich label.hr-market {
   position: relative;
 }
-.home-rich label.hr-market select {
+.home-rich label.hr-market :is(select, .glass-select__trigger) {
   width: 100%;
   min-height: 44px;
   border: 0;
@@ -706,4 +706,8 @@
 }
 .hr-sheet-row {
   line-height: 1.5;
+}
+
+.home-rich .hr-market > .glass-select {
+  width: 100%;
 }

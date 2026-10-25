@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ChevronRight, ShieldCheck, TriangleAlert, Coins } from '@lucide/vue'
 import { computed } from 'vue'
-import type { ResearchPlatform, ResearchWindow } from './research'
+import { researchRegionLabel, type ResearchPlatform, type ResearchWindow } from './research'
 import { researchSnapshot } from '@/mocks/monitoring-research'
 const props = defineProps<{ platform: ResearchPlatform; window: ResearchWindow; rank?: number }>()
 const emit = defineEmits<{ open: [kind: string, platform: ResearchPlatform] }>()
@@ -30,7 +30,12 @@ const rebate = computed(
       ><span class="research-avatar" :class="`research-avatar--${platform.id}`">{{
         platform.id
       }}</span>
-      <h3>{{ platform.name }}</h3>
+      <span class="research-platform__identity"
+        ><h3>{{ platform.name }}</h3>
+        <small class="research-region-badge">{{
+          researchRegionLabel(platform.region)
+        }}</small></span
+      >
       <span v-if="platform.score !== null" class="research-score"
         ><ShieldCheck :size="19" fill="#0874ff" color="white" /><strong>{{ platform.score }}</strong
         ><small>/10</small></span
@@ -321,7 +326,7 @@ h3 {
   font-size: 16px;
 }
 .research-rebate p {
-  font-size: 11px;
+  font-size: 12px;
   color: #547299;
   margin-top: 3px;
 }

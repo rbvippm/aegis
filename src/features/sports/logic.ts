@@ -20,7 +20,8 @@ export function toDecimal(value: number, format: OddsFormat): number | null {
     return null
   return value > 0 ? 1 + value : 1 - 1 / value
 }
-export const isValidQuote = (quote: SportsQuote) => quote.status === 'active'
+export const isValidQuote = (quote: SportsQuote) =>
+  quote.status === 'active' && quote.settlementMatched !== false
 export function bestPrice(market: SportsMarket, side: 'home' | 'away') {
   const quotes = market.quotes
     .filter(isValidQuote)

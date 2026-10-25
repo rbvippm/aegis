@@ -15,7 +15,7 @@ test('从首页进入消息中心，返回首页且可再次进入', async ({ pa
 
 test('从我的和工单进入消息，分别返回真实上一级', async ({ page }) => {
   await page.goto('/me')
-  await page.getByRole('button', { name: '消息中心', exact: true }).click()
+  await page.getByRole('link', { name: '消息中心', exact: true }).click()
   await page.getByRole('button', { name: '返回上一级', exact: true }).click()
   await expect(page).toHaveURL(/\/me$/)
   await page.getByRole('button', { name: /我的工单/ }).click()

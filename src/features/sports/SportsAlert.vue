@@ -1,21 +1,31 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { ref } from 'vue'
 import { Info } from '@lucide/vue'
 import type { AlertSetting, OddsFormat, SportsMarket, SportsMatch } from './types'
+import { platformName } from './platforms'
 import { formatOdds, toDecimal } from './logic'
-const props = defineProps<{ match: SportsMatch; market: SportsMarket; format: OddsFormat }>()
+const props = defineProps<{
+  match: SportsMatch
+  market: SportsMarket
+  format: OddsFormat
+  initial?: AlertSetting
+}>()
 const emit = defineEmits<{ save: [setting: AlertSetting] }>()
-const type = ref<AlertSetting['type']>('price')
+const type = ref<AlertSetting['type']>(props.initial?.type ?? 'price')
+const platform = ref(props.initial?.platform ?? 'A')
 const target = ref('0.95')
-const windowSeconds = ref(30)
-const cooldownMinutes = ref(5)
-const merge = ref(true)
-const selection = ref(props.market.selections[0])
+const windowSeconds = ref(props.initial?.windowSeconds ?? 30)
+const cooldownMinutes = ref(props.initial?.cooldownMinutes ?? 5)
+const merge = ref(props.initial?.merge ?? true)
+const selection = ref(props.initial?.selection ?? props.market.selections[0])
 const error = ref('')
 const labels = { HK: '港盘', MY: '马盘', ID: '印尼盘', DEC: '十进制' }
 // The target uses the selected display format; switching format never changes its comparison basis.
 const defaults = { HK: '0.95', MY: '0.95', ID: '-1.05', DEC: '1.95' }
-target.value = defaults[props.format]
+target.value = props.initial?.target
+  ? formatOdds(props.initial.target, props.format).replace('−', '-')
+  : defaults[props.format]
 function save() {
   const decimal = type.value === 'price' ? toDecimal(Number(target.value), props.format) : null
   if (type.value === 'price' && decimal === null) {
@@ -25,7 +35,8 @@ function save() {
   error.value = ''
   emit('save', {
     matchId: props.match.id,
-    platform: 'A',
+    marketId: props.market.id,
+    platform: platform.value,
     type: type.value,
     target: decimal,
     windowSeconds: windowSeconds.value,
@@ -40,13 +51,20 @@ function save() {
     <p class="sp-tool-subtitle">区分水位、盘口和报价状态</p>
     <div class="sp-card sp-context">
       <h3>{{ match.home }} <span>VS</span> {{ match.away }}</h3>
-      <p>平台 A · {{ market.scope }} · {{ market.line }}</p>
+      <p>{{ platformName(platform) }} · {{ market.scope }} · {{ market.line }}</p>
     </div>
     <section class="sp-card">
       <h3>提醒类型</h3>
+      <label class="sp-field"
+        >提醒平台<GlassSelect v-model="platform" label="提醒平台"
+          ><option v-for="q in market.quotes" :key="q.platform" :value="q.platform">
+            {{ platformName(q.platform) }}
+          </option></GlassSelect
+        ></label
+      >
       <div class="sp-pill-tabs">
         <button
-          v-for="(label, key) in { price: '水位变动', line: '盘口跨档', status: '暂停恢复' }"
+          v-for="(label, key) in { price: '水位变动', line: '盘口跨档', status: '锁盘恢复' }"
           :key="key"
           type="button"
           :class="{ active: type === key }"
@@ -57,16 +75,18 @@ function save() {
         </button>
       </div>
       <label class="sp-field"
-        >关注选项<select v-model="selection">
+        >关注选项<GlassSelect v-model="selection">
           <option v-for="option in market.selections" :key="option">{{ option }}</option>
-        </select></label
+        </GlassSelect></label
       >
       <div v-if="type === 'price'" class="sp-two-fields">
         <label class="sp-field"
           >当前{{ labels[format]
           }}<output>{{
             formatOdds(
-              market.quotes[0]?.[selection === market.selections[0] ? 'home' : 'away'] ?? null,
+              market.quotes.find((q) => q.platform === platform)?.[
+                selection === market.selections[0] ? 'home' : 'away'
+              ] ?? null,
               format,
             )
           }}</output></label
@@ -81,24 +101,24 @@ function save() {
             ? '达到或高于目标回报时提醒；按十进制比较。'
             : type === 'line'
               ? '盘口线跨档时记录旧盘口和新盘口。'
-              : '平台暂停或恢复报价时记录状态。'
+              : '平台锁盘或恢复报价时记录状态。'
         }}
       </p>
     </section>
     <section class="sp-card">
       <h3>频率与窗口</h3>
       <label class="sp-setting-row"
-        >观察窗口<select v-model.number="windowSeconds">
+        >观察窗口<GlassSelect v-model.number="windowSeconds">
           <option :value="30">30秒</option>
           <option :value="60">1分钟</option>
           <option :value="300">5分钟</option>
-        </select></label
+        </GlassSelect></label
       ><label class="sp-setting-row"
-        >提醒冷却<select v-model.number="cooldownMinutes">
+        >提醒冷却<GlassSelect v-model.number="cooldownMinutes">
           <option :value="1">1分钟</option>
           <option :value="5">5分钟</option>
           <option :value="15">15分钟</option>
-        </select></label
+        </GlassSelect></label
       ><label class="sp-setting-row"
         >合并同一选项的连续变化<input v-model="merge" type="checkbox" role="switch"
       /></label>

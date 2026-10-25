@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { getSubscriptionPlan } from '@/features/profile/subscription'
 import { ChevronRight, LockKeyhole } from '@lucide/vue'
 import ServiceLayout from './ServiceLayout.vue'
 import AnonymousRequest from './AnonymousRequest.vue'
@@ -12,12 +15,14 @@ import { useServiceRequests } from './store'
 import { formatUnits } from './logic'
 import type { VipOffer } from './types'
 
+const route = useRoute()
+const subscription = computed(() => getSubscriptionPlan(route.query.subscription))
 const store = useServiceRequests()
 const tab = ref('offers')
 const period = ref<'30' | '90'>('30')
 const platform = ref('all')
 const sort = ref('default')
-const requestOpen = ref(false)
+const requestOpen = ref(Boolean(subscription.value && route.query.inquire === '1'))
 const panel = ref<'terms' | 'compare' | 'privacy' | null>(null)
 const selected = ref<VipOffer>(vipOffers[0]!)
 const tabs = [
@@ -59,6 +64,9 @@ function toggleSort(value: string) {
     :steps="['匿名建档', '经理盲拍', '比较选择']"
     @request="requestOpen = true"
   >
+    <p v-if="subscription" class="svc-subscription-context">
+      {{ subscription.id }} · {{ subscription.name }}订阅咨询<span>VIP 转移 · 定制化报价</span>
+    </p>
     <div class="svc-tabs" aria-label="VIP 服务视图">
       <button
         v-for="item in tabs"
@@ -81,10 +89,10 @@ function toggleSort(value: string) {
           <h2>VIP 方案对比</h2>
         </div>
         <div class="svc-filters">
-          <select v-model="platform" aria-label="VIP 平台筛选">
+          <GlassSelect v-model="platform" aria-label="VIP 平台筛选">
             <option value="all">全部平台</option>
             <option value="A">平台 A</option>
-            <option value="B">平台 B</option></select
+            <option value="B">平台 B</option></GlassSelect
           ><button :aria-pressed="sort === 'level'" @click="toggleSort('level')">等级匹配</button
           ><button :aria-pressed="sort === 'lossback'" @click="toggleSort('lossback')">
             Lossback</button
@@ -185,6 +193,7 @@ function toggleSort(value: string) {
     <AnonymousRequest
       :open="requestOpen"
       kind="vip"
+      :subscription-level="subscription?.id"
       @close="requestOpen = false"
       @saved="tab = 'requests'"
     />

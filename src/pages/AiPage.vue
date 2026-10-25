@@ -17,6 +17,7 @@ import {
   Trash2,
   X,
 } from '@lucide/vue'
+import MessageCenterLink from '@/shared/ui/MessageCenterLink.vue'
 import AegisMark from '@/shared/ui/AegisMark.vue'
 import AiOrb from '@/shared/ui/AiOrb.vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
@@ -168,6 +169,7 @@ onBeforeUnmount(() => chat.stop())
         <p>{{ sourceMode }}</p>
       </div>
       <div class="ac-header-actions">
+        <MessageCenterLink />
         <button aria-label="对话历史" @click="utility = 'history'"><History :size="20" /></button
         ><button aria-label="新建对话" @click="newChat"><SquarePen :size="19" /></button>
       </div>

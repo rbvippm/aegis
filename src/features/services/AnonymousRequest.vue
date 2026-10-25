@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, reactive, ref, watch } from 'vue'
 import { LockKeyhole } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import { useServiceRequests } from './store'
 import type { AnonymousRequest, ServiceKind } from './types'
-const props = defineProps<{ open: boolean; kind: ServiceKind }>()
+const props = defineProps<{
+  open: boolean
+  kind: ServiceKind
+  subscriptionLevel?: 'L1' | 'L2' | 'L3'
+}>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const store = useServiceRequests()
 const saved = ref(false)
@@ -26,7 +31,9 @@ watch(
       { kind: props.kind, volume: '', tier: '', preference: '', note: '' },
       store.requests[props.kind],
     )
+    if (props.subscriptionLevel) form.subscriptionLevel = props.subscriptionLevel
   },
+  { immediate: true },
 )
 function submit() {
   if (!form.volume || !form.tier || !form.preference) return
@@ -53,21 +60,24 @@ function submit() {
         <button class="svc-primary" @click="emit('close')">查看我的需求</button>
       </template>
       <form v-else class="svc-form" @submit.prevent="submit">
+        <p v-if="form.subscriptionLevel" class="svc-subscription-context">
+          {{ form.subscriptionLevel }} 订阅方案咨询<span>VIP 转移 · 定制化报价</span>
+        </p>
         <p class="svc-note">仅选择区间与偏好。请勿填写姓名、联系方式、账户、凭证或其他个人资料。</p>
         <label
           >{{ vip ? '近 30 日充值区间' : '团队月净收益规模'
-          }}<select v-model="form.volume" required>
+          }}<GlassSelect v-model="form.volume" required>
             <option disabled value="">请选择区间</option>
             <option>1万 U 以下</option>
             <option>1–5万 U</option>
             <option>5–10万 U</option>
             <option>10–20万 U</option>
             <option>20万 U 以上</option>
-          </select></label
+          </GlassSelect></label
         >
         <label
           >{{ vip ? '当前 VIP 等级' : '团队规模'
-          }}<select v-model="form.tier" required>
+          }}<GlassSelect v-model="form.tier" required>
             <option disabled value="">请选择</option>
             <template v-if="vip"
               ><option>尚无 VIP 等级</option>
@@ -80,11 +90,11 @@ function submit() {
               <option>11–50 人</option>
               <option>50 人以上</option></template
             >
-          </select></label
+          </GlassSelect></label
         >
         <label
           >{{ vip ? '最关注的待遇' : '优先合作条件'
-          }}<select v-model="form.preference" required>
+          }}<GlassSelect v-model="form.preference" required>
             <option disabled value="">请选择</option>
             <template v-if="vip"
               ><option>VIP 等级匹配</option>
@@ -97,7 +107,7 @@ function submit() {
               <option>不结转负盈利</option>
               <option>场馆费与扣量可核查</option></template
             >
-          </select></label
+          </GlassSelect></label
         >
         <label
           >补充诉求（选填）<textarea

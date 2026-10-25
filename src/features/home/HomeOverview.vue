@@ -1,22 +1,21 @@
 <script setup lang="ts">
+import HomeEvents from './HomeEvents.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, ChevronDown, Activity, ShieldCheck, Search, Info } from '@lucide/vue'
+import { ChevronRight, ShieldCheck, Search } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import { dataMode } from '@/shared/api/config'
-import { sportsMatches, sportsMovements, sportsRankings } from '@/mocks/sports'
+import { sportsMatches, sportsRankings } from '@/mocks/sports'
 import { researchPlatforms, researchSnapshot } from '@/mocks/monitoring-research'
 import { researchChains } from '@/features/monitoring/research'
-import { formatOdds, bestPrice } from '@/features/sports/logic'
 import type { OddsFormat, SportsMarket, SportsMatch } from '@/features/sports/types'
-import { findOpportunities, walletSummary } from './overview'
+import { walletSummary } from './overview'
 
 const route = useRoute(),
   router = useRouter()
 const demo = dataMode === 'demo'
-const section = ref('popular'),
-  ranking = ref('score')
+const ranking = ref('score')
 const panel = ref(''),
   search = ref('')
 const format = ref<OddsFormat>('HK')
@@ -33,16 +32,6 @@ try {
   /* Optional preference. */
 }
 const formatName = computed(() => formats.find((f) => f.id === format.value)!.label)
-const match = sportsMatches.find((m) => m.id === 'harbor-mountain')!
-const marketId = ref(match.markets[0]!.id)
-const market = computed(
-  () => match.markets.find((item) => item.id === marketId.value) ?? match.markets[0]!,
-)
-const quotes = computed(() =>
-  market.value.quotes.filter((q) => q.status === 'active' && q.home !== null).slice(0, 2),
-)
-const best = computed(() => bestPrice(market.value, 'home'))
-const opportunities = demo ? findOpportunities(sportsMatches) : []
 const wallet = walletSummary(demo ? researchPlatforms : [])
 const measured = demo ? researchPlatforms[0]! : null
 const warning = demo
@@ -83,18 +72,6 @@ function compare(
     },
   })
 }
-function quoteDetail(platform: string) {
-  compare('odds', match, market.value, 'quote', platform)
-}
-function ask() {
-  void router.push({
-    path: '/ai',
-    query: {
-      analyze: '1',
-      q: `${match.home}对${match.away}怎么看？请确认赛事、${market.value.scope}、${market.value.line}及数据时间后分析。`,
-    },
-  })
-}
 function selectFormat(value: OddsFormat) {
   format.value = value
   try {
@@ -122,123 +99,12 @@ watch(
       <h2>赛事与机会</h2>
       <RouterLink to="/compare?view=odds">全部赛事<ChevronRight :size="14" /></RouterLink>
     </div>
-    <section class="hr-card" aria-label="赛事与机会">
-      <div class="hr-tabs" aria-label="赛事内容">
-        <button
-          v-for="tab in [
-            { id: 'popular', label: '热门赛事' },
-            { id: 'opportunities', label: '套利机会' },
-            { id: 'movements', label: '滚球动态' },
-          ]"
-          :key="tab.id"
-          :class="{ active: section === tab.id }"
-          :aria-pressed="section === tab.id"
-          @click="section = tab.id"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-      <StatePanel v-if="!demo" title="暂无赛事数据" description="赛事和报价服务尚未接入。" />
-      <template v-else-if="section === 'popular'">
-        <div class="hr-sport-head">
-          <span>{{ match.league }} · 足球</span><span class="hr-tag hr-red">{{ match.stage }}</span>
-        </div>
-        <div class="hr-teams">
-          <span
-            ><i>{{ match.home[0] }}</i
-            >{{ match.home }}</span
-          ><strong>{{ match.score }}</strong
-          ><span
-            >{{ match.away }}<i>{{ match.away[0] }}</i></span
-          >
-        </div>
-        <label class="hr-market">
-          <select v-model="marketId" :aria-label="`${market.scope} · ${market.line}`">
-            <option v-for="item in match.markets" :key="item.id" :value="item.id">
-              {{ item.scope }} · {{ item.line }}
-            </option>
-          </select>
-          <ChevronDown :size="14" aria-hidden="true" />
-        </label>
-        <div class="hr-quotes">
-          <button
-            v-for="q in quotes"
-            :key="q.platform"
-            :class="{ best: q.home === best }"
-            :aria-label="`平台 ${q.platform}主队报价详情`"
-            @click="quoteDetail(q.platform)"
-          >
-            <small>平台 {{ q.platform }}<em v-if="q.home === best">当前较优</em></small
-            ><strong
-              >{{ formatOdds(q.home, format) }} <span>{{ market.selections[0] }}</span></strong
-            >
-          </button>
-        </div>
-        <div class="hr-footrow">
-          <button @click="panel = 'sources'">固定记录 · 来源<Info :size="12" /></button
-          ><button class="hr-link" @click="ask">让 AI 解读 →</button>
-        </div>
-        <button class="hr-notice" @click="compare('odds', undefined, undefined, 'movements')">
-          <Activity :size="16" /><span>篮球滚球：{{ sportsMovements[0]!.description }}</span
-          ><ChevronRight :size="14" />
-        </button>
-      </template>
-      <template v-else-if="section === 'opportunities'">
-        <div
-          v-for="candidate in opportunities.slice(0, 1)"
-          :key="candidate.match.id + candidate.market.id"
-          class="hr-opportunity"
-        >
-          <div class="hr-sport-head">
-            <span>同场同盘 · 完整结果匹配</span><span class="hr-tag hr-warm">待核验</span>
-          </div>
-          <h3>{{ candidate.match.home }} vs {{ candidate.match.away }}</h3>
-          <p class="hr-market">
-            {{ candidate.market.scope }} · {{ candidate.market.label }} ·
-            {{ candidate.market.line }}
-          </p>
-          <p class="hr-copy">发现理论价差；费用、限额与报价有效期待核验，净收益待核算。</p>
-          <button
-            class="hr-link hr-action"
-            @click="compare('arbitrage', candidate.match, candidate.market, 'opportunity')"
-          >
-            查看分配试算<ChevronRight :size="16" />
-          </button>
-        </div>
-        <StatePanel
-          v-if="!opportunities.length"
-          title="暂无匹配机会"
-          description="可前往完整比价继续查看。"
-        />
-      </template>
-      <template v-else>
-        <div class="hr-sport-head">
-          <span>近期盘口与水位变化</span><span class="hr-tag">原记录 · 港盘 HK</span>
-        </div>
-        <button
-          v-for="move in sportsMovements"
-          :key="move.id"
-          class="hr-move"
-          @click="
-            compare(
-              'odds',
-              sportsMatches.find((m) => m.id === move.matchId),
-              undefined,
-              'movements',
-            )
-          "
-        >
-          <span class="hr-tag" :class="{ 'hr-red': move.type === '水位' }">{{ move.type }}</span
-          ><span
-            ><strong>{{ move.description }}</strong
-            ><small>{{ move.detail }} · {{ move.time }}</small></span
-          ><ChevronRight :size="14" />
-        </button>
-      </template>
-      <button class="hr-format" :aria-label="formatName" @click="panel = 'format'">
-        <span>赔率显示格式</span><span>{{ formatName }}<ChevronDown :size="13" /></span>
-      </button>
-    </section>
+    <HomeEvents
+      :format="format"
+      :format-name="formatName"
+      @format="panel = 'format'"
+      @sources="panel = 'sources'"
+    />
     <div class="hr-heading">
       <h2>平台资金监测</h2>
       <RouterLink to="/monitor">查看监测<ChevronRight :size="14" /></RouterLink>
@@ -395,7 +261,7 @@ watch(
             {{ f.label }}<span>{{ format === f.id ? '已选择' : '' }}</span>
           </button>
           <p class="hr-copy">
-            仅改变显示制式，底层赔率使用十进制；偏好与对比页共用。滚球原始记录保留原记录制式。
+            仅改变显示制式，底层赔率使用十进制；偏好与对比页共用。滚球记录同步转换为当前显示制式，涨跌方向按十进制原值判断。
           </p></template
         >
         <template v-else-if="panel === 'warning' && warning"

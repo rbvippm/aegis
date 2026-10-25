@@ -1,12 +1,11 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Search,
   SlidersHorizontal,
-  ChevronDown,
   ChevronRight,
-  ArrowDown,
   Info,
   TriangleAlert,
   ShieldCheck,
@@ -15,6 +14,7 @@ import ResearchChart from '@/features/monitoring/ResearchChart.vue'
 import ResearchPlatformCard from '@/features/monitoring/ResearchPlatformCard.vue'
 import {
   researchChains,
+  researchRegionLabel,
   type ResearchChain,
   type ResearchPlatform,
   type ResearchWindow,
@@ -30,6 +30,7 @@ const window = ref<ResearchWindow>('30d')
 const search = ref('')
 const chain = ref<ResearchChain | ''>('')
 const grade = ref('')
+const region = ref('')
 const completeOnly = ref(false)
 const sort = ref('score')
 const visiblePlatforms = computed(() =>
@@ -38,6 +39,7 @@ const visiblePlatforms = computed(() =>
       (platform) =>
         platform.name.toLowerCase().includes(search.value.trim().toLowerCase()) &&
         (!chain.value || platform.chains.includes(chain.value)) &&
+        (!region.value || platform.region === region.value) &&
         (!grade.value || platform.grade === grade.value) &&
         (!completeOnly.value || platform.score !== null),
     )
@@ -65,6 +67,7 @@ function close() {
 function resetFilters() {
   chain.value = ''
   grade.value = ''
+  region.value = ''
   completeOnly.value = false
   search.value = ''
 }
@@ -98,17 +101,17 @@ watch(
             aria-label="搜索平台名称"
         /></label>
         <button class="research-filter ae-glass" aria-label="筛选平台" @click="open('筛选条件')">
-          <SlidersHorizontal :size="21" /><i v-if="chain || grade || completeOnly"></i>
+          <SlidersHorizontal :size="21" /><i v-if="chain || grade || region || completeOnly"></i>
         </button>
       </div>
       <div class="research-controls">
         <label class="research-chain ae-glass"
           ><span class="sr-only">平台覆盖公链</span
-          ><select v-model="chain">
+          ><GlassSelect v-model="chain">
             <option value="">全部公链</option>
-            <option v-for="item in researchChains" :key="item">{{ item }}</option></select
-          ><ChevronDown :size="14"
-        /></label>
+            <option v-for="item in researchChains" :key="item">{{ item }}</option></GlassSelect
+          ></label
+        >
         <div class="research-period ae-glass" aria-label="存款统计时间范围">
           <button
             v-for="period in windows"
@@ -126,11 +129,18 @@ watch(
         <h2>平台综合对比</h2>
         <label
           ><span class="sr-only">平台排序</span
-          ><select v-model="sort" aria-label="平台排序">
+          ><GlassSelect v-model="sort" aria-label="平台排序">
             <option value="score">盾牌分</option>
-            <option value="deposit">真实存款</option></select
-          ><ArrowDown :size="15"
-        /></label>
+            <option value="deposit">真实存款</option></GlassSelect
+          ></label
+        >
+      </div>
+      <div class="research-region-filter">
+        <GlassSelect v-model="region" label="平台地区"
+          ><option value="">全部地区</option>
+          <option value="asia">亚洲平台</option>
+          <option value="europe">欧洲平台</option></GlassSelect
+        >
       </div>
       <div class="research-platforms">
         <ResearchPlatformCard
@@ -163,7 +173,11 @@ watch(
 
     <BottomDrawer
       :open="panel !== null"
-      :title="panel?.platform ? `${panel.platform.name} · ${panel.kind}` : (panel?.kind ?? '')"
+      :title="
+        panel?.platform
+          ? `${panel.platform.name} · ${researchRegionLabel(panel.platform.region)} · ${panel.kind}`
+          : (panel?.kind ?? '')
+      "
       close-label="关闭弹窗"
       @close="close"
     >
@@ -171,21 +185,28 @@ watch(
         <div class="research-sheet__body">
           <template v-if="panel.kind === '筛选条件'">
             <label class="research-field"
-              >覆盖公链<select v-model="chain">
+              >覆盖公链<GlassSelect v-model="chain">
                 <option value="">全部公链</option>
                 <option v-for="item in researchChains" :key="item">{{ item }}</option>
-              </select></label
+              </GlassSelect></label
             >
             <p class="research-sheet-note">
               按平台覆盖的链筛选；卡片金额仍为已标记钱包的全链汇总。
             </p>
             <label class="research-field"
-              >纯净度<select v-model="grade">
+              >平台地区<GlassSelect v-model="region"
+                ><option value="">全部地区</option>
+                <option value="asia">亚洲平台</option>
+                <option value="europe">欧洲平台</option></GlassSelect
+              ></label
+            >
+            <label class="research-field"
+              >纯净度<GlassSelect v-model="grade">
                 <option value="">全部等级</option>
                 <option v-for="item in ['S', 'A', 'B', 'C']" :key="item" :value="item">
                   {{ item }}级
                 </option>
-              </select></label
+              </GlassSelect></label
             >
             <label class="research-checkbox"
               ><input v-model="completeOnly" type="checkbox" />仅看数据完整平台</label

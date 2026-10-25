@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers/select'
 import { test, expect } from '@playwright/test'
 
 test('首页问题带入 AI，导航可返回首页', async ({ page }) => {
@@ -52,7 +53,7 @@ test('监测筛选、时间切换与详情弹窗', async ({ page }) => {
   await expect(page.getByRole('article')).toHaveCount(3)
   await page.getByRole('button', { name: '7d', exact: true }).click()
   await expect(page.getByRole('article', { name: '平台 A', exact: true })).toContainText('$548M')
-  await page.getByRole('combobox', { name: '平台覆盖公链' }).selectOption('TON')
+  await chooseOption(page, page.getByRole('combobox', { name: '平台覆盖公链' }), 'TON')
   await expect(page.getByRole('article')).toHaveCount(2)
   await page.getByRole('searchbox', { name: '搜索平台名称' }).fill('不存在')
   await expect(page.getByText('暂无匹配平台')).toBeVisible()
@@ -69,7 +70,7 @@ test('监测筛选、时间切换与详情弹窗', async ({ page }) => {
   await expect(dialog.getByRole('status')).toContainText('UID 已校验')
   await dialog.getByRole('button', { name: '关闭弹窗' }).click()
   await page.getByRole('button', { name: '筛选平台' }).click()
-  await dialog.getByLabel('纯净度').selectOption('B')
+  await chooseOption(page, dialog.getByRole('combobox', { name: '纯净度' }), 'B')
   await dialog.getByRole('button', { name: '查看 1 个平台' }).click()
   await expect(page.getByRole('article')).toHaveCount(1)
   await expect(page.getByRole('article')).toContainText('平台 B')

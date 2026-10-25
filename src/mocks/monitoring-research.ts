@@ -6,6 +6,7 @@ export const researchPlatforms: ResearchPlatform[] = [
   {
     id: 'A',
     name: '平台 A',
+    region: 'asia',
     score: 9.2,
     chains: ['TRON', 'BSC', 'Arbitrum', 'TON', 'ETH'],
     grade: 'S',
@@ -27,6 +28,7 @@ export const researchPlatforms: ResearchPlatform[] = [
   {
     id: 'B',
     name: '平台 B',
+    region: 'europe',
     score: 7.1,
     chains: ['TRON', 'BSC', 'ETH'],
     grade: 'B',
@@ -48,6 +50,7 @@ export const researchPlatforms: ResearchPlatform[] = [
   {
     id: 'C',
     name: '平台 C',
+    region: 'asia',
     score: null,
     chains: ['TON', 'Arbitrum'],
     grade: null,

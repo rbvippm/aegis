@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref } from 'vue'
 import { ChevronRight, UsersRound, ShieldCheck } from '@lucide/vue'
 import ServiceLayout from './ServiceLayout.vue'
@@ -94,18 +95,18 @@ function resetFilters() {
           <h2>代理政策对比</h2>
         </div>
         <div class="svc-filters">
-          <select v-model="model" aria-label="佣金模式">
+          <GlassSelect v-model="model" aria-label="佣金模式">
             <option value="net">净收益分成</option>
-            <option value="cpa">CPA 固定佣金</option></select
-          ><select v-model="settlement" aria-label="代理结算周期">
+            <option value="cpa">CPA 固定佣金</option></GlassSelect
+          ><GlassSelect v-model="settlement" aria-label="代理结算周期">
             <option value="all">结算周期</option>
             <option value="weekly">周结 U</option>
-            <option value="daily">日结 U</option></select
-          ><select v-model="fee" aria-label="场馆费筛选">
+            <option value="daily">日结 U</option></GlassSelect
+          ><GlassSelect v-model="fee" aria-label="场馆费筛选">
             <option value="all">场馆费</option>
             <option value="low">≤ 8%</option>
             <option value="none">不扣场馆费</option>
-          </select>
+          </GlassSelect>
         </div>
         <template v-if="policies.length">
           <table class="svc-table svc-policy-table">

@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers/select'
 import { test, expect } from '@playwright/test'
 
 test('首页 VIP 入口、条款、双方案对比与排行窗口', async ({ page }) => {
@@ -18,7 +19,7 @@ test('首页 VIP 入口、条款、双方案对比与排行窗口', async ({ pag
   await expect(dialog).toContainText('10% / 周')
   await page.keyboard.press('Escape')
   await expect(dialog).not.toBeVisible()
-  await page.getByRole('combobox', { name: 'VIP 平台筛选' }).selectOption('B')
+  await chooseOption(page, page.getByRole('combobox', { name: 'VIP 平台筛选' }), 'B')
   await expect(page.getByRole('article')).toHaveCount(1)
   await page.getByRole('button', { name: '匿名充值榜', exact: true }).click()
   await page.getByRole('button', { name: '近90日', exact: true }).click()
@@ -29,16 +30,22 @@ test('VIP 匿名需求可编辑与清除，刷新后不保留', async ({ page })
   await page.goto('/me?section=vip')
   await page.getByRole('button', { name: '匿名获取 VIP 报价' }).click()
   const dialog = page.getByRole('dialog')
-  await dialog.getByLabel('近 30 日充值区间').selectOption({ label: '1–5万 U' })
-  await dialog.getByLabel('当前 VIP 等级').selectOption({ label: 'VIP 4–6' })
-  await dialog.getByLabel('最关注的待遇').selectOption({ label: '专属日返水' })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '近 30 日充值区间' }), {
+    label: '1–5万 U',
+  })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '当前 VIP 等级' }), {
+    label: 'VIP 4–6',
+  })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '最关注的待遇' }), {
+    label: '专属日返水',
+  })
   await dialog.getByRole('button', { name: '保存需求' }).click()
   await expect(dialog.getByRole('status')).toContainText('需求已保存')
   await dialog.getByRole('button', { name: '查看我的需求' }).click()
   await expect(dialog).not.toBeVisible()
   await expect(page.locator('.svc-request-summary')).toContainText('1–5万 U')
   await page.getByRole('button', { name: '编辑需求' }).click()
-  await expect(dialog.getByLabel('当前 VIP 等级')).toHaveValue('VIP 4–6')
+  await expect(dialog.getByRole('combobox', { name: '当前 VIP 等级' })).toContainText('VIP 4–6')
   await page.keyboard.press('Escape')
   await expect(dialog).not.toBeVisible()
   await page.getByRole('button', { name: '清除需求' }).click()
@@ -54,9 +61,9 @@ test('代理入口、政策筛选、费用试算和证据说明', async ({ page 
   await expect(page.getByRole('heading', { name: '把佣金规则放到明面' })).toBeVisible()
   await expect(page.locator('.svc-estimate')).toContainText('3,680 U')
   await expect(page.locator('.svc-estimate')).toContainText('3,960 U')
-  await page.getByRole('combobox', { name: '代理结算周期' }).selectOption('weekly')
+  await chooseOption(page, page.getByRole('combobox', { name: '代理结算周期' }), 'weekly')
   await expect(page.locator('.svc-policy-table thead')).not.toContainText('平台 B')
-  await page.getByRole('combobox', { name: '场馆费筛选' }).selectOption('none')
+  await chooseOption(page, page.getByRole('combobox', { name: '场馆费筛选' }), 'none')
   await expect(page.getByText('暂无匹配政策')).toBeVisible()
   await page.getByRole('button', { name: '重置筛选' }).click()
   await page.getByRole('button', { name: '自定义试算' }).click()
@@ -83,9 +90,15 @@ test('代理团队需求、规划面板与辅助入口', async ({ page }) => {
   await page.keyboard.press('Escape')
   await expect(dialog).not.toBeVisible()
   await page.getByRole('button', { name: '发布匿名合作需求' }).click()
-  await dialog.getByLabel('团队月净收益规模').selectOption({ label: '10–20万 U' })
-  await dialog.getByLabel('团队规模').selectOption({ label: '11–50 人' })
-  await dialog.getByLabel('优先合作条件').selectOption({ label: '不结转负盈利' })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '团队月净收益规模' }), {
+    label: '10–20万 U',
+  })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '团队规模' }), {
+    label: '11–50 人',
+  })
+  await chooseOption(page, dialog.getByRole('combobox', { name: '优先合作条件' }), {
+    label: '不结转负盈利',
+  })
   await dialog.getByRole('button', { name: '保存需求' }).click()
   await dialog.getByRole('button', { name: '查看我的需求' }).click()
   await expect(dialog).not.toBeVisible()

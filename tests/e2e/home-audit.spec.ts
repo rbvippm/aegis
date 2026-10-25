@@ -33,7 +33,7 @@ for (const width of [360, 390, 430]) {
     await page.locator('.main-content').evaluate((e) => (e.scrollTop = e.scrollHeight))
     await page.screenshot({ path: `outputs/home-audit/${width}-bottom.png` })
     await expect(page.getByRole('link', { name: '搜索平台与赛事', exact: true })).toHaveCount(0)
-    await page.locator('.lang-switch__trigger').click()
+    await page.getByRole('combobox', { name: '语言', exact: true }).click()
     await expect(page.getByRole('listbox', { name: '语言', exact: true })).toBeVisible()
     await page.screenshot({ path: `outputs/home-audit/${width}-language.png` })
     await page.keyboard.press('Escape')

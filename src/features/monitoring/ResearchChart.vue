@@ -219,8 +219,8 @@ button {
 }
 .research-legend span {
   margin-left: auto;
-  font-size: 11px;
-  color: #617b9f;
+  font-size: 12px;
+  color: var(--ae-muted);
 }
 svg {
   height: 130px;
@@ -236,14 +236,14 @@ svg text {
   fill: #60799c;
 }
 svg .research-chart__tooltip {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   fill: #14213d;
 }
 p {
   text-align: center;
-  color: #647fa4;
-  font-size: 11px;
+  color: var(--ae-muted);
+  font-size: 12px;
   line-height: 1.5;
 }
 </style>

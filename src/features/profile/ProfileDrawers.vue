@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
 import {
   Bell,
@@ -96,6 +97,7 @@ watch(
     if (props.panel === 'ticketForm') evidence.value = []
     if (props.panel === 'notifications') notificationDraft.value = { ...profile.preferences }
   },
+  { immediate: true },
 )
 function bind() {
   error.value = profile.bind(selectedPlatform.value, uid.value)
@@ -321,11 +323,11 @@ async function copyUid() {
         </div>
         <form @submit.prevent="bind">
           <label class="pf-field"
-            >平台<select v-model="selectedPlatform">
+            >平台<GlassSelect v-model="selectedPlatform">
               <option v-for="item in profile.bindings" :key="item.id" :value="item.id">
                 {{ item.name }}
               </option>
-            </select></label
+            </GlassSelect></label
           ><label class="pf-field"
             >平台 UID<input
               v-model="uid"
@@ -388,18 +390,18 @@ async function copyUid() {
         <form @submit.prevent="panel === 'ticketForm' ? saveTicket() : saveSupplement()">
           <template v-if="panel === 'ticketForm'"
             ><label class="pf-field"
-              >涉及平台<select v-model="ticketPlatform">
+              >涉及平台<GlassSelect v-model="ticketPlatform">
                 <option v-for="id in ['A', 'B', 'C']" :key="id" :value="id">平台 {{ id }}</option>
-              </select></label
+              </GlassSelect></label
             ><label class="pf-field"
-              >问题类别<select v-model="category">
+              >问题类别<GlassSelect v-model="category">
                 <option
                   v-for="label in ['出金进度咨询', '奖励资格核验', '入金问题', '结算问题', '其他']"
                   :key="label"
                 >
                   {{ label }}
                 </option>
-              </select></label
+              </GlassSelect></label
             ><label class="pf-field"
               >问题描述<textarea
                 v-model="description"
@@ -452,12 +454,12 @@ async function copyUid() {
         ><p class="pf-body-text">欢迎提出问题或建议。不要填写密码、验证码、私钥或完整资金信息。</p>
         <form @submit.prevent="saveFeedback">
           <label class="pf-field"
-            >反馈类别<select v-model="feedbackCategory">
+            >反馈类别<GlassSelect v-model="feedbackCategory">
               <option>产品建议</option>
               <option>界面问题</option>
               <option>数据问题</option>
               <option>其他</option>
-            </select></label
+            </GlassSelect></label
           ><label class="pf-field"
             >反馈内容<textarea
               v-model="feedbackContent"

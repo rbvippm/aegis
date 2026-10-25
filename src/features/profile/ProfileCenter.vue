@@ -21,15 +21,20 @@ import {
   UserRound,
   UsersRound,
 } from '@lucide/vue'
+import MessageCenterLink from '@/shared/ui/MessageCenterLink.vue'
 import AegisMark from '@/shared/ui/AegisMark.vue'
 import AiOrb from '@/shared/ui/AiOrb.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import ProfileDrawers from './ProfileDrawers.vue'
+import SubscriptionBenefits from './SubscriptionBenefits.vue'
 import { useProfile } from './store'
 import { formatCents, maskUid } from './logic'
 import { dataMode } from '@/shared/api/config'
 import { useConversation } from '@/features/ai/conversation-store'
-import { sportsMatches } from '@/mocks/sports'
+import {
+  planningMatches as sportsMatches,
+  planningOperators as sportsPlatforms,
+} from '@/mocks/sports-planning'
 import type { ProfilePanel, ProfileTicket } from './types'
 import './profile.css'
 
@@ -39,6 +44,7 @@ const route = useRoute()
 const router = useRouter()
 const sections = {
   overview: '我的',
+  subscription: '订阅与特权',
   earnings: '收益与绑定',
   tickets: '我的工单',
   messages: '消息中心',
@@ -146,7 +152,8 @@ function showNotice(id: string) {
   const notice = profile.notices.find((item) => item.id === id)
   if (!notice) return
   notice.read = true
-  if (notice.target) void navigate(notice.target)
+  if (notice.target.startsWith('/compare?')) void router.push(notice.target)
+  else if (notice.target) void navigate(notice.target)
   else open('about')
 }
 async function restoreAi(id: string) {
@@ -160,6 +167,19 @@ watch(
     earningsTab.value = route.query.tab === 'records' ? 'records' : 'bindings'
     readFollowed()
     const requestedPanel = String(route.query.panel ?? '')
+    if (requestedPanel === 'binding') {
+      const platform = sportsPlatforms.find((p) => p.id === route.query.platform)
+      if (platform) {
+        if (!profile.bindings.some((b) => b.id === platform.id))
+          profile.bindings.push({
+            id: platform.id,
+            name: platform.name,
+            uid: '',
+            eligibility: 'unbound',
+          })
+        open('binding', platform.id)
+      }
+    }
     if (['help', 'feedback', 'about'].includes(requestedPanel)) open(requestedPanel as ProfilePanel)
   },
   { immediate: true },
@@ -173,14 +193,11 @@ watch(
       >
       <h1 class="pf-sr">我的</h1>
       <div class="pf-header-actions">
-        <button
+        <MessageCenterLink
           class="pf-icon-button"
-          :class="{ 'pf-dot': profile.previewIdentity && profile.unreadCount > 0 }"
-          aria-label="消息中心"
-          @click="navigate('messages')"
-        >
-          <Bell :size="22" /></button
-        ><button class="pf-icon-button" aria-label="账户设置" @click="open('settings')">
+          :unread="profile.previewIdentity && profile.unreadCount > 0"
+        />
+        <button class="pf-icon-button" aria-label="账户设置" @click="open('settings')">
           <Settings :size="22" />
         </button>
       </div>
@@ -190,7 +207,9 @@ watch(
         <ChevronLeft :size="22" />
       </button>
       <h1>{{ sections[section] }}</h1>
+      <MessageCenterLink v-if="section === 'subscription'" class="pf-icon-button" />
       <button
+        v-else
         class="pf-icon-button"
         :aria-label="section === 'tickets' ? '工单通知' : '查看说明'"
         @click="section === 'tickets' ? navigate('messages') : open('method')"
@@ -200,24 +219,48 @@ watch(
     </header>
     <div class="pf-content">
       <template v-if="section === 'overview'">
-        <button class="pf-identity" @click="open(profile.previewIdentity ? 'identity' : 'login')">
+        <div class="pf-identity">
           <span class="pf-identity-crystal" aria-hidden="true"><AegisMark /></span>
-          <span class="pf-avatar"><UserRound :size="28" /></span
-          ><span class="pf-identity-main"
+          <button
+            class="pf-avatar"
+            aria-label="查看个人资料"
+            @click="open(profile.previewIdentity ? 'identity' : 'login')"
+          >
+            <UserRound :size="28" />
+          </button>
+          <span class="pf-identity-main"
             ><span class="pf-name"
-              >{{ profile.previewIdentity ? profile.nickname : '游客'
-              }}<small class="pf-badge">{{
-                profile.previewIdentity ? '普通用户' : '未登录'
-              }}</small></span
+              ><button
+                class="pf-name-button"
+                @click="open(profile.previewIdentity ? 'identity' : 'login')"
+              >
+                {{ profile.previewIdentity ? profile.nickname : '游客' }}</button
+              ><RouterLink
+                class="pf-subscription-link"
+                to="/me?section=subscription"
+                aria-label="订阅与特权"
+                ><span class="pf-badge pf-subscription-badge"
+                  >{{ profile.previewIdentity ? '普通用户' : '未登录'
+                  }}<ChevronRight :size="11" /></span></RouterLink></span
             ><span class="pf-user-id">{{
               profile.previewIdentity ? 'ID: AE00128' : '登录后查看个人记录'
             }}</span
             ><span class="pf-connections"
-              ><small><Send :size="11" />Telegram</small
-              ><small><Mail :size="11" />邮箱</small></span
+              ><button type="button" aria-label="Telegram" @click="open('telegram')">
+                <span><Send :size="12" />Telegram</span></button
+              ><button type="button" aria-label="邮箱" @click="open('email')">
+                <span><Mail :size="12" />邮箱</span>
+              </button></span
             ></span
-          ><ChevronRight :size="16" />
-        </button>
+          >
+          <button
+            class="pf-identity-more"
+            aria-label="编辑个人资料"
+            @click="open(profile.previewIdentity ? 'identity' : 'login')"
+          >
+            <ChevronRight :size="16" />
+          </button>
+        </div>
         <RouterLink custom to="/me?section=vip" v-slot="{ href, navigate }"
           ><a
             class="pf-vip"
@@ -225,7 +268,7 @@ watch(
             :aria-current="route.query.section === 'vip' ? 'page' : undefined"
             @click="navigate"
             ><span class="pf-vip-icon"><Crown :size="22" /></span
-            ><span><strong>VIP 与 AI 权益</strong><small>权益与额度待公布</small></span
+            ><span><strong>VIP 服务</strong><small>VIP 转移 · 定制化报价</small></span
             ><ChevronRight :size="16" /></a
         ></RouterLink>
         <section v-if="dataMode === 'demo' && profile.previewIdentity" class="pf-card pf-income">
@@ -318,6 +361,7 @@ watch(
         <p>登录后查看收益、绑定和工单。</p>
         <button class="pf-primary" @click="open('login')">登录</button>
       </section>
+      <SubscriptionBenefits v-else-if="section === 'subscription'" />
       <template v-else-if="section === 'earnings'">
         <section class="pf-card pf-summary">
           <p><Info :size="14" />仅记录收益，由平台或人工结算</p>

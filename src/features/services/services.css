@@ -205,7 +205,7 @@ button.svc-badge {
   position: absolute;
   right: -7px;
   top: 14px;
-  color: #6080a8;
+  color: var(--ae-muted);
 }
 .svc-tabs,
 .svc-period,
@@ -296,7 +296,7 @@ button.svc-badge {
   margin-bottom: 8px;
 }
 .svc-filters button,
-.svc-filters select {
+.svc-filters :is(select, .glass-select__trigger) {
   min-width: 0;
   max-width: 100%;
   min-height: 44px;
@@ -307,7 +307,7 @@ button.svc-badge {
   background: #edf5ff;
   font-size: 13px;
 }
-.svc-filters select {
+.svc-filters :is(select, .glass-select__trigger) {
   padding-right: 4px;
 }
 .svc-filters [aria-pressed='true'] {
@@ -771,7 +771,7 @@ button.svc-badge {
   background: linear-gradient(120deg, #fff, #f0f5fa);
 }
 .svc-roadmap > svg {
-  color: #7e98ba;
+  color: var(--ae-muted);
 }
 .svc-roadmap > .svc-badge {
   margin-left: auto;
@@ -808,7 +808,7 @@ button.svc-badge {
   color: #14213d;
 }
 .svc-form input,
-.svc-form select,
+.svc-form :is(select, .glass-select__trigger),
 .svc-form textarea {
   width: 100%;
   min-height: 44px;
@@ -955,7 +955,7 @@ button.svc-badge {
     gap: 3px;
   }
   .svc-filters button,
-  .svc-filters select {
+  .svc-filters :is(select, .glass-select__trigger) {
     padding-inline: 7px;
   }
   .svc-metrics dd {
@@ -985,4 +985,22 @@ button.svc-badge {
   .service-page a {
     transition: none;
   }
+}
+.svc-subscription-context {
+  padding: 12px 14px;
+  background: #edf5ff;
+  border: 1px solid #d7e8ff;
+  border-radius: 13px;
+  color: #195da8;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.svc-subscription-context span {
+  display: block;
+  margin-top: 4px;
+  color: var(--ae-muted);
+  font-size: 12px;
+  font-weight: 400;
 }

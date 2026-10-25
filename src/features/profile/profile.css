@@ -157,7 +157,16 @@
   display: flex;
   gap: 5px;
 }
-.pf-connections small {
+.pf-connections button {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.pf-connections button > span {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -240,7 +249,7 @@
 .pf-identity > svg,
 .pf-vip > svg {
   margin-left: auto;
-  color: #7a96b8;
+  color: var(--ae-muted);
   flex-shrink: 0;
 }
 .pf-card {
@@ -343,7 +352,7 @@
 .pf-empty-income p {
   font-size: 13px;
   line-height: 1.7;
-  color: #657d9a;
+  color: var(--ae-muted);
   margin-top: 10px;
 }
 .pf-shortcuts {
@@ -452,7 +461,7 @@
 }
 .pf-menu > button > svg,
 .pf-menu > a > svg {
-  color: #7a96b8;
+  color: var(--ae-muted);
 }
 .pf-menu--utility > button {
   min-height: 52px;
@@ -493,7 +502,7 @@
   border: 0;
   border-radius: 21px;
   background: none;
-  color: #587ba5;
+  color: var(--ae-muted);
   font-size: 13px;
   line-height: 1.5;
   padding: 6px;
@@ -688,7 +697,7 @@
   display: block;
   font-size: 12px;
   line-height: 1.5;
-  color: #6e86a2;
+  color: var(--ae-muted);
 }
 .pf-private {
   align-items: center;
@@ -797,7 +806,7 @@
   font-size: 12px;
   line-height: 1.5;
   font-weight: 600;
-  color: #7b91ac;
+  color: var(--ae-muted);
 }
 .pf-timeline li.done strong {
   color: #3c6089;
@@ -836,11 +845,11 @@
 .pf-ai-help small {
   display: block;
   font-size: 12px;
-  color: #6a85a6;
+  color: var(--ae-muted);
   line-height: 1.6;
 }
 .pf-ai-help > svg {
-  color: #7a96b8;
+  color: var(--ae-muted);
 }
 .pf-bottom-note {
   font-size: 12px;
@@ -848,7 +857,7 @@
   justify-content: center;
   align-items: center;
   gap: 4px;
-  color: #7390b0;
+  color: var(--ae-muted);
   line-height: 1.5;
   margin-top: 12px;
 }
@@ -879,7 +888,7 @@
   display: block;
   font-size: 12px;
   line-height: 1.7;
-  color: #6982a3;
+  color: var(--ae-muted);
   margin-top: 4px;
 }
 .pf-notice-mark {
@@ -901,7 +910,7 @@
 .pf-empty {
   padding: 30px 12px;
   text-align: center;
-  color: #6a82a1;
+  color: var(--ae-muted);
 }
 .pf-empty svg {
   color: #438bdf;
@@ -968,7 +977,7 @@
   color: #526581;
 }
 .pf-setting-row > svg:last-child:not(:first-child) {
-  color: #7a96b8;
+  color: var(--ae-muted);
 }
 .pf-setting-group + .pf-helper {
   margin-top: -2px;
@@ -983,7 +992,7 @@
   margin: 14px 0;
 }
 .pf-field input:not([type='file']),
-.pf-field select,
+.pf-field :is(select, .glass-select__trigger),
 .pf-field textarea {
   width: 100%;
   min-height: 44px;
@@ -1040,7 +1049,7 @@
   font-size: 12px;
 }
 .pf-definition dt {
-  color: #6a82a0;
+  color: var(--ae-muted);
   flex: 1;
 }
 .pf-definition dd {
@@ -1195,4 +1204,35 @@
   font-weight: 400;
   line-height: 1.5;
   text-align: center;
+}
+.pf-name-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  min-height: 44px;
+}
+.pf-subscription-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+}
+.pf-subscription-badge {
+  min-height: 24px;
+  gap: 3px;
+  border: 1px solid #e4edf8;
+}
+.pf-identity-more {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  min-width: 28px;
+  border: 0;
+  background: none;
+  color: var(--ae-muted);
+  padding: 0;
 }

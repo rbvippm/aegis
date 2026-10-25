@@ -13,6 +13,10 @@ const store = useServiceRequests()
     <template v-if="store.requests[kind]">
       <p class="svc-note">待处理</p>
       <dl class="svc-detail-list">
+        <div v-if="store.requests[kind]?.subscriptionLevel">
+          <dt>咨询的订阅方案</dt>
+          <dd>{{ store.requests[kind]?.subscriptionLevel }}</dd>
+        </div>
         <div>
           <dt>{{ kind === 'vip' ? '充值区间' : '月净收益区间' }}</dt>
           <dd>{{ store.requests[kind]?.volume }}</dd>
@@ -36,9 +40,7 @@ const store = useServiceRequests()
       </div>
     </template>
     <template v-else
-      ><p class="svc-note">
-        暂无需求。创建匿名需求后，可在这里查看与编辑。
-      </p>
+      ><p class="svc-note">暂无需求。创建匿名需求后，可在这里查看与编辑。</p>
       <button class="svc-outline" @click="$emit('create')">创建匿名需求</button></template
     >
   </section>

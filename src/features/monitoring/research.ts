@@ -3,6 +3,7 @@ export type ResearchChain = 'TRON' | 'BSC' | 'Arbitrum' | 'TON' | 'ETH'
 export interface ResearchPlatform {
   id: string
   name: string
+  region: 'asia' | 'europe' | null
   score: number | null
   chains: ResearchChain[]
   grade: 'S' | 'B' | null
@@ -18,3 +19,6 @@ export interface ResearchPlatform {
   windows: Record<ResearchWindow, { deposit: string; amount: number; change: number }>
 }
 export const researchChains: ResearchChain[] = ['TRON', 'BSC', 'Arbitrum', 'TON', 'ETH']
+
+export const researchRegionLabel = (region: ResearchPlatform['region']) =>
+  region === 'asia' ? '亚洲平台' : region === 'europe' ? '欧洲平台' : '地区未标注'

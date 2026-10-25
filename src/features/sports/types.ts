@@ -6,6 +6,10 @@ export interface SportsQuote {
   home: number | null
   away: number | null
   previousHome?: number
+  previousAway?: number
+  settlementMatched?: boolean
+  maxStake?: number
+  feeRate?: number
   status: 'active' | 'suspended' | 'stale'
 }
 export interface SportsMarket {
@@ -42,6 +46,7 @@ export interface SlipLeg {
 }
 export interface AlertSetting {
   matchId: string
+  marketId?: string
   platform: string
   type: 'price' | 'line' | 'status'
   target: number | null
