@@ -60,9 +60,11 @@ function toggle(value: string | number) {
   <div class="ma-multi" :class="{ 'ma-multi--detailed': showSelection }">
     <div v-if="showSelection" class="ma-multi__heading">
       <h3>{{ label }}</h3>
-      <span>已选 {{ selected.length }} / {{ options.length }}</span
-      ><button class="ma-text" :disabled="!options.length" @click="selectAll">全选</button
-      ><button class="ma-text" :disabled="!selected.length" @click="clear">清空</button>
+      <span class="ma-multi__count">已选 {{ selected.length }}/{{ options.length }}</span>
+      <span class="ma-multi__actions">
+        <button class="ma-text" :disabled="!options.length" @click="selectAll">全选</button>
+        <button class="ma-text" :disabled="!selected.length" @click="clear">清空</button>
+      </span>
     </div>
     <GlassSelect
       ref="control"

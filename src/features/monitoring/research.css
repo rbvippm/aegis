@@ -15,28 +15,10 @@
 .monitor-research button:active {
   transform: scale(0.98);
 }
-.research-intro {
-  height: 98px;
-  margin: 0 -12px;
-  padding: 20px 20px 0;
-  background: url('../../shared/assets/glacier-hero.jpg') center bottom/100% 100% no-repeat;
-}
-.research-intro h1 {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.7px;
-  line-height: 1.4;
-}
-.research-intro p {
-  margin-top: 5px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #0759e6;
-}
 .research-search-row {
   display: flex;
   gap: 9px;
-  margin: 5px 0 9px;
+  margin: 12px 0 9px;
 }
 .research-search {
   display: flex;

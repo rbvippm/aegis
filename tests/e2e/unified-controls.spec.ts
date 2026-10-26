@@ -39,7 +39,7 @@ test('监测下拉浮层、地区标签与筛选保持同步', async ({ page }) 
   await drawer.getByRole('button', { name: '查看 2 个平台', exact: true }).click()
   await expect(page.getByRole('article')).toHaveCount(2)
   await sort.click()
-  await page.getByRole('heading', { name: '实时追踪', exact: true }).click()
+  await page.getByRole('searchbox', { name: '搜索平台名称', exact: true }).click()
   await expect(page.getByRole('listbox')).toHaveCount(0)
 })
 

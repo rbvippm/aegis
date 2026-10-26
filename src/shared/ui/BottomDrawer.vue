@@ -339,10 +339,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   flex-shrink: 0;
   gap: 12px;
-  min-height: 98px;
-  padding: 44px 18px 12px;
-  border-bottom: 1px solid #dce8f5;
-  background: linear-gradient(125deg, #ffffffed, #eaf4ffdf);
+  min-height: 92px;
+  padding: 44px 16px 14px;
+  border-bottom: 1px solid #d7e6f8;
+  background: linear-gradient(180deg, #ffffff, #eef5ff);
   box-shadow: inset 0 1px #fff;
   touch-action: none;
   user-select: none;
@@ -353,13 +353,13 @@ onBeforeUnmount(() => {
   left: 0;
   right: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   width: auto;
   height: 44px;
   border: 0;
   border-radius: 0;
-  padding: 0;
+  padding: 0 0 8px;
   background: transparent;
   touch-action: none;
   cursor: grab;
@@ -371,13 +371,19 @@ onBeforeUnmount(() => {
   outline: none;
 }
 .ae-drawer__handle span {
-  width: 38px;
+  width: 48px;
   height: 5px;
-  border-radius: 5px;
-  background: #8ea7bd;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f7fbff, #b7cce4);
+  box-shadow:
+    inset 0 1px #fff,
+    0 1px 1px #7ea4cc40;
 }
 .ae-drawer__handle:active {
   cursor: grabbing;
+}
+.ae-drawer__handle:active span {
+  background: #9eb8d4;
 }
 .ae-drawer__heading {
   min-width: 0;
@@ -400,11 +406,13 @@ onBeforeUnmount(() => {
   min-height: 44px;
   padding: 0;
   appearance: none;
-  border: 1px solid #c9ddf1;
+  border: 1px solid #d7e6f8;
   border-radius: 50%;
-  color: #3d5d86;
-  background: #e7f0f9;
-  box-shadow: inset 0 1px #fff;
+  color: #0864ff;
+  background: #fff;
+  box-shadow:
+    inset 0 1px #fff,
+    0 2px 6px #4b93eb1a;
   cursor: pointer;
   touch-action: manipulation;
   transition:
@@ -420,15 +428,15 @@ onBeforeUnmount(() => {
 }
 @media (hover: hover) {
   .ae-drawer button.ae-drawer__close:hover {
-    color: #14213d;
-    background: #dcecff;
-    border-color: #aacaf0;
+    color: #0864ff;
+    background: #f3f8ff;
+    border-color: #b9d4f5;
   }
 }
 .ae-drawer button.ae-drawer__close:active {
-  color: #14213d;
-  background: #cfe3fa;
-  border-color: #9cbee7;
+  color: #0864ff;
+  background: #e7f2ff;
+  border-color: #b9d4f5;
 }
 .ae-drawer button.ae-drawer__close:focus:not(:focus-visible) {
   outline: none;

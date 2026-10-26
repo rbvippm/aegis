@@ -5,11 +5,11 @@ import {
   Copy,
   Info,
   RefreshCw,
-  Share2,
   ArrowUpRight,
-  SlidersHorizontal,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
 } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
@@ -54,6 +54,7 @@ const props = defineProps<{
   region: string
   grade: string
   completeOnly: boolean
+  resultCount: number
 }>()
 export interface AnalyticsScope {
   snapshot: string
@@ -68,10 +69,17 @@ export interface AnalyticsScope {
       wallet: string
       flow: string
       flowPercent: number | null
+      share: number | null
     }
   >
 }
-const emit = defineEmits<{ scope: [value: AnalyticsScope]; reset: [] }>()
+const emit = defineEmits<{
+  scope: [value: AnalyticsScope]
+  reset: []
+  'update:region': [value: string]
+  'update:grade': [value: string]
+  'update:completeOnly': [value: boolean]
+}>()
 const route = useRoute()
 const category = ref('crypto'),
   period = ref<AnalyticsWindow>('30d'),
@@ -140,13 +148,20 @@ const detail = ref<{
   wallet?: string
   platform?: string
 } | null>(null)
-const scopeOpen = ref(false)
+const filtersOpen = ref(false)
 const shareOpen = ref(false),
   message = ref(''),
   copied = ref('')
 const name = (id: string) => catalog.find((p) => p.id === id)?.name ?? id
 const chainOptions = analyticsChains.map((id) => ({ id, label: id })),
   tokenOptions = analyticsTokens.map((id) => ({ id, label: id }))
+const scopeCustomized = computed(
+  () =>
+    category.value !== 'crypto' ||
+    chains.value.length !== chainOptions.length ||
+    tokens.value.length !== tokenOptions.length ||
+    platformIds.value.length !== catalog.length,
+)
 const eligible = computed(() =>
   catalog.filter(
     (p) =>
@@ -399,9 +414,17 @@ function openShare() {
 }
 function resetScope() {
   emit('reset')
+  category.value = 'crypto'
   chains.value = [...analyticsChains]
   tokens.value = [...analyticsTokens]
   platformIds.value = catalog.map((p) => p.id)
+}
+function openFilters() {
+  filtersOpen.value = true
+}
+function showMethodology() {
+  filtersOpen.value = false
+  source('统计口径与来源')
 }
 function setFeed(direction: string) {
   feedDirection.value = direction
@@ -413,6 +436,40 @@ function sortBy(key: string) {
     statSort.value = key
     descending.value = true
   }
+}
+const moneyStatKeys = new Set([
+  'deposits',
+  'withdrawals',
+  'net',
+  'averageDeposit',
+  'averageWithdrawal',
+])
+function changeClass(value: number | null) {
+  if (value === null || Math.abs(value) < 0.05) return ''
+  return value > 0 ? 'ma-up' : 'ma-down'
+}
+function changeLabel(value: number | null) {
+  if (value === null) return '—'
+  if (Math.abs(value) < 0.05) return '持平'
+  return percent(value)
+}
+function depositChange(row?: { deposits: number; before: { deposits: number } }) {
+  return row ? change(row.deposits, row.before.deposits) : null
+}
+function balanceChange(row: { balance: number; net: number }) {
+  return change(row.balance, row.balance - row.net)
+}
+function alertMoney(value: number) {
+  const abs = Math.abs(value)
+  if (abs >= 1000 && abs < 10000) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      notation: 'compact',
+      maximumFractionDigits: 2,
+    }).format(abs)
+  }
+  return money(abs)
 }
 function source(title: string, transfers = current.value, wallet?: string, platform?: string) {
   evidencePage.value = 0
@@ -476,6 +533,9 @@ function loadQuery() {
       .slice(0, 4)
 }
 defineExpose({
+  openFilters,
+  openShare,
+  scopeCustomized,
   showPlatformEvidence: (id: string, kind: string) =>
     source(
       `${name(id)} · ${kind}`,
@@ -503,6 +563,7 @@ watch(
             wallet: money(r.balance),
             flow: money(r.net),
             flowPercent: change(r.balance, r.balance - r.net),
+            share: r.share,
           },
         ]),
       ),
@@ -518,21 +579,54 @@ function addCompare(value: string | number) {
     compareIds.value.push(String(value))
   compareAdd.value = ''
 }
+const profileOf = (id: string) => researchPlatforms.find((item) => item.id === id)
 const compareMetrics = [
-  ['share', '范围内占比'],
-  ['deposits', '存款金额'],
-  ['withdrawals', '出款金额'],
+  ['deposits', '真实存款'],
+  ['balance', '热钱包余额'],
   ['net', '净流量'],
+  ['score', '盾牌分'],
+  ['grade', '出金纯净度'],
+  ['timing', '实测出款耗时'],
+  ['share', '范围内占比'],
+  ['withdrawals', '出款金额'],
   ['depositCount', '存款笔数'],
   ['withdrawalCount', '出款笔数'],
   ['uniqueDepositors', '独立存款钱包'],
   ['newDepositors', '新增存款钱包'],
-  ['balance', '热钱包余额'],
 ] as const
+const shownCompareMetrics = computed(() =>
+  compareMetrics.filter(
+    ([key]) =>
+      !['score', 'grade', 'timing'].includes(key) ||
+      compared.value.some((item) => profileOf(item.id)?.score != null),
+  ),
+)
+function netLabel(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return '—'
+  return `${value >= 0 ? '净流入' : '净流出'} ${money(Math.abs(value))}`
+}
+function deltaClass(value: number | null) {
+  if (value === null) return ''
+  return value >= 0 ? 'ma-up' : 'ma-down'
+}
 function statChange(row: (typeof rows.value)[number], key: string) {
   return change(row[key as keyof FlowStats], row.before[key as keyof FlowStats])
 }
 function formattedStat(row: (typeof rows.value)[number], key: string) {
+  if (key === 'score') {
+    const score = profileOf(row.id)?.score
+    return score == null ? '—' : `${score}/10`
+  }
+  if (key === 'grade') {
+    const profile = profileOf(row.id)
+    return profile?.grade ? `${profile.grade}级 · ${profile.taint}%` : '—'
+  }
+  if (key === 'timing') {
+    const profile = profileOf(row.id)
+    return profile?.smallMinutes != null
+      ? `小额 ${profile.smallMinutes}m / 大额 ${profile.largeMinutes}m`
+      : '—'
+  }
   const value = row[key as keyof typeof row] as number | null
   return key === 'share'
     ? value === null
@@ -574,62 +668,36 @@ watch(metric, () => {
 
 <template>
   <div class="monitor-analytics">
-    <div class="ma-toolbar">
-      <div class="ma-segments" aria-label="平台类别">
-        <button :aria-pressed="category === 'crypto'" @click="category = 'crypto'">加密平台</button
-        ><button :aria-pressed="category === 'cases'" @click="category = 'cases'">饰品平台</button>
+    <div ref="tabsEl" class="ma-viewbar">
+      <div class="ma-segments ma-tabs" aria-label="监测分析模块">
+        <button
+          v-for="item in [
+            { id: 'overview', label: '总览' },
+            { id: 'flows', label: '资金流水' },
+            { id: 'wallets', label: '钱包分析' },
+            { id: 'compare', label: '平台对比' },
+          ]"
+          :key="item.id"
+          :aria-pressed="tab === item.id"
+          @click="switchTab(item.id)"
+        >
+          {{ item.label }}
+        </button>
       </div>
-      <button class="ma-icon" aria-label="分享监测分析" @click="openShare">
-        <Share2 :size="19" />
-      </button>
-    </div>
-    <div class="ma-period ma-segments" aria-label="存款统计时间范围">
-      <button
-        v-for="p in analyticsPeriods"
-        :key="p"
-        :aria-pressed="period === p"
-        @click="period = p"
+      <GlassSelect
+        class="ma-period-select"
+        label="时间范围"
+        aria-label="存款统计时间范围"
+        :model-value="period"
+        @update:model-value="period = $event as AnalyticsWindow"
       >
-        {{ p }}
-      </button>
-    </div>
-    <div class="ma-scope-controls">
-      <ResearchMultiSelect v-model="chains" :options="chainOptions" label="公链" />
-      <ResearchMultiSelect v-model="tokens" :options="tokenOptions" label="币种" />
-      <ResearchMultiSelect
-        v-model="platformIds"
-        :options="eligible.map((p) => ({ id: p.id, label: p.name }))"
-        label="平台"
-      />
-    </div>
-    <div ref="tabsEl" class="ma-segments ma-tabs" aria-label="监测分析模块">
-      <button
-        v-for="item in [
-          { id: 'overview', label: '总览' },
-          { id: 'flows', label: '资金流水' },
-          { id: 'wallets', label: '钱包分析' },
-          { id: 'compare', label: '平台对比' },
-        ]"
-        :key="item.id"
-        :aria-pressed="tab === item.id"
-        @click="switchTab(item.id)"
-      >
-        {{ item.label }}
-      </button>
-      <button class="ma-icon" aria-label="管理分析范围" @click="scopeOpen = true">
-        <SlidersHorizontal :size="18" />
-      </button>
+        <option v-for="p in analyticsPeriods" :key="p" :value="p">{{ p }}</option>
+      </GlassSelect>
     </div>
     <div ref="contentAnchor" class="ma-content-anchor" aria-hidden="true"></div>
     <p v-if="!validScope" class="ma-empty" role="status">
       当前范围暂无可统计样本，请调整平台、公链或币种选择。
       <button class="ma-text" @click="resetScope">重置分析范围</button>
-    </p>
-    <p class="ma-snapshot">
-      快照 {{ dateLabel(asOf, true) }} · {{ period
-      }}<button class="ma-text" @click="source('统计口径与来源')">
-        <Info :size="14" />口径与来源
-      </button>
     </p>
 
     <slot
@@ -645,7 +713,7 @@ watch(metric, () => {
     />
     <template v-if="tab === 'overview' && validScope">
       <div class="ma-kpis">
-        <div>
+        <div class="ma-kpi--lead">
           <small>存款总额</small><strong>{{ money(stats.deposits) }}</strong>
         </div>
         <div>
@@ -699,16 +767,29 @@ watch(metric, () => {
       <button class="ma-secondary" :aria-expanded="advanced" @click="advanced = !advanced">
         {{ advanced ? '收起高级统计' : '展开高级统计' }}
       </button>
-      <section v-if="advanced" class="ma-card">
-        <h2>高级统计</h2>
+      <section v-if="advanced" class="ma-card ma-stats">
+        <header class="ma-heading">
+          <h2>高级统计</h2>
+          <span>{{ ranked.length }} 家</span>
+        </header>
         <div class="ma-table-scroll">
           <table>
             <thead>
               <tr>
                 <th>平台</th>
                 <th v-for="col in statColumns" :key="col[0]">
-                  <button @click="sortBy(col[0]!)">
-                    {{ col[1] }}{{ statSort === col[0] ? (descending ? ' ↓' : ' ↑') : '' }}
+                  <button :aria-pressed="statSort === col[0]" @click="sortBy(col[0]!)">
+                    {{ col[1] }}
+                    <ChevronDown
+                      v-if="statSort === col[0] && descending"
+                      :size="14"
+                      aria-hidden="true"
+                    />
+                    <ChevronUp
+                      v-else-if="statSort === col[0]"
+                      :size="14"
+                      aria-hidden="true"
+                    />
                   </button>
                 </th>
               </tr>
@@ -716,15 +797,18 @@ watch(metric, () => {
             <tbody>
               <tr v-for="row in ranked.slice(0, tableLimit)" :key="row.id">
                 <th><PlatformAccountLink :platform="row.id" :name="row.name" label /></th>
-                <td v-for="col in statColumns" :key="col[0]">
-                  {{ formattedStat(row, col[0]!)
-                  }}<small
-                    :class="{
-                      'ma-up': (statChange(row, col[0]!) ?? 0) > 0,
-                      'ma-down': (statChange(row, col[0]!) ?? 0) < 0,
-                    }"
-                    >{{ percent(statChange(row, col[0]!)) }}</small
-                  >
+                <td
+                  v-for="col in statColumns"
+                  :key="col[0]"
+                  :class="{
+                    'ma-amount': moneyStatKeys.has(col[0]!),
+                    'ma-stat-active': statSort === col[0],
+                  }"
+                >
+                  <b>{{ formattedStat(row, col[0]!) }}</b>
+                  <small :class="changeClass(statChange(row, col[0]!))">{{
+                    changeLabel(statChange(row, col[0]!))
+                  }}</small>
                 </td>
               </tr>
             </tbody>
@@ -732,10 +816,10 @@ watch(metric, () => {
         </div>
         <button
           v-if="rows.length > 5"
-          class="ma-text"
+          class="ma-secondary ma-platform-expand"
           @click="tableLimit = tableLimit === 5 ? rows.length : 5"
         >
-          {{ tableLimit === 5 ? '展开全部平台' : '收起平台' }}
+          {{ tableLimit === 5 ? `展开全部平台（${ranked.length}）` : '收起平台' }}
         </button>
         <p v-if="!rows.length" class="ma-empty">暂无可统计样本。</p>
       </section>
@@ -743,9 +827,9 @@ watch(metric, () => {
       <section class="ma-card">
         <h2>范围洞察</h2>
         <div class="ma-insights">
-          <div>
-            <small>前三平台存款占比</small
-            ><strong>{{
+          <div class="ma-insight ma-insight--value">
+            <small>前三平台存款占比</small>
+            <strong>{{
               stats.deposits
                 ? (
                     (leaders.slice(0, 3).reduce((s, r) => s + r.deposits, 0) / stats.deposits) *
@@ -754,44 +838,48 @@ watch(metric, () => {
                 : '—'
             }}</strong>
           </div>
-          <div>
-            <small>最活跃平台</small><strong>{{ bestBy('depositCount')?.name ?? '—' }}</strong
-            ><span>{{ count(bestBy('depositCount')?.depositCount ?? 0) }} 笔</span>
+          <div class="ma-insight">
+            <small>最活跃平台</small>
+            <strong>{{ bestBy('depositCount')?.name ?? '—' }}</strong>
+            <span>{{ count(bestBy('depositCount')?.depositCount ?? 0) }} 笔</span>
           </div>
-          <div>
-            <small>存款变化领先</small><strong>{{ mostGrowth[0]?.name ?? '—' }}</strong
-            ><span>{{
-              mostGrowth[0]
-                ? percent(change(mostGrowth[0].deposits, mostGrowth[0].before.deposits))
-                : '—'
+          <div class="ma-insight">
+            <small>存款变化领先</small>
+            <strong>{{ mostGrowth[0]?.name ?? '—' }}</strong>
+            <span :class="changeClass(depositChange(mostGrowth[0]))">{{
+              changeLabel(depositChange(mostGrowth[0]))
             }}</span>
           </div>
-          <div>
-            <small>存款变化末位</small><strong>{{ mostGrowth.at(-1)?.name ?? '—' }}</strong
-            ><span>{{
-              mostGrowth.at(-1)
-                ? percent(change(mostGrowth.at(-1)!.deposits, mostGrowth.at(-1)!.before.deposits))
-                : '—'
+          <div class="ma-insight">
+            <small>存款变化末位</small>
+            <strong>{{ mostGrowth.at(-1)?.name ?? '—' }}</strong>
+            <span :class="changeClass(depositChange(mostGrowth.at(-1)))">{{
+              changeLabel(depositChange(mostGrowth.at(-1)))
             }}</span>
           </div>
-          <div>
-            <small>热钱包总余额</small><strong>{{ money(totalBalance) }}</strong>
+          <div class="ma-insight ma-insight--value">
+            <small>热钱包总余额</small>
+            <strong>{{ money(totalBalance) }}</strong>
           </div>
-          <div>
-            <small>最大单笔存款</small><strong>{{ money(biggestDeposits[0]?.usd ?? null) }}</strong>
+          <div class="ma-insight ma-insight--value">
+            <small>最大单笔存款</small>
+            <strong>{{ money(biggestDeposits[0]?.usd ?? null) }}</strong>
           </div>
-          <div>
-            <small>最大单笔出款</small
-            ><strong>{{ money(biggestWithdrawals[0]?.usd ?? null) }}</strong>
+          <div class="ma-insight ma-insight--value">
+            <small>最大单笔出款</small>
+            <strong>{{ money(biggestWithdrawals[0]?.usd ?? null) }}</strong>
           </div>
-          <div>
-            <small>平均存款最高</small><strong>{{ bestBy('averageDeposit')?.name ?? '—' }}</strong
-            ><span>{{ money(bestBy('averageDeposit')?.averageDeposit ?? null) }}</span>
+          <div class="ma-insight">
+            <small>平均存款最高</small>
+            <strong>{{ bestBy('averageDeposit')?.name ?? '—' }}</strong>
+            <span class="ma-insight__figure">{{
+              money(bestBy('averageDeposit')?.averageDeposit ?? null)
+            }}</span>
           </div>
-          <div>
-            <small>新增存款钱包最多</small
-            ><strong>{{ bestBy('newDepositors')?.name ?? '—' }}</strong
-            ><span>{{ count(bestBy('newDepositors')?.newDepositors ?? 0) }} 个</span>
+          <div class="ma-insight ma-insight--wide">
+            <small>新增存款钱包最多</small>
+            <strong>{{ bestBy('newDepositors')?.name ?? '—' }}</strong>
+            <span>{{ count(bestBy('newDepositors')?.newDepositors ?? 0) }} 个</span>
           </div>
         </div>
         <p class="ma-note">占比基于当前所选范围，不代表全市场。</p>
@@ -799,27 +887,32 @@ watch(metric, () => {
       <section class="ma-card">
         <header class="ma-heading">
           <h2>资金异动</h2>
-          <span class="ma-note">{{ alerts.length }} 条</span>
+          <span>{{ alerts.length }} 条</span>
         </header>
-        <div v-for="row in alerts" :key="row.id" class="ma-record">
-          <PlatformAccountLink :platform="row.id" :name="row.name" label /><span
-            >净流量 {{ money(row.net)
-            }}<small
-              >余额变化 {{ percent(change(row.balance, row.balance - row.net)) }}</small
-            ></span
-          ><button
-            class="ma-text"
-            @click="
-              source(
-                `${row.name} · 资金异动`,
-                current.filter((t) => t.platform === row.id),
-                undefined,
-                row.id,
-              )
-            "
-          >
-            查看依据
-          </button>
+        <div v-if="alerts.length" class="ma-alerts">
+          <div v-for="row in alerts" :key="row.id" class="ma-alert">
+            <PlatformAccountLink :platform="row.id" :name="row.name" label />
+            <p class="ma-alert__flow" :class="row.net < 0 ? 'ma-down' : row.net > 0 ? 'ma-up' : ''">
+              <small>{{ row.net < 0 ? '净流出' : row.net > 0 ? '净流入' : '净流量' }}</small>
+              <strong>{{ alertMoney(row.net) }}</strong>
+            </p>
+            <span class="ma-alert__meta" :class="changeClass(balanceChange(row))">
+              余额变化 {{ changeLabel(balanceChange(row)) }}
+            </span>
+            <button
+              class="ma-text"
+              @click="
+                source(
+                  `${row.name} · 资金异动`,
+                  current.filter((t) => t.platform === row.id),
+                  undefined,
+                  row.id,
+                )
+              "
+            >
+              查看依据
+            </button>
+          </div>
         </div>
         <p v-if="!alerts.length" class="ma-empty">当前范围未发现净流出或余额变动达到10%的平台。</p>
         <p class="ma-note">资金变化不等同于平台安全评级。</p>
@@ -863,13 +956,13 @@ watch(metric, () => {
             <thead>
               <tr>
                 <th><button @click="sortFeed('platform')">平台 / 地址</button></th>
-                <th><button @click="sortFeed('chain')">公链 / 币种</button></th>
-                <th><button @click="sortFeed('time')">时间</button></th>
                 <th>
                   <button @click="sortFeed('usd')">
                     金额 {{ feedSort === 'usd' ? (feedDescending ? '↓' : '↑') : '' }}
                   </button>
                 </th>
+                <th><button @click="sortFeed('chain')">公链 / 币种</button></th>
+                <th><button @click="sortFeed('time')">时间</button></th>
                 <th>凭据</th>
               </tr>
             </thead>
@@ -894,11 +987,11 @@ watch(metric, () => {
                     {{ t.wallet }}
                   </button>
                 </th>
+                <td class="ma-amount">{{ money(t.usd) }}</td>
                 <td>
                   {{ t.chain }}<small>{{ t.token }}</small>
                 </td>
                 <td>{{ dateLabel(t.time, true) }}</td>
-                <td>{{ money(t.usd) }}</td>
                 <td>
                   <button class="ma-text" @click="source('交易凭据', [t], t.wallet, t.platform)">
                     查看
@@ -1206,7 +1299,10 @@ watch(metric, () => {
 
     <template v-if="tab === 'compare' && validScope">
       <section class="ma-card">
-        <h2>自选平台并排对比</h2>
+        <header class="ma-heading">
+          <h2>平台综合对比</h2>
+          <span>{{ compared.length }} / 4 家</span>
+        </header>
         <GlassSelect
           ref="compareControl"
           v-model="compareAdd"
@@ -1235,7 +1331,7 @@ watch(metric, () => {
         </div>
         <p v-if="!compared.length" class="ma-empty">请选择当前范围内的平台进行对比。</p>
         <div v-else class="ma-table-scroll">
-          <table>
+          <table class="ma-compare-table">
             <thead>
               <tr>
                 <th>指标</th>
@@ -1245,16 +1341,39 @@ watch(metric, () => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="[key, label] in compareMetrics" :key="key">
+              <tr v-for="[key, label] in shownCompareMetrics" :key="key">
                 <th>{{ label }}</th>
-                <td v-for="p in compared" :key="p.id">{{ formattedStat(p, key) }}</td>
+                <td
+                  v-for="p in compared"
+                  :key="p.id"
+                  :class="
+                    key === 'net'
+                      ? deltaClass(p.net)
+                      : ['deposits', 'balance', 'withdrawals'].includes(key)
+                        ? 'ma-amount'
+                        : undefined
+                  "
+                >
+                  <template v-if="key === 'deposits'">
+                    <strong>{{ money(p.deposits) }}</strong>
+                    <small :class="deltaClass(change(p.deposits, p.before.deposits))">{{
+                      percent(change(p.deposits, p.before.deposits))
+                    }}</small>
+                  </template>
+                  <template v-else-if="key === 'net'">{{ netLabel(p.net) }}</template>
+                  <template v-else-if="key === 'timing' && profileOf(p.id)?.smallMinutes != null"
+                    >小额 {{ profileOf(p.id)?.smallMinutes }}m<br />大额
+                    {{ profileOf(p.id)?.largeMinutes }}m</template
+                  >
+                  <template v-else>{{ formattedStat(p, key) }}</template>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
         <label class="ma-check"><input v-model="compareChain" type="checkbox" />展开分链余额</label>
         <div v-if="compareChain && compared.length" class="ma-table-scroll">
-          <table>
+          <table class="ma-compare-table">
             <thead>
               <tr>
                 <th>公链</th>
@@ -1332,28 +1451,78 @@ watch(metric, () => {
       </section>
     </template>
 
-    <BottomDrawer :open="scopeOpen" title="分析范围" @close="scopeOpen = false"
-      ><div class="ma-drawer-body">
-        <p class="ma-note">所选范围统一应用于图表、流水、钱包和平台对比。</p>
-        <ResearchMultiSelect
-          v-model="chains"
-          :options="chainOptions"
-          label="公链"
-          show-selection
-        /><ResearchMultiSelect
-          v-model="tokens"
-          :options="tokenOptions"
-          label="币种"
-          show-selection
-        /><ResearchMultiSelect
-          v-model="platformIds"
-          :options="eligible.map((p) => ({ id: p.id, label: p.name }))"
-          label="平台"
-          show-selection
-        />
+    <BottomDrawer :open="filtersOpen" title="筛选条件" @close="filtersOpen = false"
+      ><div class="ma-drawer-body ma-scope-drawer">
+        <div class="ma-scope-scroll">
+          <p class="ma-scope-lead">
+            <Info :size="16" />
+            <span>所选范围统一应用于图表、流水、钱包和平台对比。</span>
+          </p>
+          <div class="ma-segments" aria-label="平台类别">
+            <button :aria-pressed="category === 'crypto'" @click="category = 'crypto'">
+              加密平台
+            </button>
+            <button :aria-pressed="category === 'cases'" @click="category = 'cases'">
+              传统平台
+            </button>
+          </div>
+          <div class="ma-scope-meta">
+            <span>快照 <b>{{ dateLabel(asOf, true) }}</b></span>
+            <button class="ma-text" @click="showMethodology">
+              <Info :size="14" />口径与来源
+            </button>
+          </div>
+          <ResearchMultiSelect
+            v-model="chains"
+            :options="chainOptions"
+            label="公链"
+            show-selection
+          /><ResearchMultiSelect
+            v-model="tokens"
+            :options="tokenOptions"
+            label="币种"
+            show-selection
+          /><ResearchMultiSelect
+            v-model="platformIds"
+            :options="eligible.map((p) => ({ id: p.id, label: p.name }))"
+            label="平台"
+            show-selection
+          />
+          <label class="research-field"
+            >平台地区<GlassSelect
+              :model-value="region"
+              label="平台地区"
+              @update:model-value="emit('update:region', String($event))"
+              ><option value="">全部地区</option>
+              <option value="asia">亚洲平台</option>
+              <option value="europe">欧洲平台</option>
+              <option value="unknown">地区未标注</option></GlassSelect
+            ></label
+          >
+          <label class="research-field"
+            >纯净度<GlassSelect
+              :model-value="grade"
+              label="纯净度"
+              @update:model-value="emit('update:grade', String($event))"
+              ><option value="">全部等级</option>
+              <option v-for="item in ['S', 'A', 'B', 'C']" :key="item" :value="item">
+                {{ item }}级
+              </option></GlassSelect
+            ></label
+          >
+          <label class="research-checkbox"
+            ><input
+              :checked="completeOnly"
+              type="checkbox"
+              @change="emit('update:completeOnly', ($event.target as HTMLInputElement).checked)"
+            />仅看数据完整平台</label
+          >
+        </div>
         <div class="ma-drawer-actions">
           <button class="ma-secondary" @click="resetScope">恢复全部</button
-          ><button class="ma-primary" @click="scopeOpen = false">完成筛选</button>
+          ><button class="ma-primary" @click="filtersOpen = false">
+            查看 {{ resultCount }} 个平台
+          </button>
         </div>
       </div></BottomDrawer
     >

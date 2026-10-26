@@ -60,8 +60,8 @@ it('监测与体育页关闭按钮的圆形背景、边框和触控尺寸一致'
     host.className = 'sports-page pw-workspace'
     expect(values()).toEqual(monitor)
     expect(monitor).toEqual([
-      'rgb(231, 240, 249)',
-      'rgb(61, 93, 134)',
+      'rgb(255, 255, 255)',
+      'rgb(8, 100, 255)',
       '1px',
       '50%',
       '44px',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { ChevronLeft, ChevronRight } from '@lucide/vue'
 import type { Series } from './analytics-model'
 import { count, dateLabel, money } from './analytics-model'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
@@ -30,6 +31,7 @@ watch(
     selected.value = 0
     point.value = Math.max(0, props.times.length - 1)
   },
+  { immediate: true },
 )
 const colors = [
   '#0864ff',
@@ -82,6 +84,15 @@ const display = (value: number | null) =>
 const total = (values: (number | null)[]) =>
   values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
 const active = computed(() => values.value[selected.value])
+const painted = computed(() =>
+  values.value
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => Number(a.index === selected.value) - Number(b.index === selected.value)),
+)
+function tone(value: number | null) {
+  if (!props.percent || value === null || value === 0) return ''
+  return value > 0 ? 'ma-up' : 'ma-down'
+}
 const ticks = computed(() =>
   [...new Set([0, Math.floor(props.times.length / 2), props.times.length - 1])].filter(
     (i) => i >= 0,
@@ -120,6 +131,7 @@ function selectPoint(event: PointerEvent) {
         v-for="(row, i) in values"
         :key="row.key"
         :aria-pressed="selected === i"
+        :style="selected === i ? { borderColor: colors[i % colors.length] } : undefined"
         @click="selected = i"
       >
         <i :style="{ background: colors[i % colors.length] }" />{{ label(row.key) }}
@@ -148,9 +160,32 @@ function selectPoint(event: PointerEvent) {
     </div>
     <template v-else>
       <div v-if="active" class="ma-chart-readout" aria-live="polite">
-        <span
-          >{{ dateLabel(times[point] ?? 0, times.length === 24) }} · {{ label(active.key) }}</span
-        ><strong>{{ display(active.values[point] ?? null) }}</strong>
+        <button
+          type="button"
+          class="ma-chart-step"
+          aria-label="上一时间点"
+          :disabled="point === 0"
+          @click="move(-1)"
+        >
+          <ChevronLeft :size="16" />
+        </button>
+        <span class="ma-chart-readout__meta">
+          <i :style="{ background: colors[selected % colors.length] }" />
+          <b>{{ label(active.key) }}</b>
+          <small>{{ dateLabel(times[point] ?? 0, times.length === 24) }}</small>
+        </span>
+        <strong :class="tone(active.values[point] ?? null)">{{
+          display(active.values[point] ?? null)
+        }}</strong>
+        <button
+          type="button"
+          class="ma-chart-step"
+          aria-label="下一时间点"
+          :disabled="point >= times.length - 1"
+          @click="move(1)"
+        >
+          <ChevronRight :size="16" />
+        </button>
       </div>
       <svg
         v-if="series.length"
@@ -181,14 +216,19 @@ function selectPoint(event: PointerEvent) {
           </text>
         </g>
         <line x1="12" x2="278" :y1="y(0)" :y2="y(0)" stroke="#9eb6cf" />
-        <g v-for="(row, r) in values" :key="row.key" :opacity="selected === r ? 1 : 0.4">
+        <g
+          v-for="{ row, index: r } in painted"
+          :key="row.key"
+          :opacity="selected === r ? 1 : 0.2"
+        >
           <path
             v-if="kind === 'line'"
             :d="path(row.values)"
             fill="none"
             :stroke="colors[r % colors.length]"
-            :stroke-width="selected === r ? 2.8 : 1.8"
+            :stroke-width="selected === r ? 3 : 1.5"
             stroke-linejoin="round"
+            :stroke-linecap="selected === r ? 'round' : undefined"
           />
           <template v-for="(v, i) in row.values" :key="i">
             <rect

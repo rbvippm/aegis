@@ -2,11 +2,12 @@
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, SlidersHorizontal, ChevronRight, Info, ShieldCheck } from '@lucide/vue'
+import { Search, Share2, SlidersHorizontal, ChevronRight, Info, ShieldCheck } from '@lucide/vue'
 import ResearchAnalytics from '@/features/monitoring/ResearchAnalytics.vue'
 import type { AnalyticsScope } from '@/features/monitoring/ResearchAnalytics.vue'
 import ResearchPlatformCard from '@/features/monitoring/ResearchPlatformCard.vue'
 import { researchRegionLabel, type ResearchPlatform } from '@/features/monitoring/research'
+import { analyticsCatalog } from '@/mocks/monitoring-analytics'
 import { researchSnapshot } from '@/mocks/monitoring-research'
 import { monitoringPlatforms as researchPlatforms } from '@/mocks/monitoring-platforms'
 import { dataMode } from '@/shared/api/config'
@@ -45,46 +46,81 @@ watch(
     platformLimit.value = 3
   },
 )
-const visiblePlatforms = computed(() =>
-  researchPlatforms
-    .map((p) => {
-      const value = scope.value.values[p.id]
-      return value
-        ? {
-            ...p,
-            wallet: value.wallet,
-            flow: value.flow,
-            flowPercent: value.flowPercent,
-            windows: {
-              ...p.windows,
-              [window.value]: {
-                deposit: value.deposit,
-                amount: value.amount,
-                change: value.change ?? 0,
-              },
-            },
-          }
-        : p
-    })
-    .filter(
-      (platform) =>
-        platform.name.toLowerCase().includes(search.value.trim().toLowerCase()) &&
-        scope.value.ids.includes(platform.id) &&
-        (!region.value ||
-          (region.value === 'unknown'
-            ? platform.region === null
-            : platform.region === region.value)) &&
-        (!grade.value || platform.grade === grade.value) &&
-        (!completeOnly.value || platform.score !== null),
-    )
-    .sort((a, b) => {
-      if (a.score === null) return 1
-      if (b.score === null) return -1
-      if (sort.value === 'deposit')
-        return b.windows[window.value].amount - a.windows[window.value].amount
-      return b.score - a.score
-    }),
-)
+function matchesPlatform(platform: ResearchPlatform) {
+  return (
+    platform.name.toLowerCase().includes(search.value.trim().toLowerCase()) &&
+    scope.value.ids.includes(platform.id) &&
+    (!region.value ||
+      (region.value === 'unknown'
+        ? platform.region === null
+        : platform.region === region.value)) &&
+    (!grade.value || platform.grade === grade.value) &&
+    (!completeOnly.value || platform.score !== null)
+  )
+}
+function withScope(platform: ResearchPlatform): ResearchPlatform {
+  const value = scope.value.values[platform.id]
+  if (!value) return platform
+  return {
+    ...platform,
+    wallet: value.wallet,
+    flow: value.flow,
+    flowPercent: value.flowPercent,
+    windows: {
+      ...platform.windows,
+      [window.value]: {
+        deposit: value.deposit,
+        amount: value.amount,
+        change: value.change ?? 0,
+      },
+    },
+  }
+}
+const visiblePlatforms = computed(() => {
+  const known = researchPlatforms.map(withScope).filter(matchesPlatform)
+  const extras = scope.value.ids.flatMap((id) => {
+    if (researchPlatforms.some((item) => item.id === id)) return []
+    const meta = analyticsCatalog.find((item) => item.id === id)
+    const value = scope.value.values[id]
+    if (!meta || !value) return []
+    const blank = { deposit: '—', amount: 0, change: 0 }
+    const platform: ResearchPlatform = {
+      id,
+      name: meta.name,
+      region: meta.region,
+      score: null,
+      chains: [],
+      grade: null,
+      taint: null,
+      wallet: value.wallet,
+      flow: value.flow,
+      flowPercent: value.flowPercent,
+      samples: 0,
+      smallMinutes: null,
+      largeMinutes: null,
+      commission: null,
+      playerShare: null,
+      windows: {
+        '24h': { ...blank },
+        '7d': { ...blank },
+        '30d': { ...blank },
+        [window.value]: {
+          deposit: value.deposit,
+          amount: value.amount,
+          change: value.change ?? 0,
+        },
+      },
+    }
+    return matchesPlatform(platform) ? [platform] : []
+  })
+  return [...known, ...extras].sort((a, b) => {
+    if (sort.value === 'deposit' || (a.score === null && b.score === null))
+      return b.windows[window.value].amount - a.windows[window.value].amount
+    if (a.score === null) return 1
+    if (b.score === null) return -1
+    return b.score - a.score
+  })
+})
 const panel = ref<{ kind: string; platform?: ResearchPlatform } | null>(null)
 const uid = ref('')
 const report = ref('')
@@ -124,10 +160,6 @@ watch(
 
 <template>
   <div class="monitor-research">
-    <section class="research-intro">
-      <h1>实时追踪</h1>
-      <p>链上资金 · 出金风险 · 玩家实测</p>
-    </section>
     <template v-if="dataMode === 'demo'">
       <div class="research-search-row">
         <label class="research-search ae-glass"
@@ -137,8 +169,13 @@ watch(
             placeholder="搜索平台名称"
             aria-label="搜索平台名称"
         /></label>
-        <button class="research-filter ae-glass" aria-label="筛选平台" @click="open('筛选条件')">
-          <SlidersHorizontal :size="21" /><i v-if="grade || region || completeOnly"></i>
+        <button class="research-filter ae-glass" aria-label="分享监测分析" @click="analytics?.openShare()">
+          <Share2 :size="20" />
+        </button>
+        <button class="research-filter ae-glass" aria-label="筛选平台" @click="analytics?.openFilters()">
+          <SlidersHorizontal :size="21" /><i
+            v-if="grade || region || completeOnly || analytics?.scopeCustomized"
+          ></i>
         </button>
       </div>
       <ResearchAnalytics
@@ -147,8 +184,12 @@ watch(
         :region="region"
         :grade="grade"
         :complete-only="completeOnly"
+        :result-count="visiblePlatforms.length"
         @scope="scope = $event"
         @reset="resetFilters"
+        @update:region="region = $event"
+        @update:grade="grade = $event"
+        @update:complete-only="completeOnly = $event"
       >
         <template #platforms>
           <div class="research-list-heading">
@@ -179,7 +220,8 @@ watch(
               :period-label="scope.period"
               :snapshot="scope.snapshot"
               :growth="scope.values[platform.id]?.change"
-              :rank="platform.score === null ? undefined : index + 1"
+              :share="scope.values[platform.id]?.share ?? null"
+              :rank="platform.score === null && !platform.wallet ? undefined : index + 1"
               @open="open"
             />
             <div v-if="!visiblePlatforms.length" class="research-empty">
@@ -226,37 +268,7 @@ watch(
     >
       <template v-if="panel">
         <div class="research-sheet__body">
-          <template v-if="panel.kind === '筛选条件'">
-            <p class="research-sheet-note">
-              公链、币种和平台多选位于监测页的分析范围中，所选条件会应用于统计金额。
-            </p>
-            <label class="research-field"
-              >平台地区<GlassSelect v-model="region"
-                ><option value="">全部地区</option>
-                <option value="asia">亚洲平台</option>
-                <option value="europe">欧洲平台</option>
-                <option value="unknown">地区未标注</option></GlassSelect
-              ></label
-            >
-            <label class="research-field"
-              >纯净度<GlassSelect v-model="grade">
-                <option value="">全部等级</option>
-                <option v-for="item in ['S', 'A', 'B', 'C']" :key="item" :value="item">
-                  {{ item }}级
-                </option>
-              </GlassSelect></label
-            >
-            <label class="research-checkbox"
-              ><input v-model="completeOnly" type="checkbox" />仅看数据完整平台</label
-            >
-            <div class="research-sheet-actions">
-              <button @click="resetFilters">重置</button
-              ><button class="research-primary" @click="close">
-                查看 {{ visiblePlatforms.length }} 个平台
-              </button>
-            </div>
-          </template>
-          <template v-else-if="panel.kind === '绑定 UID'">
+          <template v-if="panel.kind === '绑定 UID'">
             <p>额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算以平台规则为准。</p>
             <form @submit.prevent="submitDemo">
               <label class="research-field"

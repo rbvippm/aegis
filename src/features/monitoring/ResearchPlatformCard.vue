@@ -2,6 +2,7 @@
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { ChevronRight, ShieldCheck, TriangleAlert, Coins } from '@lucide/vue'
 import { computed } from 'vue'
+import { percent } from './analytics-model'
 import { researchRegionLabel, type ResearchPlatform, type ResearchWindow } from './research'
 import { researchSnapshot } from '@/mocks/monitoring-research'
 const props = defineProps<{
@@ -11,6 +12,7 @@ const props = defineProps<{
   periodLabel?: string
   snapshot?: string
   growth?: number | null
+  share?: number | null
 }>()
 const emit = defineEmits<{ open: [kind: string, platform: ResearchPlatform] }>()
 const flowLabel = computed(() => props.periodLabel ?? '24h')
@@ -21,6 +23,24 @@ const warning = computed(
 const rebate = computed(
   () => ((props.platform.commission ?? 0) * (props.platform.playerShare ?? 0)) / 100,
 )
+const deltaText = computed(() => percent(props.growth ?? null))
+const deltaClass = computed(() =>
+  props.growth === null || props.growth === undefined
+    ? ''
+    : props.growth >= 0
+      ? 'research-positive'
+      : 'research-negative',
+)
+const flowAmount = computed(() => (props.platform.flow ?? '—').replace(/^[-−]/, ''))
+const shareText = computed(() =>
+  props.share === null || props.share === undefined ? '—' : `${props.share.toFixed(1)}%`,
+)
+const mark = computed(() =>
+  props.platform.id.length <= 2
+    ? props.platform.id
+    : (props.platform.name.match(/[\u4e00-\u9fff]$/)?.[0] ?? props.platform.name.slice(0, 1)),
+)
+const comparable = computed(() => props.platform.score === null && props.platform.wallet !== null)
 </script>
 
 <template>
@@ -32,9 +52,7 @@ const rebate = computed(
   >
     <div class="research-platform__header" @click="emit('open', '详情', platform)">
       <span v-if="rank" class="research-rank">{{ rank }}</span
-      ><span class="research-avatar" :class="`research-avatar--${platform.id}`">{{
-        platform.id
-      }}</span>
+      ><span class="research-avatar" :class="`research-avatar--${platform.id}`">{{ mark }}</span>
       <span class="research-platform__identity"
         ><h3 class="research-account-name">
           <button type="button" :aria-label="`${platform.name}详情`">{{ platform.name }}</button
@@ -48,7 +66,8 @@ const rebate = computed(
         ><ShieldCheck :size="19" fill="#0874ff" color="white" /><strong>{{ platform.score }}</strong
         ><small>/10</small></span
       >
-      <span v-else class="research-partial">样本不足 · 暂不评分</span><ChevronRight :size="16" />
+      <span v-else-if="!comparable" class="research-partial">样本不足 · 暂不评分</span
+      ><ChevronRight :size="16" />
     </div>
     <template v-if="platform.score !== null">
       <button v-if="warning" class="research-warning" @click="emit('open', '异动详情', platform)">
@@ -59,21 +78,17 @@ const rebate = computed(
       <div class="research-metrics">
         <div class="research-metric">
           <span>{{ periodLabel ?? window }} 真实存款</span>
-          <div class="research-value">
-            <strong>{{ deposit.deposit }}</strong
-            ><span :class="deposit.change >= 0 ? 'research-positive' : 'research-negative'"
-              >{{ growth === null ? '无可比基期' : deposit.change >= 0 ? '↑' : '↓' }}
-              <template v-if="growth !== null">{{ Math.abs(deposit.change) }}%</template></span
-            >
-          </div>
-          <small>较前一个等长窗口</small>
+          <strong>{{ deposit.deposit }}</strong>
+          <small :class="deltaClass">{{ deltaText }}</small>
+          <small v-if="growth !== null">较前一个等长窗口</small>
         </div>
         <div class="research-metric">
           <span>热钱包余额</span><strong>{{ platform.wallet }}</strong>
-          <small
-            >{{ flowLabel }} {{ platform.flowPercent! >= 0 ? '净流入' : '净流出' }}
-            <b :class="platform.flowPercent! >= 0 ? 'research-positive' : 'research-negative'">{{
-              platform.flow
+          <small v-if="platform.flowPercent === null">净流量 —</small>
+          <small v-else
+            >{{ flowLabel }} {{ platform.flowPercent >= 0 ? '净流入' : '净流出' }}
+            <b :class="platform.flowPercent >= 0 ? 'research-positive' : 'research-negative'">{{
+              flowAmount
             }}</b></small
           >
         </div>
@@ -127,6 +142,27 @@ const rebate = computed(
         ><span>数据来源 <ChevronRight :size="12" /></span>
       </button>
     </template>
+    <div v-else-if="comparable" class="research-metrics">
+      <div class="research-metric">
+        <span>{{ periodLabel ?? window }} 真实存款</span>
+        <strong>{{ deposit.deposit }}</strong>
+        <small :class="deltaClass">{{ deltaText }}</small>
+        <small v-if="growth !== null">较前一个等长窗口</small>
+      </div>
+      <div class="research-metric">
+        <span>热钱包余额</span><strong>{{ platform.wallet }}</strong>
+        <small v-if="platform.flowPercent === null">净流量 —</small>
+        <small v-else
+          >{{ flowLabel }} {{ platform.flowPercent >= 0 ? '净流入' : '净流出' }}
+          <b :class="platform.flowPercent >= 0 ? 'research-positive' : 'research-negative'">{{
+            flowAmount
+          }}</b></small
+        >
+      </div>
+      <div class="research-metric research-metric--wide">
+        <span>范围内占比</span><strong>{{ shareText }}</strong>
+      </div>
+    </div>
   </article>
 </template>
 
@@ -284,7 +320,11 @@ h3 {
   color: #087f6b;
 }
 .research-negative {
-  color: #b42318;
+  color: #c4273d;
+}
+.research-metric.research-metric--wide {
+  grid-column: 1 / -1;
+  border-right: 0;
 }
 .research-grade {
   display: flex;

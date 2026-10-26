@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useId, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   Check,
+  Copy,
   Globe,
   Link2,
   ShieldCheck,
@@ -20,13 +21,39 @@ const consent = ref(false)
 const inputId = useId()
 const stepHeading = ref<HTMLHeadingElement>()
 const steps = ['选择账户', '账户标识', '授权确认']
+const inviteCode = 'aegis1688'
+const copied = ref(false)
+let copyTimer = 0
 const accountName = computed(() => username.value.trim())
 const canContinue = computed(() => accountName.value.length > 0)
 watch(accountPlatform, () => {
   step.value = 0
   username.value = ''
   consent.value = false
+  copied.value = false
+  window.clearTimeout(copyTimer)
 })
+onBeforeUnmount(() => window.clearTimeout(copyTimer))
+async function copyInvite() {
+  try {
+    await navigator.clipboard.writeText(inviteCode)
+  } catch {
+    const field = document.createElement('textarea')
+    field.value = inviteCode
+    field.setAttribute('readonly', '')
+    field.style.position = 'fixed'
+    field.style.left = '-999px'
+    document.body.append(field)
+    field.select()
+    document.execCommand('copy')
+    field.remove()
+  }
+  copied.value = true
+  window.clearTimeout(copyTimer)
+  copyTimer = window.setTimeout(() => {
+    copied.value = false
+  }, 1600)
+}
 watch(
   () => route.fullPath,
   () => {
@@ -92,6 +119,21 @@ async function next() {
             >
           </div>
         </div>
+        <div class="account-association__invite">
+          <span>邀请码</span>
+          <button
+            type="button"
+            :aria-label="copied ? '已复制邀请码' : '复制邀请码'"
+            @click="copyInvite"
+          >
+            <strong>{{ inviteCode }}</strong
+            ><Check v-if="copied" :size="16" aria-hidden="true" /><Copy
+              v-else
+              :size="16"
+              aria-hidden="true"
+            />
+          </button>
+        </div>
         <div class="account-association__actions">
           <button type="button" class="account-association__primary" @click="next">
             我已有账户，继续关联<ArrowRight :size="17" aria-hidden="true" />
@@ -101,7 +143,7 @@ async function next() {
             href="https://www.google.com"
             target="_blank"
             rel="noopener noreferrer"
-            >查看账户页面<ArrowUpRight :size="16" aria-hidden="true"
+            >去创建账户<ArrowUpRight :size="16" aria-hidden="true"
           /></a>
         </div>
       </section>
@@ -340,6 +382,42 @@ async function next() {
 .account-association__overview strong {
   font-size: 14px;
   font-weight: 500;
+}
+.account-association__invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 6px 6px 6px 14px;
+  border: 1px solid var(--ae-line-strong);
+  border-radius: 16px;
+  background: #f7fbff;
+}
+.account-association__invite > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ae-muted);
+}
+.account-association__invite button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: #14213d;
+  cursor: pointer;
+}
+.account-association__invite strong {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.account-association__invite svg {
+  color: var(--ae-highlight);
 }
 .account-association__actions {
   display: grid;

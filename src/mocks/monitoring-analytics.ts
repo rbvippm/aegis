@@ -17,9 +17,9 @@ export const analyticsCatalog: AnalyticsPlatform[] = [
     region: p.region,
     complete: p.score !== null,
   })),
-  { id: 'case-1', name: '饰品平台 甲', category: 'cases', region: 'europe', complete: true },
-  { id: 'case-2', name: '饰品平台 乙', category: 'cases', region: 'asia', complete: true },
-  { id: 'case-3', name: '饰品平台 丙', category: 'cases', region: null, complete: true },
+  { id: 'case-1', name: '传统平台 甲', category: 'cases', region: 'europe', complete: true },
+  { id: 'case-2', name: '传统平台 乙', category: 'cases', region: 'asia', complete: true },
+  { id: 'case-3', name: '传统平台 丙', category: 'cases', region: null, complete: true },
 ]
 const chainTokens: Record<string, string[]> = {
   ETH: ['ETH', 'USDT', 'USDC'],
