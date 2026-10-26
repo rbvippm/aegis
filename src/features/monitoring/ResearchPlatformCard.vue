@@ -59,7 +59,7 @@ const comparable = computed(() => props.platform.score === null && props.platfor
       ></span>
       <PlatformFollowButton compact :id="platform.id" :name="platform.name" />
       <span v-if="platform.score !== null" class="research-score"
-        ><ShieldCheck :size="19" fill="#0874ff" color="white" /><strong>{{ platform.score }}</strong
+        ><ShieldCheck :size="16" fill="#0864ff" color="white" /><strong>{{ platform.score }}</strong
         ><small>/10</small></span
       >
       <span v-else-if="!comparable" class="research-partial">样本不足 · 暂不评分</span
@@ -78,23 +78,23 @@ const comparable = computed(() => props.platform.score === null && props.platfor
         >
       </p>
       <div class="research-metrics">
-        <div class="research-metric">
+        <div class="research-metric research-metric--hero">
           <span>{{ periodLabel ?? window }} 存款额</span>
           <strong>{{ deposit.deposit }}</strong>
           <small :class="deltaClass">{{ deltaText }}</small>
           <small v-if="growth !== null">较前一个等长窗口</small>
         </div>
-        <div class="research-metric">
+        <div class="research-metric research-metric--hero">
           <span>热钱包余额</span><strong>{{ platform.wallet }}</strong>
           <small v-if="platform.flowPercent === null">净流量 —</small>
-          <small v-else
+          <small v-else class="research-flow"
             >{{ flowLabel }} {{ platform.flowPercent >= 0 ? '净流入' : '净流出' }}
             <b :class="platform.flowPercent >= 0 ? 'research-positive' : 'research-negative'">{{
               flowAmount
             }}</b></small
           >
         </div>
-        <div class="research-metric">
+        <div class="research-metric research-metric--quiet">
           <span>出金纯净度</span
           ><span
             class="research-grade"
@@ -103,8 +103,8 @@ const comparable = computed(() => props.platform.score === null && props.platfor
           >
           <small>近7天 · ≤3跳关联</small>
         </div>
-        <div class="research-metric research-time">
-          <span>实测出款耗时</span>
+        <div class="research-metric research-time research-metric--quiet">
+          <span>实测出款耗时中位数</span>
           <div class="research-timing-values">
             <span
               ><small>小额</small><b>{{ platform.smallMinutes }}m</b></span
@@ -117,23 +117,23 @@ const comparable = computed(() => props.platform.score === null && props.platfor
       </div>
     </template>
     <div v-else-if="comparable" class="research-metrics">
-      <div class="research-metric">
+      <div class="research-metric research-metric--hero">
         <span>{{ periodLabel ?? window }} 存款额</span>
         <strong>{{ deposit.deposit }}</strong>
         <small :class="deltaClass">{{ deltaText }}</small>
         <small v-if="growth !== null">较前一个等长窗口</small>
       </div>
-      <div class="research-metric">
+      <div class="research-metric research-metric--hero">
         <span>热钱包余额</span><strong>{{ platform.wallet }}</strong>
         <small v-if="platform.flowPercent === null">净流量 —</small>
-        <small v-else
+        <small v-else class="research-flow"
           >{{ flowLabel }} {{ platform.flowPercent >= 0 ? '净流入' : '净流出' }}
           <b :class="platform.flowPercent >= 0 ? 'research-positive' : 'research-negative'">{{
             flowAmount
           }}</b></small
         >
       </div>
-      <div class="research-metric research-metric--wide">
+      <div class="research-metric research-metric--wide research-metric--quiet">
         <span>范围内占比</span><strong>{{ shareText }}</strong>
       </div>
     </div>
@@ -155,12 +155,13 @@ const comparable = computed(() => props.platform.score === null && props.platfor
 <style scoped>
 .research-platform {
   min-width: 0;
-  padding: 0 14px;
-  border: 1px solid var(--ae-line-strong);
+  padding: 4px 12px 6px;
+  border: 1px solid #d7e6f8;
   border-radius: 20px;
-  background: var(--ae-surface);
+  background: #fff;
   box-shadow:
-    0 4px 16px #729ed80d,
+    0 1px 2px #6d9ed414,
+    0 8px 20px #6d9ed414,
     inset 0 1px #fff;
   scroll-margin-top: 12px;
   font-variant-numeric: tabular-nums;
@@ -174,15 +175,16 @@ button {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 66px;
-  gap: 6px;
-  padding: 8px 0;
+  min-height: 64px;
+  gap: 5px;
+  padding: 6px 0 8px;
   text-align: left;
 }
 .research-rank {
   flex: 0 0 16px;
-  color: var(--ae-muted);
+  color: #526581;
   font-size: 12px;
+  font-weight: 500;
   text-align: center;
 }
 .research-avatar {
@@ -214,6 +216,7 @@ button {
   align-items: center;
   min-width: 0;
   margin: 0;
+  color: #14213d;
   font-size: 15px;
   font-weight: 650;
   line-height: 1.35;
@@ -229,27 +232,51 @@ button {
   padding: 0;
   overflow: hidden;
   overflow-wrap: anywhere;
-  color: var(--ae-text);
+  color: #14213d;
   text-align: left;
 }
 .research-account-name :deep(.platform-account-link) {
   flex: 0 0 44px;
+}
+.research-platform :deep(.platform-follow.platform-follow--compact) {
+  border-color: #c5dbf8;
+  background: #fff;
+  box-shadow:
+    0 1px 2px #6d9ed414,
+    inset 0 1px #fff;
+  color: #0864ff;
+}
+.research-platform :deep(.platform-follow.platform-follow--compact.active) {
+  border-color: #8eb7f5;
+  background: #d9ebff;
+  box-shadow: inset 0 1px #fff;
+}
+.research-platform :deep(.platform-follow:focus-visible) {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
 }
 .research-score {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   gap: 3px;
-  color: var(--ae-text);
+  color: #0864ff;
   white-space: nowrap;
 }
 .research-score strong {
-  font-size: 18px;
+  color: #0864ff;
+  font-size: 20px;
   font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 1;
 }
 .research-score small {
-  font-size: 11px;
-  color: var(--ae-muted);
+  align-self: flex-end;
+  margin-bottom: 1px;
+  color: #526581;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
 }
 .research-score > svg {
   width: 16px;
@@ -261,24 +288,24 @@ button {
   flex: 0 0 44px;
   width: 44px;
   min-height: 44px;
-  margin-right: -6px;
+  margin-right: -8px;
   border-radius: 12px;
-  color: var(--ae-label);
+  color: #0864ff;
 }
 .research-detail-arrow:active {
-  background: var(--ae-bg);
+  background: #eaf3ff;
 }
 .research-warning {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #fff6e4;
   color: var(--ae-warning);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
 }
 .research-warning > svg {
   flex-shrink: 0;
@@ -286,112 +313,154 @@ button {
 .research-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--ae-line-strong);
+  gap: 6px;
+  margin: 0 0 2px;
+  padding: 6px;
+  border-radius: 16px;
+  background: #eaf3ff;
 }
 .research-metric {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-  padding: 12px 10px;
+  padding: 10px 8px;
+  border: 1px solid transparent;
+  border-radius: 14px;
 }
-.research-metric:nth-child(odd) {
-  padding-left: 0;
-  border-right: 1px solid var(--ae-line-strong);
+.research-metric--hero {
+  border-color: #fff;
+  background: #fff;
+  box-shadow:
+    0 1px 2px #6d9ed414,
+    inset 0 1px #fff;
 }
-.research-metric:nth-child(even) {
-  padding-right: 0;
-}
-.research-metric:nth-child(n + 3) {
-  border-top: 1px solid var(--ae-line-strong);
+.research-metric--quiet {
+  gap: 6px;
+  border-color: #c5dbf8;
+  background: #f7fbff;
+  box-shadow: inset 0 1px #fff;
 }
 .research-metric > span:first-child {
-  color: var(--ae-label);
+  color: #3d5d86;
   font-size: 12px;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.35;
 }
 .research-metric > strong {
-  color: var(--ae-text);
-  font-size: 24px;
+  max-width: 100%;
+  overflow: hidden;
+  color: #14213d;
+  font-size: 18px;
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+.research-metric--hero > strong {
+  margin-top: 1px;
+  font-size: 26px;
+  letter-spacing: -0.6px;
 }
 .research-metric > small {
-  color: var(--ae-muted);
-  font-size: 11px;
-  line-height: 1.5;
-}
-.research-metric > small b {
-  font-weight: 600;
-  white-space: nowrap;
+  max-width: 100%;
+  color: #526581;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 .research-metric > small.research-positive,
-.research-positive {
-  color: var(--ae-up);
+.research-metric > small.research-negative {
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.3;
 }
-.research-metric > small.research-negative,
+.research-metric > small.research-positive {
+  color: #087f6b;
+}
+.research-metric > small.research-negative {
+  color: #c4273d;
+}
+.research-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1px 4px;
+}
+.research-flow b {
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.research-positive {
+  color: #087f6b;
+}
 .research-negative {
-  color: var(--ae-down);
+  color: #c4273d;
 }
 .research-grade {
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
+  max-width: 100%;
   gap: 4px;
-  min-height: 28px;
+  min-height: 26px;
   padding: 3px 8px;
   border: 1px solid #c1ecdf;
-  border-radius: 9px;
-  color: var(--ae-up);
+  border-radius: 10px;
   background: #e7f6f1;
-  font-size: 12px;
-  font-weight: 600;
+  color: #087f6b;
+  font-size: 13px;
+  font-weight: 650;
   white-space: nowrap;
 }
 .research-grade--warning {
-  color: var(--ae-warning);
-  background: #fff6e4;
   border-color: #f4dfb5;
+  background: #fff6e4;
+  color: var(--ae-warning);
 }
 .research-timing-values {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: center;
   gap: 4px;
-  min-height: 28px;
+  width: 100%;
+  min-height: 26px;
 }
 .research-timing-values > span {
   display: inline-flex;
   align-items: baseline;
+  min-width: 0;
   gap: 4px;
   white-space: nowrap;
 }
 .research-timing-values small {
-  color: var(--ae-muted);
-  font-size: 11px;
+  color: #526581;
+  font-size: 12px;
+  font-weight: 500;
 }
 .research-timing-values b {
-  color: var(--ae-text);
-  font-size: 12px;
-  font-weight: 600;
+  color: #14213d;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
 }
 .research-card-summary {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 48px;
-  border-top: 1px solid var(--ae-line-strong);
+  min-height: 44px;
 }
 .research-card-snapshot {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   min-width: 0;
-  color: var(--ae-muted);
+  color: #526581;
   font-size: 11px;
+  font-weight: 500;
   white-space: nowrap;
 }
 .research-card-snapshot > svg {
@@ -401,39 +470,42 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  min-width: 72px;
+  flex-shrink: 0;
+  gap: 2px;
+  min-width: 44px;
   min-height: 44px;
-  padding: 0;
-  color: var(--ae-highlight);
-  font-size: 12px;
-  font-weight: 500;
+  margin-right: -6px;
+  padding: 0 6px;
+  color: #0864ff;
+  font-size: 13px;
+  font-weight: 650;
   white-space: nowrap;
 }
 .research-partial {
   flex-shrink: 0;
-  max-width: 106px;
+  max-width: 108px;
   padding: 4px 7px;
+  border: 1px solid #d7e6f8;
   border-radius: 8px;
-  color: var(--ae-muted);
-  background: var(--ae-bg);
-  font-size: 11px;
-  line-height: 1.5;
+  background: #f5f8ff;
+  color: #526581;
+  font-size: 12px;
+  line-height: 1.35;
 }
-.research-metric.research-metric--wide {
+.research-metric--wide {
   grid-column: 1 / -1;
   flex-direction: row;
   align-items: baseline;
   justify-content: space-between;
-  padding-inline: 0;
-  border-right: 0;
+  gap: 8px;
 }
 .research-metric--wide > strong {
-  font-size: 17px;
+  font-size: 18px;
+  letter-spacing: -0.3px;
 }
 @media (max-width: 374px) {
   .research-platform {
-    padding-inline: 12px;
+    padding-inline: 10px;
   }
   .research-platform__header {
     gap: 4px;
@@ -442,19 +514,24 @@ button {
     font-size: 14px;
   }
   .research-score strong {
-    font-size: 17px;
+    font-size: 18px;
   }
-  .research-score small {
-    font-size: 10px;
+  .research-metrics {
+    gap: 5px;
+    padding: 5px;
   }
-  .research-metric {
-    padding-inline: 8px;
+  .research-metric--hero {
+    padding: 8px 7px;
   }
-  .research-metric > strong {
-    font-size: 22px;
+  .research-metric--hero > strong {
+    font-size: 24px;
+    letter-spacing: -0.5px;
+  }
+  .research-metric--quiet {
+    padding: 8px 7px;
   }
   .research-partial {
-    max-width: 94px;
+    max-width: 96px;
   }
 }
 </style>

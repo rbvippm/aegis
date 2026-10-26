@@ -704,7 +704,7 @@ const compareGroups = computed(() =>
       metrics: [
         ['score', '盾牌分'],
         ['grade', '出金纯净度'],
-        ['timing', '实测出款耗时'],
+        ['timing', '实测出款耗时中位数'],
       ],
     },
     {
@@ -854,6 +854,17 @@ function formattedStat(row: (typeof rows.value)[number], key: string) {
                 >已选 <b>{{ compared.length }}</b> / 4</span
               >
             </header>
+            <div class="ma-compare-scope">
+              <ResearchMultiSelect
+                v-model="chains"
+                :options="chainOptions"
+                label="公链"
+              /><ResearchMultiSelect
+                v-model="tokens"
+                :options="tokenOptions"
+                label="币种"
+              />
+            </div>
             <div class="ma-compare-selection">
               <GlassSelect
                 ref="compareControl"
@@ -877,7 +888,7 @@ function formattedStat(row: (typeof rows.value)[number], key: string) {
               </GlassSelect>
               <div v-if="compared.length" class="ma-compare-picks">
                 <div v-for="p in compared" :key="p.id" class="ma-compare-pick">
-                  <span class="ma-compare-avatar" aria-hidden="true">{{
+                  <span class="ma-compare-avatar" :data-id="p.id" aria-hidden="true">{{
                     p.id.length <= 2 ? p.id : p.name.slice(-1)
                   }}</span>
                   <span class="ma-compare-name" :title="p.name">{{ p.name }}</span>
@@ -1275,16 +1286,16 @@ function formattedStat(row: (typeof rows.value)[number], key: string) {
                 </div>
                 <p v-if="!feed.length" class="ma-empty">当前条件下暂无流水。</p>
                 <div v-if="feed.length > 10" class="ma-pagination">
-                  <button :disabled="feedPage === 0" aria-label="上一页流水" @click="feedPage--">
-                    <ChevronLeft :size="16" />上一页</button
-                  ><span aria-live="polite"
-                    >{{ feedPage + 1 }} / {{ feedPages }} 页 · {{ feed.length }} 笔</span
+                  <button :disabled="feedPage === 0" aria-label="上一页" @click="feedPage--">
+                    <ChevronLeft :size="16" :stroke-width="2.5" /></button
+                  ><span class="ma-pagination-count" aria-live="polite"
+                    ><b>{{ feedPage + 1 }}</b> / {{ feedPages }} 页 · {{ feed.length }} 笔</span
                   ><button
                     :disabled="feedPage + 1 >= feedPages"
-                    aria-label="下一页流水"
+                    aria-label="下一页"
                     @click="feedPage++"
                   >
-                    下一页<ChevronRight :size="16" />
+                    <ChevronRight :size="16" :stroke-width="2.5" />
                   </button>
                 </div>
               </section>
@@ -1637,16 +1648,17 @@ function formattedStat(row: (typeof rows.value)[number], key: string) {
           v-if="!detail.title.endsWith('地址清单') && (detail.rows?.length ?? 0) > 20"
           class="ma-pagination"
         >
-          <button :disabled="evidencePage === 0" aria-label="上一页依据" @click="evidencePage--">
-            <ChevronLeft :size="16" />上一页</button
-          ><span aria-live="polite"
-            >{{ evidencePage + 1 }} / {{ Math.ceil((detail.rows?.length ?? 0) / 20) }} 页</span
+          <button :disabled="evidencePage === 0" aria-label="上一页" @click="evidencePage--">
+            <ChevronLeft :size="16" :stroke-width="2.5" /></button
+          ><span class="ma-pagination-count" aria-live="polite"
+            ><b>{{ evidencePage + 1 }}</b> / {{ Math.ceil((detail.rows?.length ?? 0) / 20) }}
+            页</span
           ><button
             :disabled="(evidencePage + 1) * 20 >= (detail.rows?.length ?? 0)"
-            aria-label="下一页依据"
+            aria-label="下一页"
             @click="evidencePage++"
           >
-            下一页<ChevronRight :size="16" />
+            <ChevronRight :size="16" :stroke-width="2.5" />
           </button>
         </div>
         <details class="ma-method-details" :open="detail.title.includes('口径')">

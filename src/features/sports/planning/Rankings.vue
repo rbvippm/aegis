@@ -68,8 +68,8 @@ function barWidth(value: number) {
       <div class="pw-rank-main">
         <header>
           <h3>
-            {{ row.operator.name
-            }}<PlatformAccountLink :platform="row.operator.id" :name="row.operator.name" />
+            <span class="pw-rank-name">{{ row.operator.name }}</span
+            ><PlatformAccountLink :platform="row.operator.id" :name="row.operator.name" />
           </h3>
           <b>{{ number(row.value) }}%</b>
         </header>

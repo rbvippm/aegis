@@ -266,16 +266,21 @@ const event = ref<PlatformActivity | null>(null)
     />
     <template v-else>
       <header class="hf-context">
-        <span
-          >全部平台<b>{{ platforms.length }} 家平台</b><small>近7天</small></span
-        >
-        <button aria-label="出金监测统计口径" @click="details = true"><Info :size="17" /></button>
+        <p>
+          <span>全部平台</span>
+          <b>{{ platforms.length }}<small>家平台</small></b>
+          <span class="hf-window">近7天</span>
+        </p>
+        <button aria-label="出金监测统计口径" @click="details = true">
+          <span><Info :size="16" /></span>
+        </button>
       </header>
       <div class="hf-summary" aria-label="出金监测汇总">
         <button
           v-for="metric in metrics.flatMap((group) => group.stats)"
           :key="metric.label"
           class="hf-summary-item"
+          :class="`hf-summary-item--${metric.key}`"
           type="button"
           :aria-label="`查看${metric.label}明细，${metric.value}${metric.unit}`"
           aria-haspopup="dialog"
@@ -285,9 +290,9 @@ const event = ref<PlatformActivity | null>(null)
             metric.label.replace('中位数 ≤ ', ' ≤').replace('S级出金纯净度', 'S级纯净度')
           }}</span>
           <strong
-            >{{ metric.value }}<small>{{ metric.unit }}</small
-            ><ChevronRight :size="12"
-          /></strong>
+            >{{ metric.value }}<small>{{ metric.unit }}</small></strong
+          >
+          <ChevronRight :size="14" />
         </button>
       </div>
       <div class="hf-dynamic-heading">
@@ -297,7 +302,7 @@ const event = ref<PlatformActivity | null>(null)
             <button aria-label="上一条平台动态" :disabled="broadcast.length < 2" @click="move(-1)">
               <ChevronLeft :size="16" :stroke-width="2.5" />
             </button>
-            <span
+            <span class="hf-pager-count"
               ><b>{{ broadcast.length ? index + 1 : 0 }}</b> / {{ broadcast.length }}</span
             >
             <button aria-label="下一条平台动态" :disabled="broadcast.length < 2" @click="move(1)">
@@ -327,19 +332,23 @@ const event = ref<PlatformActivity | null>(null)
           <div class="hf-feed">
             <button
               class="hf-event"
+              :class="`hf-event--${item.kind}`"
               :aria-label="`${p.name} · ${item.title} · ${item.usd === null ? '资金预警' : money(item.usd)}`"
               @click="event = item"
             >
-              <component :is="item.kind === 'whale' ? ArrowUpRight : ShieldCheck" :size="16" />
-              <small class="hf-event-kind">{{
-                item.kind === 'transfer' ? '钱包转移' : item.title
-              }}</small>
-              <span class="hf-avatar">{{ p.id.length <= 2 ? p.id : p.name.slice(-1) }}</span
-              ><span class="hf-platform-name" :title="p.name">{{ p.name }}</span>
-              <strong>{{
+              <span class="hf-event-mark" aria-hidden="true">
+                <component :is="item.kind === 'whale' ? ArrowUpRight : ShieldCheck" :size="16" />
+              </span>
+              <span class="hf-event-copy">
+                <small class="hf-event-kind">{{
+                  item.kind === 'transfer' ? '钱包转移' : item.title
+                }}</small>
+                <span class="hf-platform-name" :title="p.name">{{ p.name }}</span>
+              </span>
+              <strong :class="{ 'hf-down': item.usd === null }">{{
                 item.usd === null ? `${p.flowPercent ?? '—'}%` : tickerMoney(item.usd)
-              }}</strong
-              ><ChevronRight :size="14" />
+              }}</strong>
+              <ChevronRight :size="16" />
             </button>
           </div>
           <footer class="hf-footer">

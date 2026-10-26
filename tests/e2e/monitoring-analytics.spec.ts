@@ -33,12 +33,12 @@ test('监测主页面只保留平台列表、三类范围和排序；空范围�
   await expect(page.getByText('当前范围暂无可统计样本，请调整平台、公链或币种选择。')).toBeVisible()
   await expect(page.locator('.research-platform')).toHaveCount(0)
   await page.getByRole('button', { name: '重置筛选', exact: true }).click()
-  await expect(page.locator('.research-platform')).toHaveCount(3)
+  await expect(page.locator('.research-platform')).toHaveCount(10)
   await page.goto('/monitor?platforms=C')
   await expect(page.getByText('样本不足 · 暂不评分', { exact: true })).toBeVisible()
 })
 
-test('六种排序使用对应数值，升降序有效且缺失评分保持末尾', async ({ page }) => {
+test('五种排序使用对应数值，升降序有效且缺失评分保持末尾', async ({ page }) => {
   await page.goto('/monitor?platforms=A,B,C')
   const sort = page.getByRole('combobox', { name: '平台排序', exact: true })
   const first = page.locator('.research-platform h3 > button').first()
@@ -48,7 +48,6 @@ test('六种排序使用对应数值，升降序有效且缺失评分保持末�
     ['withdrawal', '平台 B'],
     ['net', '平台 A'],
     ['balance', '平台 B'],
-    ['rank', '平台 A'],
   ]) {
     await chooseOption(page, sort, key!)
     await expect(first).toHaveText(expected!)

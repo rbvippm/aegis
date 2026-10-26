@@ -49,7 +49,13 @@ function toggle(value: string | number) {
 }
 </script>
 <template>
-  <div class="ma-multi" :class="{ 'ma-multi--detailed': showSelection }">
+  <div
+    class="ma-multi"
+    :class="{
+      'ma-multi--detailed': showSelection,
+      'ma-multi--custom': options.length > 0 && selected.length !== options.length,
+    }"
+  >
     <div v-if="showSelection" class="ma-multi__heading">
       <h3>{{ label }}</h3>
       <span v-if="showSelection" class="ma-multi__count"

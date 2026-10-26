@@ -398,6 +398,18 @@ onBeforeUnmount(() => {
   font-weight: 500;
   cursor: pointer;
 }
+.glass-select__menu li[role='option'] + li[role='option'] {
+  margin-top: 4px;
+}
+.glass-select__menu li[role='option'] > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.glass-select__menu li[role='option'] > svg {
+  flex-shrink: 0;
+}
 .glass-select__menu li[aria-selected='true'] {
   color: #0864ff;
   background: #e7f2ff;

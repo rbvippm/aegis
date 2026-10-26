@@ -3,7 +3,7 @@ import PlatformFollowButton from '@/features/monitoring/PlatformFollowButton.vue
 import { usePlatformFollows } from '@/features/monitoring/follows'
 import { dateLabel } from '@/features/monitoring/analytics-model'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ChevronRight,
@@ -16,6 +16,8 @@ import {
   ChartColumn,
   Wallet,
   FileText,
+  Copy,
+  Check,
 } from '@lucide/vue'
 import ResearchAnalytics from '@/features/monitoring/ResearchAnalytics.vue'
 import { money, count, percent, change } from '@/features/monitoring/analytics-model'
@@ -51,14 +53,11 @@ const grade = ref('')
 const completeOnly = ref(false)
 const sort = ref('score')
 const ascending = ref(false)
-watch(sort, () => {
-  ascending.value = sort.value === 'rank'
-})
-const platformLimit = ref(3)
+const platformLimit = ref(10)
 watch(
   [search, grade, completeOnly, () => scope.value.period, () => scope.value.ids.join(',')],
   () => {
-    platformLimit.value = 3
+    platformLimit.value = 10
   },
 )
 function matchesPlatform(platform: ResearchPlatform) {
@@ -124,7 +123,7 @@ const visiblePlatforms = computed(() => {
     return matchesPlatform(platform) ? [platform] : []
   })
   const numericValue = (p: ResearchPlatform) => {
-    if (['score', 'rank'].includes(sort.value)) return p.score
+    if (sort.value === 'score') return p.score
     const value = scope.value.values[p.id]
     if (!value) return null
     return sort.value === 'deposit'
@@ -140,7 +139,6 @@ const visiblePlatforms = computed(() => {
       bv = numericValue(b)
     if (av === null) return bv === null ? a.name.localeCompare(b.name, 'zh-CN') : 1
     if (bv === null) return -1
-    if (sort.value === 'rank') return bv - av || a.name.localeCompare(b.name, 'zh-CN')
     return (ascending.value ? 1 : -1) * (av - bv) || a.name.localeCompare(b.name, 'zh-CN')
   })
 })
@@ -193,6 +191,99 @@ const walletMetrics = computed(() => {
       ]
     : []
 })
+const scopeRanks = computed(() => {
+  const platform = panel.value?.platform
+  const list = visiblePlatforms.value
+  const current = platform ? list.find((item) => item.id === platform.id) : undefined
+  const metricValue = (
+    item: ResearchPlatform,
+    key: 'score' | 'deposit' | 'net' | 'balance',
+  ): number | null => {
+    if (key === 'score') return item.score
+    const value = scope.value.values[item.id]
+    if (!value) return null
+    return key === 'deposit' ? value.amount : key === 'net' ? value.net : value.balance
+  }
+  const place = (key: 'score' | 'deposit' | 'net' | 'balance') => {
+    if (!current || metricValue(current, key) === null) return null
+    const ordered = [...list].sort((a, b) => {
+      const av = metricValue(a, key)
+      const bv = metricValue(b, key)
+      if (av === null) return bv === null ? a.name.localeCompare(b.name, 'zh-CN') : 1
+      if (bv === null) return -1
+      return bv - av || a.name.localeCompare(b.name, 'zh-CN')
+    })
+    const index = ordered.findIndex((item) => item.id === current.id)
+    return index < 0 ? null : index + 1
+  }
+  const peak = overview.value
+  return {
+    total: list.length,
+    scoreRank: place('score'),
+    items: [
+      { label: '盾牌分', rank: place('score'), peak: null },
+      {
+        label: '存款额',
+        rank: place('deposit'),
+        peak: peak?.depositPeak
+          ? {
+              label: '存款高点日',
+              date: peak.depositPeak.date,
+              amount: money(peak.depositPeak.deposits),
+            }
+          : null,
+      },
+      {
+        label: '净流量',
+        rank: place('net'),
+        peak: peak?.netPeak
+          ? {
+              label: '净流入高点日',
+              date: peak.netPeak.date,
+              amount: money(peak.netPeak.net),
+            }
+          : null,
+      },
+      { label: '热钱包余额', rank: place('balance'), peak: null },
+    ],
+  }
+})
+const copiedWalletKey = ref('')
+const copyStatus = ref('')
+let copyTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => clearTimeout(copyTimer))
+async function copyWalletAddress(address: string, key: string) {
+  let ok = false
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable')
+    await navigator.clipboard.writeText(address)
+    ok = true
+  } catch {
+    try {
+      const field = document.createElement('textarea')
+      field.value = address
+      field.setAttribute('readonly', '')
+      field.style.position = 'fixed'
+      field.style.opacity = '0'
+      const host = document.querySelector('dialog[open]') ?? document.body
+      host.append(field)
+      field.focus()
+      field.select()
+      field.setSelectionRange(0, address.length)
+      ok = document.execCommand('copy')
+      field.remove()
+    } catch {
+      ok = false
+    }
+  }
+  copiedWalletKey.value = ok ? key : ''
+  copyStatus.value = ok ? '已复制' : '复制失败，请长按文本手动复制'
+  clearTimeout(copyTimer)
+  copyTimer = setTimeout(() => {
+    copiedWalletKey.value = ''
+    copyStatus.value = ''
+  }, 1600)
+}
 const evidenceKinds = [
   '深度分析',
   '存款流水',
@@ -354,11 +445,9 @@ watch(
                 <option value="deposit">存款额</option>
                 <option value="withdrawal">出款额</option>
                 <option value="net">净流量</option>
-                <option value="balance">热钱包余额</option>
-                <option value="rank">排名</option></GlassSelect
+                <option value="balance">热钱包余额</option></GlassSelect
               >
               <button
-                v-if="sort !== 'rank'"
                 class="research-sort-direction"
                 :aria-label="ascending ? '切换为降序' : '切换为升序'"
                 @click="ascending = !ascending"
@@ -392,13 +481,13 @@ watch(
             </div>
           </div>
           <button
-            v-if="visiblePlatforms.length > 3"
+            v-if="visiblePlatforms.length > 10"
             class="ma-secondary ma-platform-expand"
-            :aria-expanded="platformLimit > 3"
-            @click="platformLimit = platformLimit === 3 ? visiblePlatforms.length : 3"
+            :aria-expanded="platformLimit > 10"
+            @click="platformLimit = platformLimit === 10 ? visiblePlatforms.length : 10"
           >
             {{
-              platformLimit === 3 ? `展开全部平台（${visiblePlatforms.length}）` : '收起平台卡片'
+              platformLimit === 10 ? `展开全部平台（${visiblePlatforms.length}）` : '收起平台卡片'
             }}
           </button>
         </template>
@@ -559,7 +648,26 @@ watch(
                 {{ event.token ?? '' }}
               </p>
               <p>{{ event.description }}</p>
-              <code v-if="event.wallet">{{ event.wallet }}</code>
+              <div v-if="event.wallet" class="research-activity-address">
+                <code>{{ event.wallet }}</code>
+                <button
+                  type="button"
+                  class="research-address-copy"
+                  :data-copied="copiedWalletKey === `event:${event.id}` ? 'true' : undefined"
+                  :aria-label="
+                    copiedWalletKey === `event:${event.id}`
+                      ? `已复制钱包地址 ${event.wallet}`
+                      : `复制钱包地址 ${event.wallet}`
+                  "
+                  @click="event.wallet && copyWalletAddress(event.wallet, `event:${event.id}`)"
+                >
+                  <Check
+                    v-if="copiedWalletKey === `event:${event.id}`"
+                    :size="16"
+                    aria-hidden="true"
+                  /><Copy v-else :size="16" aria-hidden="true" />
+                </button>
+              </div>
             </article>
             <p
               v-if="!platformFollows.activities.some((e) => e.platform === panel?.platform?.id)"
@@ -682,11 +790,12 @@ watch(
                 @toggle="detailSections.wallet = ($event.target as HTMLDetailsElement).open"
               >
                 <summary>
-                  <Wallet :size="18" /><span
+                  <span class="research-detail-mark" aria-hidden="true"><Wallet :size="18" /></span
+                  ><span
                     >钱包与链上资产<small
-                      >{{ count(overview.uniqueDepositors) }} 个独立存款钱包</small
+                      ><b>{{ count(overview.uniqueDepositors) }}</b> 个独立存款钱包</small
                     ></span
-                  ><ChevronRight :size="17" />
+                  ><ChevronRight :size="16" />
                 </summary>
                 <div class="research-detail-group-body">
                   <dl class="research-detail-metrics">
@@ -718,7 +827,30 @@ watch(
                       :key="`${wallet.chain}:${wallet.wallet}`"
                     >
                       <dt class="research-detail-address" :title="wallet.wallet">
-                        {{ wallet.chain }} · {{ wallet.wallet }}
+                        <span>{{ wallet.chain }} · {{ wallet.wallet }}</span>
+                        <button
+                          type="button"
+                          class="research-address-copy"
+                          :data-copied="
+                            copiedWalletKey === `${wallet.chain}:${wallet.wallet}`
+                              ? 'true'
+                              : undefined
+                          "
+                          :aria-label="
+                            copiedWalletKey === `${wallet.chain}:${wallet.wallet}`
+                              ? `已复制钱包地址 ${wallet.wallet}`
+                              : `复制钱包地址 ${wallet.wallet}`
+                          "
+                          @click="
+                            copyWalletAddress(wallet.wallet, `${wallet.chain}:${wallet.wallet}`)
+                          "
+                        >
+                          <Check
+                            v-if="copiedWalletKey === `${wallet.chain}:${wallet.wallet}`"
+                            :size="16"
+                            aria-hidden="true"
+                          /><Copy v-else :size="16" aria-hidden="true" />
+                        </button>
                       </dt>
                       <dd>{{ money(wallet.amount) }}</dd>
                     </div>
@@ -746,13 +878,15 @@ watch(
               @toggle="detailSections.safety = ($event.target as HTMLDetailsElement).open"
             >
               <summary>
-                <ShieldCheck :size="18" /><span
+                <span class="research-detail-mark" aria-hidden="true"
+                  ><ShieldCheck :size="18" /></span
+                ><span
                   >出金评测<small>{{
                     panel.platform?.grade
                       ? `${panel.platform.grade}级 · ${panel.platform.samples} 笔耗时样本`
                       : '暂无完整评测数据'
                   }}</small></span
-                ><ChevronRight :size="17" />
+                ><ChevronRight :size="16" />
               </summary>
               <div class="research-detail-group-body">
                 <dl class="research-detail-metrics">
@@ -811,31 +945,30 @@ watch(
               @toggle="detailSections.ranks = ($event.target as HTMLDetailsElement).open"
             >
               <summary>
-                <ChartColumn :size="18" /><span
-                  >高点与范围排名<small>{{ scope.period }} 当前筛选范围</small></span
-                ><ChevronRight :size="17" />
+                <span class="research-detail-mark" aria-hidden="true"><ChartColumn :size="18" /></span
+                ><span
+                  >高点与范围排名<small>{{
+                    scopeRanks.scoreRank != null
+                      ? `第 ${scopeRanks.scoreRank} 名 · 当前筛选范围`
+                      : `${scope.period} 当前筛选范围`
+                  }}</small></span
+                ><ChevronRight :size="16" />
               </summary>
               <div class="research-detail-group-body">
-                <dl class="research-detail-metrics">
-                  <div>
-                    <dt>存款高点日</dt>
-                    <dd>{{ overview.depositPeak?.date ?? '—' }}</dd>
-                    <small>{{
-                      overview.depositPeak ? money(overview.depositPeak.deposits) : '—'
-                    }}</small>
-                  </div>
-                  <div>
-                    <dt>净流入高点日</dt>
-                    <dd>{{ overview.netPeak?.date ?? '—' }}</dd>
-                    <small>{{ overview.netPeak ? money(overview.netPeak.net) : '—' }}</small>
-                  </div>
-                </dl>
-                <dl class="research-detail-list">
-                  <div v-for="item in overview.ranks" :key="item.label">
+                <dl class="research-detail-metrics research-detail-ranks">
+                  <div v-for="item in scopeRanks.items" :key="item.label">
                     <dt>{{ item.label }}</dt>
                     <dd>
-                      {{ item.rank == null ? '—' : `${item.rank} / ${overview.platformCount} 家` }}
+                      <template v-if="item.rank != null"
+                        >第 {{ item.rank }} 名<small>/ {{ scopeRanks.total }}</small></template
+                      >
+                      <template v-else>—</template>
                     </dd>
+                    <small v-if="item.peak" class="research-rank-peak"
+                      ><span>{{ item.peak.label }}</span
+                      ><span>{{ item.peak.date }}</span
+                      ><span>{{ item.peak.amount }}</span></small
+                    >
                   </div>
                 </dl>
               </div>
@@ -846,9 +979,10 @@ watch(
               @toggle="detailSections.resources = ($event.target as HTMLDetailsElement).open"
             >
               <summary>
-                <FileText :size="18" /><span
+                <span class="research-detail-mark" aria-hidden="true"><FileText :size="18" /></span
+                ><span
                   >资料与账户<small>历史评测、数据来源与账户关联</small></span
-                ><ChevronRight :size="17" />
+                ><ChevronRight :size="16" />
               </summary>
               <div class="research-detail-group-body">
                 <button
@@ -876,6 +1010,7 @@ watch(
             </p></template
           >
           <p v-if="feedback" class="research-feedback" role="status">{{ feedback }}</p>
+          <p class="research-copy-status" role="status">{{ copyStatus }}</p>
         </div>
       </template>
     </BottomDrawer>

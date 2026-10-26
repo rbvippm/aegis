@@ -212,7 +212,7 @@ const panelTitle = computed(() =>
         <div class="he-pager" aria-label="热门赛事切换">
           <button aria-label="上一场热门赛事" @click="next(-1)">
             <ChevronLeft :size="16" :stroke-width="2.5" /></button
-          ><span
+          ><span class="he-pager-count"
             ><b>{{ matchIndex + 1 }}</b> / {{ popular.length }}</span
           ><button aria-label="下一场热门赛事" @click="next(1)">
             <ChevronRight :size="16" :stroke-width="2.5" />
@@ -294,7 +294,7 @@ const panelTitle = computed(() =>
           <div class="he-pager" aria-label="套利机会切换">
             <button aria-label="上一个套利机会" @click="next(-1)">
               <ChevronLeft :size="16" :stroke-width="2.5" /></button
-            ><span
+            ><span class="he-pager-count"
               ><b>{{ opportunityIndex + 1 }}</b> / {{ opportunities.length }}</span
             ><button aria-label="下一个套利机会" @click="next(1)">
               <ChevronRight :size="16" :stroke-width="2.5" />
@@ -565,58 +565,7 @@ const panelTitle = computed(() =>
   color: #317bdd;
 }
 .he-pager {
-  display: flex;
-  align-items: center;
   flex-shrink: 0;
-  gap: 0;
-}
-.he-pager button {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: #fff;
-  cursor: pointer;
-  border-radius: 12px;
-}
-.he-pager button svg {
-  box-sizing: border-box;
-  width: 28px;
-  height: 28px;
-  padding: 5px;
-  border-radius: 9px;
-  background: var(--ae-pill);
-  box-shadow: var(--ae-pill-shadow);
-  transition:
-    filter 150ms ease,
-    transform 150ms ease;
-}
-@media (hover: hover) {
-  .he-pager button:hover svg {
-    filter: brightness(1.06);
-  }
-}
-.he-pager button:active svg {
-  filter: brightness(0.92);
-  transform: scale(0.94);
-}
-.he-pager span {
-  min-width: 38px;
-  font-size: 14px;
-  font-weight: 650;
-  line-height: 1;
-  color: #14213d;
-  text-align: center;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.he-pager span b {
-  font-size: 16px;
-  font-weight: 700;
-  color: #0864ff;
 }
 .home-rich .he-teams {
   margin: 4px 0 29px;
@@ -1013,13 +962,6 @@ const panelTitle = computed(() =>
   cursor: pointer;
 }
 @media (max-width: 374px) {
-  .he-pager button {
-    width: 40px;
-  }
-  .he-pager button svg {
-    width: 26px;
-    height: 26px;
-  }
   .he-quote {
     padding: 8px;
   }
@@ -1037,12 +979,10 @@ const panelTitle = computed(() =>
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .he-pager button svg,
   .he-quote,
   .he-play .glass-select__trigger {
     transition: none;
   }
-  .he-pager button:active svg,
   .he-quote:active {
     transform: none;
   }
