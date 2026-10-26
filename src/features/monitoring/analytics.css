@@ -2278,6 +2278,17 @@
   background: #d9ebff;
   transform: scale(0.98);
 }
+.ma-monitor-toolbar .ma-reset-scope svg {
+  transform-origin: center;
+}
+.ma-monitor-toolbar .ma-reset-scope.is-refreshing svg {
+  animation: ma-reset-spin 0.7s cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+@keyframes ma-reset-spin {
+  to {
+    transform: rotate(-360deg);
+  }
+}
 .ma-monitor-toolbar .ma-inline-primary {
   gap: 6px;
   padding: 6px;
@@ -2347,6 +2358,9 @@
 @media (prefers-reduced-motion: reduce) {
   .ma-monitor-toolbar .ma-reset-scope:active {
     transform: none;
+  }
+  .ma-monitor-toolbar .ma-reset-scope.is-refreshing svg {
+    animation: none;
   }
 }
 

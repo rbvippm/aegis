@@ -487,7 +487,17 @@ function setOverviewPeriod(value: string | number) {
   if (analysisPlatform.value) mainPeriod = next
   else period.value = next
 }
+const resetSpinning = ref(false)
+let resetSpinTimer = 0
 function resetScope() {
+  resetSpinning.value = false
+  clearTimeout(resetSpinTimer)
+  requestAnimationFrame(() => {
+    resetSpinning.value = true
+    resetSpinTimer = setTimeout(() => {
+      resetSpinning.value = false
+    }, 700)
+  })
   setOverviewPeriod('30d')
   emit('reset')
   chains.value = [...analyticsChains]
@@ -770,7 +780,10 @@ watch(compared, async () => {
   await nextTick()
   updateCompareScroll()
 })
-onBeforeUnmount(() => compareObserver?.disconnect())
+onBeforeUnmount(() => {
+  compareObserver?.disconnect()
+  clearTimeout(resetSpinTimer)
+})
 
 function deltaClass(value: number | null) {
   if (value === null) return ''
@@ -811,6 +824,7 @@ function formattedStat(row: (typeof rows.value)[number], key: string) {
         <h1 class="ma-overview-title">平台监测对比</h1>
         <button
           class="ma-reset-scope"
+          :class="{ 'is-refreshing': resetSpinning }"
           aria-label="重置筛选"
           title="恢复全部筛选"
           @click="resetScope"
