@@ -38,14 +38,6 @@ function clear() {
   )
 }
 function toggle(value: string | number) {
-  if (value === '__all') {
-    selectAll()
-    return
-  }
-  if (value === '__clear') {
-    clear()
-    return
-  }
   if (!value) return
   const id = String(value)
   emit(
@@ -60,7 +52,9 @@ function toggle(value: string | number) {
   <div class="ma-multi" :class="{ 'ma-multi--detailed': showSelection }">
     <div v-if="showSelection" class="ma-multi__heading">
       <h3>{{ label }}</h3>
-      <span class="ma-multi__count">已选 {{ selected.length }}/{{ options.length }}</span>
+      <span v-if="showSelection" class="ma-multi__count"
+        >已选 {{ selected.length }}/{{ options.length }}</span
+      >
       <span class="ma-multi__actions">
         <button class="ma-text" :disabled="!options.length" @click="selectAll">全选</button>
         <button class="ma-text" :disabled="!selected.length" @click="clear">清空</button>
@@ -75,9 +69,6 @@ function toggle(value: string | number) {
       searchable
       @update:model-value="toggle"
     >
-      <option value="" disabled>选择{{ label }}</option>
-      <option value="__all" :disabled="!options.length">全选{{ label }}</option>
-      <option value="__clear" :disabled="!selected.length">清空{{ label }}</option>
       <option v-for="o in options" :key="o.id" :value="o.id">{{ o.label }}</option>
     </GlassSelect>
     <div v-if="showSelection" class="ma-multi__choices">

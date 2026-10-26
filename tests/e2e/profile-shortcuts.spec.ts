@@ -7,7 +7,7 @@ const names = [
   '邀请好友',
   '代理服务',
   '账户与隐私',
-  '帮助与客服',
+  '联系客服',
 ]
 for (const width of [360, 390, 430]) {
   test(`${width}px个人中心八宫格保留徽标和剩余列表`, async ({ page }) => {
@@ -39,7 +39,7 @@ for (const width of [360, 390, 430]) {
       await page.screenshot({ path: `outputs/profile-grid/${width}-bottom.png` })
   })
 }
-test('八个快捷入口均沿用原有路由和弹框', async ({ page }) => {
+test('快捷入口保留路由弹框，联系客服在新窗口打开', async ({ page }) => {
   for (const [name, target] of [
     ['绑定平台', 'earnings'],
     ['我的关注', 'follows'],
@@ -57,7 +57,6 @@ test('八个快捷入口均沿用原有路由和弹框', async ({ page }) => {
   for (const [name, title] of [
     ['邀请好友', '邀请好友'],
     ['账户与隐私', '账户与隐私'],
-    ['帮助与客服', '帮助与客服'],
   ]) {
     await page.goto('/me')
     await page
@@ -68,4 +67,8 @@ test('八个快捷入口均沿用原有路由和弹框', async ({ page }) => {
       page.getByRole('dialog').getByRole('heading', { name: title!, exact: true, level: 2 }),
     ).toBeVisible()
   }
+  await page.goto('/me')
+  const support = page.getByRole('link', { name: '联系客服', exact: true })
+  await expect(support).toHaveAttribute('href', 'https://www.google.com/')
+  await expect(support).toHaveAttribute('target', '_blank')
 })

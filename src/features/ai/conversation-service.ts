@@ -1,7 +1,9 @@
+import { planningAnswer } from '@/mocks/ai-planning'
+import { monitorFollowup } from './followup-context'
 import { dataMode } from '@/shared/api/config'
 import { resolveProjectScenario, mockProjectAnswer, projectFollowup } from '@/mocks/ai-project'
 import { mockChatAnswer } from '@/mocks/ai-conversation'
-import type { AnswerKind, ChatAnswer } from './conversation-types'
+import type { AiBusinessContext, AiSportsEntry, AnswerKind, ChatAnswer } from './conversation-types'
 
 function wait(signal: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
@@ -38,6 +40,8 @@ export async function requestChat(
   previous: AnswerKind | ChatAnswer | undefined,
   signal: AbortSignal,
   stage: (text: string) => void,
+  businessContext?: AiBusinessContext,
+  entry?: AiSportsEntry,
 ): Promise<ChatAnswer> {
   if (dataMode !== 'demo') throw new Error('暂时无法生成回答，请稍后重试。')
   stage('正在整理回答…')
@@ -45,14 +49,36 @@ export async function requestChat(
   stage('正在生成卡片…')
   await wait(signal)
   const previousAnswer = typeof previous === 'object' ? previous : undefined
+  if (entry) return planningAnswer(entry)
+  if (previousAnswer?.project?.sports && previousAnswer.followups.includes(message.trim())) {
+    const answer = planningAnswer(previousAnswer.project.sports)
+    if (answer.project) {
+      const focused = message.includes('缺哪些')
+        ? answer.project.reasons[2]?.text
+        : message.includes('核对项')
+          ? `${answer.project.reasons[0]?.text} ${answer.project.plan[1]}`
+          : answer.project.reasons[1]?.text
+      if (focused) {
+        answer.summary = focused
+        answer.project.takeaway = focused
+      }
+    }
+    return answer
+  }
+  const scoped = monitorFollowup(message, previousAnswer)
+  if (scoped) return mockProjectAnswer(scoped.scenario, scoped.text, businessContext)
   const followup = projectFollowup(message, previousAnswer)
   const scenario = followup ?? resolveProjectScenario(message)
   if (scenario)
     return mockProjectAnswer(
       scenario,
-      followup
+      followup &&
+        ['match', 'odds'].includes(followup) &&
+        previousAnswer?.project &&
+        ['match', 'odds'].includes(previousAnswer.project.scenario)
         ? `${message}\n${previousAnswer?.project?.title ?? ''}\n${previousAnswer?.project?.scope ?? ''}`
         : message,
+      businessContext,
     )
   const previousKind = typeof previous === 'string' ? previous : previous?.kind
   if (/大额/.test(message))

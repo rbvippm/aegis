@@ -7,10 +7,13 @@ import {
   profileSettlements,
   profileTickets,
 } from '@/mocks/profile'
+import { getSubscriptionPlan, type SubscriptionLevel } from './subscription'
 import { totalCents, validateTicket, validateUid } from './logic'
 import type { EvidenceFile, TicketInput, ProfileNotice } from './types'
 export const useProfile = defineStore('profile-center', () => {
   const previewIdentity = ref(dataMode === 'demo')
+  const subscriptionLevel = ref<SubscriptionLevel | null>(dataMode === 'demo' ? 'L1' : null)
+  const subscriptionPlan = computed(() => getSubscriptionPlan(subscriptionLevel.value))
   const nickname = ref('AE小子')
   const bindings = ref(dataMode === 'demo' ? structuredClone(profileBindings) : [])
   const records = ref(dataMode === 'demo' ? structuredClone(profileSettlements) : [])
@@ -25,13 +28,13 @@ export const useProfile = defineStore('profile-center', () => {
             (n): n is ProfileNotice =>
               n &&
               typeof n.id === 'string' &&
-              n.id.startsWith('sports:') &&
+              (n.id.startsWith('sports:') || n.id.startsWith('monitor:')) &&
               typeof n.title === 'string' &&
               typeof n.description === 'string' &&
-              n.type === 'system' &&
+              (n.type === 'system' || n.type === 'platform') &&
               typeof n.read === 'boolean' &&
               typeof n.target === 'string' &&
-              n.target.startsWith('/compare?'),
+              (n.target.startsWith('/compare?') || n.target.startsWith('/monitor?')),
           ),
         )
     } catch {
@@ -44,7 +47,9 @@ export const useProfile = defineStore('profile-center', () => {
       try {
         localStorage.setItem(
           'aegis-sports-notices',
-          JSON.stringify(value.filter((n) => n.id.startsWith('sports:'))),
+          JSON.stringify(
+            value.filter((n) => n.id.startsWith('sports:') || n.id.startsWith('monitor:')),
+          ),
         )
       } catch {
         /* Session-only. */
@@ -137,6 +142,8 @@ export const useProfile = defineStore('profile-center', () => {
     saveSportsNotice,
     removeSportsNotice,
     previewIdentity,
+    subscriptionLevel,
+    subscriptionPlan,
     nickname,
     bindings,
     records,

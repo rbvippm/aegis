@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
+import HomeFunding from './HomeFunding.vue'
 import HomeEvents from './HomeEvents.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ChevronRight, ShieldCheck, Search, Clock3, Wallet, Info } from '@lucide/vue'
+import { ChevronRight, Search } from '@lucide/vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import { dataMode } from '@/shared/api/config'
 import { sportsMatches, sportsRankings } from '@/mocks/sports'
 import { researchPlatforms, researchSnapshot } from '@/mocks/monitoring-research'
-import { researchChains } from '@/features/monitoring/research'
 import type { OddsFormat, SportsMarket, SportsMatch } from '@/features/sports/types'
-import { walletSummary } from './overview'
 
 const route = useRoute(),
   router = useRouter()
@@ -33,11 +32,6 @@ try {
   /* Optional preference. */
 }
 const formatName = computed(() => formats.find((f) => f.id === format.value)!.label)
-const wallet = walletSummary(demo ? researchPlatforms : [])
-const measured = demo ? researchPlatforms[0]! : null
-const warning = demo
-  ? researchPlatforms.find((p) => p.flowPercent !== null && p.flowPercent < -25)
-  : null
 const oddsRanks = demo
   ? sportsRankings
       .filter((p) => p.status === 'active' && p.share !== null && p.samples >= 30)
@@ -107,39 +101,10 @@ watch(
       @sources="panel = 'sources'"
     />
     <div class="hr-heading">
-      <h2>平台资金监测</h2>
+      <h2>平台出金监测</h2>
       <RouterLink to="/monitor">查看监测<ChevronRight :size="14" /></RouterLink>
     </div>
-    <section class="hr-card hr-funding" aria-label="平台资金监测">
-      <StatePanel v-if="!demo" title="暂无监测数据" description="资金与出金服务尚未接入。" />
-      <template v-else>
-        <div class="hr-stats">
-          <div>
-            <small class="hr-metric-label"><Clock3 :size="14" />小额实测平均出款</small
-            ><strong>{{ measured?.smallMinutes ?? '—' }} <span>min</span></strong
-            ><small>平台 A · USDT · &lt;1,000 U</small>
-          </div>
-          <div>
-            <small class="hr-metric-label"><Wallet :size="14" />已标记热钱包总额</small
-            ><strong class="hr-balance">{{ wallet.amount ?? '—' }}</strong
-            ><small>{{ wallet.covered }} / {{ platforms.length }} 家有余额数据</small>
-          </div>
-        </div>
-        <button class="hr-source-row" @click="panel = 'funding'">
-          <span class="hr-sample"><Info :size="13" />平台 A · {{ measured?.samples }} 笔样本</span
-          ><span>口径与来源<ChevronRight :size="13" /></span>
-        </button>
-        <button v-if="warning" class="hr-notice hr-funding-warning" @click="panel = 'warning'">
-          <span class="hr-warning-icon"><ShieldCheck :size="18" /></span
-          ><span class="hr-warning-copy"
-            ><strong>{{ warning.name }} · 资金异动</strong
-            ><small
-              >热钱包净流出 <b>{{ Math.abs(warning.flowPercent!) }}%</b>，需关注</small
-            ></span
-          ><ChevronRight :size="14" />
-        </button>
-      </template>
-    </section>
+    <HomeFunding />
     <div class="hr-heading">
       <h2>平台榜单</h2>
       <RouterLink :to="ranking === 'score' ? '/monitor' : '/compare?view=ranking'"
@@ -226,8 +191,6 @@ watch(
           {
             search: '搜索平台与赛事',
             format: '赔率显示格式',
-            warning: '钱包异动详情',
-            funding: '出金与资金口径',
             ranking: '榜单口径与来源',
             cooperation: '平台合作',
             sources: '赛事数据来源',
@@ -281,31 +244,6 @@ watch(
             仅改变显示制式，底层赔率使用十进制；偏好与对比页共用。滚球记录同步转换为当前显示制式，涨跌方向按十进制原值判断。
           </p></template
         >
-        <template v-else-if="panel === 'warning' && warning"
-          ><h3>{{ warning.name }} · 24h 净流出 {{ Math.abs(warning.flowPercent!) }}%</h3>
-          <p class="hr-copy">
-            热钱包余额 {{ warning.wallet }}；净流向 {{ warning.flow }}。预警口径为净流出额 ÷
-            当前钱包余额，超过25%。
-          </p>
-          <p class="hr-copy">钱包异动不等同于平台违约，需结合地址归属、流向与历史核查。</p>
-          <RouterLink class="hr-action hr-link" :to="`/monitor?platform=${warning.id}&panel=flow`"
-            >查看平台资金详情<ChevronRight :size="16" /></RouterLink
-        ></template>
-        <template v-else-if="panel === 'funding'"
-          ><h3>统计范围</h3>
-          <p class="hr-copy">
-            出款耗时来自平台 A：小额 &lt;1,000 U，平均 {{ measured?.smallMinutes ?? '—' }} 分钟，{{
-              measured?.samples ?? '—'
-            }}
-            笔样本。统计申请至到账的平均值，不是中位数，也不等同于安全评级。样例未给出按链分组的耗时，首页不将其归属到单一链。
-          </p>
-          <p class="hr-copy">
-            热钱包金额仅汇总已标记且有余额数据的平台；覆盖 {{ researchChains.join('、') }}。平台 C
-            余额缺失，未计入总额。此总额不是储备充足率。
-          </p>
-          <RouterLink class="hr-link hr-action" to="/monitor"
-            >查看完整监测<ChevronRight :size="16" /></RouterLink
-        ></template>
         <template v-else-if="panel === 'ranking'"
           ><h3>两类排名分别比较</h3>
           <p class="hr-copy">
@@ -332,10 +270,7 @@ watch(
           <RouterLink class="hr-link hr-action" to="/compare"
             >查看完整赛事与报价<ChevronRight :size="16" /></RouterLink
         ></template>
-        <p
-          v-if="demo && ['sources', 'funding', 'ranking', 'warning', 'search'].includes(panel)"
-          class="hr-source-note"
-        >
+        <p v-if="demo && ['sources', 'ranking', 'search'].includes(panel)" class="hr-source-note">
           来源：项目本地样例 ·
           {{
             panel === 'sources' ? '10/24 固定记录' : researchSnapshot

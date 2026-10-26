@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import PlatformFollowButton from './PlatformFollowButton.vue'
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
-import { ChevronRight, ShieldCheck, TriangleAlert, Coins } from '@lucide/vue'
+import { ChevronRight, ShieldCheck, TriangleAlert, Clock3 } from '@lucide/vue'
 import { computed } from 'vue'
 import { percent } from './analytics-model'
-import { researchRegionLabel, type ResearchPlatform, type ResearchWindow } from './research'
+import type { ResearchPlatform, ResearchWindow } from './research'
 import { researchSnapshot } from '@/mocks/monitoring-research'
 const props = defineProps<{
   platform: ResearchPlatform
@@ -19,9 +20,6 @@ const flowLabel = computed(() => props.periodLabel ?? '24h')
 const deposit = computed(() => props.platform.windows[props.window])
 const warning = computed(
   () => props.platform.flowPercent !== null && props.platform.flowPercent < -25,
-)
-const rebate = computed(
-  () => ((props.platform.commission ?? 0) * (props.platform.playerShare ?? 0)) / 100,
 )
 const deltaText = computed(() => percent(props.growth ?? null))
 const deltaClass = computed(() =>
@@ -55,29 +53,33 @@ const comparable = computed(() => props.platform.score === null && props.platfor
       ><span class="research-avatar" :class="`research-avatar--${platform.id}`">{{ mark }}</span>
       <span class="research-platform__identity"
         ><h3 class="research-account-name">
-          <button type="button" :aria-label="`${platform.name}详情`">{{ platform.name }}</button
-          ><PlatformAccountLink :platform="platform.id" :name="platform.name" />
-        </h3>
-        <small class="research-region-badge">{{
-          researchRegionLabel(platform.region)
-        }}</small></span
-      >
+          <button type="button" :title="platform.name" :aria-label="`${platform.name}详情`">
+            {{ platform.name }}</button
+          ><PlatformAccountLink :platform="platform.id" :name="platform.name" /></h3
+      ></span>
+      <PlatformFollowButton compact :id="platform.id" :name="platform.name" />
       <span v-if="platform.score !== null" class="research-score"
         ><ShieldCheck :size="19" fill="#0874ff" color="white" /><strong>{{ platform.score }}</strong
         ><small>/10</small></span
       >
       <span v-else-if="!comparable" class="research-partial">样本不足 · 暂不评分</span
-      ><ChevronRight :size="16" />
+      ><button
+        class="research-detail-arrow"
+        :aria-label="`${platform.name}全部细项`"
+        @click.stop="emit('open', '详情', platform)"
+      >
+        <ChevronRight :size="16" />
+      </button>
     </div>
     <template v-if="platform.score !== null">
-      <button v-if="warning" class="research-warning" @click="emit('open', '异动详情', platform)">
+      <p v-if="warning" class="research-warning">
         <TriangleAlert :size="18" /><span
-          >{{ flowLabel }} 净流出 {{ Math.abs(platform.flowPercent!) }}% · 钱包异动</span
-        ><ChevronRight :size="14" />
-      </button>
+          >{{ flowLabel }} 余额变化 {{ platform.flowPercent }}% · 查看详情了解异动</span
+        >
+      </p>
       <div class="research-metrics">
         <div class="research-metric">
-          <span>{{ periodLabel ?? window }} 真实存款</span>
+          <span>{{ periodLabel ?? window }} 存款额</span>
           <strong>{{ deposit.deposit }}</strong>
           <small :class="deltaClass">{{ deltaText }}</small>
           <small v-if="growth !== null">较前一个等长窗口</small>
@@ -94,57 +96,29 @@ const comparable = computed(() => props.platform.score === null && props.platfor
         </div>
         <div class="research-metric">
           <span>出金纯净度</span
-          ><button
+          ><span
             class="research-grade"
             :class="{ 'research-grade--warning': platform.grade === 'B' }"
-            :aria-label="`${platform.name}出金安全体检卡`"
-            @click="emit('open', '出金安全体检卡', platform)"
+            ><ShieldCheck :size="16" />{{ platform.grade }}级 · {{ platform.taint }}%</span
           >
-            <ShieldCheck :size="16" />{{ platform.grade }}级 · {{ platform.taint }}%<ChevronRight
-              :size="14"
-            />
-          </button>
           <small>近7天 · ≤3跳关联</small>
         </div>
         <div class="research-metric research-time">
-          <span>实测出款耗时</span
-          ><strong>小额 {{ platform.smallMinutes }}m / 大额 {{ platform.largeMinutes }}m</strong>
-          <button class="research-inline" @click="emit('open', '上报异常', platform)">
-            样本 {{ platform.samples }} 笔 · 上报异常 <ChevronRight :size="12" />
-          </button>
+          <span>实测出款耗时</span>
+          <div class="research-timing-values">
+            <span
+              ><small>小额</small><b>{{ platform.smallMinutes }}m</b></span
+            ><span
+              ><small>大额</small><b>{{ platform.largeMinutes }}m</b></span
+            >
+          </div>
+          <small>样本 {{ platform.samples }} 笔</small>
         </div>
       </div>
-      <div class="research-rebate">
-        <Coins :size="23" />
-        <div>
-          <strong
-            >额外返水 <b>{{ rebate }}%</b></strong
-          >
-          <p>渠道佣金 {{ platform.commission }}% × 分成 {{ platform.playerShare }}%</p>
-        </div>
-        <button
-          class="research-bind"
-          :aria-label="`绑定${platform.name} UID`"
-          @click="emit('open', '绑定 UID', platform)"
-        >
-          绑定 UID
-        </button>
-      </div>
-      <div v-if="!warning" class="research-card-links">
-        <button @click="emit('open', '地址清单', platform)">地址清单</button><span>·</span
-        ><button @click="emit('open', '历史评测', platform)">历史评测</button><span>·</span
-        ><button @click="emit('open', '评分依据', platform)">
-          评分依据 <ChevronRight :size="12" />
-        </button>
-      </div>
-      <button class="research-source" @click="emit('open', '数据来源', platform)">
-        <span>{{ snapshot ?? researchSnapshot }}</span
-        ><span>数据来源 <ChevronRight :size="12" /></span>
-      </button>
     </template>
     <div v-else-if="comparable" class="research-metrics">
       <div class="research-metric">
-        <span>{{ periodLabel ?? window }} 真实存款</span>
+        <span>{{ periodLabel ?? window }} 存款额</span>
         <strong>{{ deposit.deposit }}</strong>
         <small :class="deltaClass">{{ deltaText }}</small>
         <small v-if="growth !== null">较前一个等长窗口</small>
@@ -163,319 +137,324 @@ const comparable = computed(() => props.platform.score === null && props.platfor
         <span>范围内占比</span><strong>{{ shareText }}</strong>
       </div>
     </div>
+    <div v-if="platform.score !== null || comparable" class="research-card-summary">
+      <span class="research-card-snapshot" :title="`数据快照：${snapshot ?? researchSnapshot}`"
+        ><Clock3 :size="12" aria-hidden="true" />{{ snapshot ?? researchSnapshot }}</span
+      >
+      <button
+        class="research-card-detail"
+        :aria-label="`查看${platform.name}完整详情`"
+        @click="emit('open', '详情', platform)"
+      >
+        查看详情<ChevronRight :size="13" aria-hidden="true" />
+      </button>
+    </div>
   </article>
 </template>
 
 <style scoped>
 .research-platform {
-  padding: 0 10px 5px;
-  border: 1px solid #fff;
-  border-radius: 18px;
-  background: #ffffffea;
-  box-shadow: 0 5px 16px #639cd615;
+  min-width: 0;
+  padding: 0 14px;
+  border: 1px solid var(--ae-line-strong);
+  border-radius: 20px;
+  background: var(--ae-surface);
+  box-shadow:
+    0 4px 16px #729ed80d,
+    inset 0 1px #fff;
   scroll-margin-top: 12px;
+  font-variant-numeric: tabular-nums;
 }
 button {
   border: 0;
   background: none;
+  font: inherit;
 }
 .research-platform__header {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 48px;
-  gap: 9px;
-  padding: 5px 1px;
+  min-height: 66px;
+  gap: 6px;
+  padding: 8px 0;
   text-align: left;
 }
-.research-account-name {
-  display: flex;
-  align-items: center;
-}
-.research-account-name > button:first-child {
-  font: inherit;
-  color: inherit;
-  padding: 0;
-  min-height: 44px;
-}
 .research-rank {
-  color: #526d97;
-  font-size: 14px;
-  width: 12px;
+  flex: 0 0 16px;
+  color: var(--ae-muted);
+  font-size: 12px;
+  text-align: center;
 }
 .research-avatar {
   display: grid;
   place-items: center;
-  height: 32px;
-  width: 32px;
-  flex-shrink: 0;
-  border-radius: 10px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #ffffffb3;
+  border-radius: 11px;
+  background: var(--ae-pill);
+  box-shadow: var(--ae-pill-shadow);
   color: white;
-  font-size: 23px;
-  font-weight: 600;
-  background: linear-gradient(145deg, #9dd9ff, #0878ff 65%, #5abaff);
-  border: 1px solid #d9eeff;
-  box-shadow:
-    inset 0 1px 3px #fff,
-    0 2px 5px #82b7ed40;
-}
-.research-avatar--B {
-  background: linear-gradient(140deg, #7ce5e7, #02a8bd 65%, #52dddc);
-}
-.research-avatar--C {
-  background: linear-gradient(140deg, #ccd7e4, #7c8da4);
-}
-h3 {
-  font-size: 16px;
+  font-size: 21px;
   font-weight: 650;
 }
-.research-score {
-  margin-left: auto;
+.research-avatar--B {
+  background: linear-gradient(145deg, #7ce5e7, #02a8bd);
+}
+.research-avatar--C {
+  background: linear-gradient(145deg, #ccd7e4, #7c8da4);
+}
+.research-platform__identity {
+  flex: 1;
+  min-width: 0;
+}
+.research-account-name {
   display: flex;
   align-items: center;
-  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+.research-account-name > button:first-child {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 44px;
+  max-width: calc(100% - 44px);
+  padding: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  color: var(--ae-text);
+  text-align: left;
+}
+.research-account-name :deep(.platform-account-link) {
+  flex: 0 0 44px;
+}
+.research-score {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 3px;
+  color: var(--ae-text);
+  white-space: nowrap;
+}
+.research-score strong {
   font-size: 18px;
+  font-weight: 700;
 }
 .research-score small {
-  font-size: 12px;
-  color: #6c88ae;
+  font-size: 11px;
+  color: var(--ae-muted);
 }
-.research-platform__header > svg {
-  color: #5c77a2;
-  margin-left: auto;
+.research-score > svg {
+  width: 16px;
+  height: 16px;
 }
-.research-score + svg {
-  margin-left: 1px;
+.research-detail-arrow {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  margin-right: -6px;
+  border-radius: 12px;
+  color: var(--ae-label);
+}
+.research-detail-arrow:active {
+  background: var(--ae-bg);
 }
 .research-warning {
   display: flex;
   align-items: center;
-  width: 100%;
-  min-height: 44px;
-  padding: 5px 8px;
-  background: linear-gradient(100deg, #fff1cd, #fff7e8);
+  gap: 7px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
   border-radius: 10px;
-  color: #9a5a00;
-  font-size: 12px;
-  font-weight: 600;
-  gap: 6px;
-  text-align: left;
+  background: #fff6e4;
+  color: var(--ae-warning);
+  font-size: 11px;
+  line-height: 1.5;
 }
-.research-warning > svg:last-child {
-  margin-left: auto;
+.research-warning > svg {
+  flex-shrink: 0;
 }
 .research-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: 1px solid #e9f1fa;
-}
-.research-warning + .research-metrics {
-  border-top: 0;
-  margin-top: 3px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--ae-line-strong);
 }
 .research-metric {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
   min-width: 0;
-  padding: 5px 9px;
+  padding: 12px 10px;
 }
 .research-metric:nth-child(odd) {
-  padding-left: 9px;
-  border-right: 1px solid #e9f1fa;
+  padding-left: 0;
+  border-right: 1px solid var(--ae-line-strong);
+}
+.research-metric:nth-child(even) {
+  padding-right: 0;
 }
 .research-metric:nth-child(n + 3) {
-  border-top: 1px solid #e9f1fa;
+  border-top: 1px solid var(--ae-line-strong);
 }
-.research-metric > span {
+.research-metric > span:first-child {
+  color: var(--ae-label);
   font-size: 12px;
-  line-height: 1.3;
+  line-height: 1.4;
 }
-.research-metric strong {
-  font-size: 23px;
-  line-height: 1.15;
-  letter-spacing: -0.5px;
+.research-metric > strong {
+  color: var(--ae-text);
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
 }
-.research-metric small {
-  font-size: 12px;
-  color: #526581;
+.research-metric > small {
+  color: var(--ae-muted);
+  font-size: 11px;
   line-height: 1.5;
 }
-.research-metric small b {
-  font-weight: 600;
-}
-.research-value {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-.research-value > span {
-  font-size: 12px;
+.research-metric > small b {
   font-weight: 600;
   white-space: nowrap;
 }
+.research-metric > small.research-positive,
 .research-positive {
-  color: #087f6b;
+  color: var(--ae-up);
 }
+.research-metric > small.research-negative,
 .research-negative {
-  color: #c4273d;
-}
-.research-metric.research-metric--wide {
-  grid-column: 1 / -1;
-  border-right: 0;
+  color: var(--ae-down);
 }
 .research-grade {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   align-self: flex-start;
   gap: 4px;
-  padding: 4px 7px;
-  min-height: 44px;
+  min-height: 28px;
+  padding: 3px 8px;
   border: 1px solid #c1ecdf;
-  border-radius: 14px;
-  color: #087f6b;
-  background: linear-gradient(100deg, #d3f4e9, #edfff7);
-  font-size: 13px;
+  border-radius: 9px;
+  color: var(--ae-up);
+  background: #e7f6f1;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
 .research-grade--warning {
-  background: #fff3db;
+  color: var(--ae-warning);
+  background: #fff6e4;
   border-color: #f4dfb5;
-  color: #9a5a00;
 }
-.research-time > strong {
-  font-size: 12px;
-  line-height: 28px;
-  letter-spacing: -0.3px;
-  font-weight: 600;
+.research-timing-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+}
+.research-timing-values > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
   white-space: nowrap;
 }
-.research-inline {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  min-height: 44px;
-  margin-top: 0;
-  padding: 0;
-  font-size: 12px;
-  color: #526581;
-  gap: 2px;
+.research-timing-values small {
+  color: var(--ae-muted);
+  font-size: 11px;
 }
-.research-rebate {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  background: linear-gradient(110deg, #e4f2ff, #f0f8ff);
-  padding: 7px 9px;
-  border-radius: 11px;
-}
-.research-rebate > svg {
-  color: #0874ff;
-  filter: drop-shadow(0 2px 2px #7abbff50);
-}
-.research-rebate strong {
+.research-timing-values b {
+  color: var(--ae-text);
   font-size: 12px;
   font-weight: 600;
 }
-.research-rebate b {
-  color: #0865ef;
-  font-size: 16px;
-}
-.research-rebate p {
-  font-size: 12px;
-  color: #547299;
-  margin-top: 3px;
-}
-.research-bind {
-  min-height: 44px;
-  padding: 0 13px;
-  margin-left: auto;
-  flex-shrink: 0;
-  border-radius: 22px;
-  border: 1px solid #c9e6ff;
-  color: white;
-  font-size: 12px;
-  background: linear-gradient(#92ceff, #1483ff 45%, #0769f5 70%, #67bdff);
-  box-shadow:
-    inset 0 1px 2px white,
-    0 2px 4px #87baf960;
-}
-.research-card-links {
+.research-card-summary {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  border-top: 1px solid var(--ae-line-strong);
+}
+.research-card-snapshot {
+  display: inline-flex;
   align-items: center;
   gap: 5px;
-  border-bottom: 1px solid #edf3fb;
-  color: #6a86ab;
+  min-width: 0;
+  color: var(--ae-muted);
+  font-size: 11px;
+  white-space: nowrap;
 }
-.research-card-links button {
-  display: flex;
+.research-card-snapshot > svg {
+  flex-shrink: 0;
+}
+.research-card-detail {
+  display: inline-flex;
   align-items: center;
-  padding: 0;
-  min-height: 44px;
-  font-size: 12px;
-  color: #57769f;
-}
-.research-source {
-  display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 4px;
-  align-items: center;
-  width: 100%;
+  min-width: 72px;
   min-height: 44px;
-  padding: 0 1px;
-  color: #526581;
+  padding: 0;
+  color: var(--ae-highlight);
   font-size: 12px;
-}
-.research-source > span:last-child {
-  display: flex;
-  align-items: center;
+  font-weight: 500;
+  white-space: nowrap;
 }
 .research-partial {
-  margin-left: auto;
-  border-radius: 12px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: #57769f;
-  background: #edf4fb;
+  flex-shrink: 0;
+  max-width: 106px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  color: var(--ae-muted);
+  background: var(--ae-bg);
+  font-size: 11px;
+  line-height: 1.5;
 }
-.research-platform--partial {
-  padding-bottom: 0;
+.research-metric.research-metric--wide {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-inline: 0;
+  border-right: 0;
 }
-.research-platform--partial .research-platform__header {
-  min-height: 44px;
-  gap: 7px;
-}
-.research-platform--partial .research-avatar {
-  width: 25px;
-  height: 28px;
-  font-size: 18px;
-  border-radius: 7px;
-}
-.research-platform--partial h3 {
-  font-size: 13px;
+.research-metric--wide > strong {
+  font-size: 17px;
 }
 @media (max-width: 374px) {
+  .research-platform {
+    padding-inline: 12px;
+  }
+  .research-platform__header {
+    gap: 4px;
+  }
+  .research-account-name {
+    font-size: 14px;
+  }
+  .research-score strong {
+    font-size: 17px;
+  }
+  .research-score small {
+    font-size: 10px;
+  }
   .research-metric {
-    padding-inline: 6px;
+    padding-inline: 8px;
   }
-  .research-metric strong {
-    font-size: 21px;
+  .research-metric > strong {
+    font-size: 22px;
   }
-  .research-value {
-    gap: 3px;
-  }
-  .research-time > strong {
-    font-size: 12px;
-  }
-  .research-rebate {
-    gap: 5px;
-    padding-inline: 6px;
-  }
-  .research-bind {
-    padding-inline: 10px;
+  .research-partial {
+    max-width: 94px;
   }
 }
 </style>

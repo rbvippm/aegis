@@ -1,3 +1,4 @@
+import type { AnalyticsQuery } from '@/features/monitoring/analytics-model'
 export type AnswerKind = 'sports' | 'funding' | 'clarify' | 'project'
 export type DetailPanel = 'analysis' | 'sources' | 'quotes' | 'funding' | 'risk' | 'limits'
 export interface ChatSource {
@@ -15,7 +16,17 @@ export interface ChatAnswer {
   sources: ChatSource[]
   followups: string[]
 }
+export interface AiSportsEntry {
+  source: 'sports'
+  fixture: string
+  market: string
+  selection: number
+  category?: string
+  operator?: string
+  revision?: number
+}
 export interface ChatMessage {
+  entry?: AiSportsEntry
   id: string
   question: string
   context: string
@@ -40,11 +51,38 @@ export type ProjectScenario =
   | 'agents'
   | 'tickets'
   | 'binding'
+  | 'analytics'
+  | 'activity'
+  | 'following'
+  | 'invitation'
+  | 'efficiency'
+  | 'recommendation'
 export interface ProjectSection {
   title: string
   text: string
 }
+export interface AiBusinessContext {
+  follows: string[]
+  platformUnread: number
+}
+export interface ProjectCommand {
+  label: string
+  kind: 'follow' | 'unfollow' | 'read-platform'
+  platform?: string
+}
+export interface ProjectRecommendation {
+  platform: string
+  name: string
+  badge: string
+  reason: string
+  facts: { label: string; value: string }[]
+  to: string
+}
 export interface ProjectReport {
+  query?: AnalyticsQuery
+  sports?: AiSportsEntry
+  recommendationGoal?: 'rating' | 'deposits'
+  recommendations?: ProjectRecommendation[]
   scenario: ProjectScenario
   title: string
   scope: string
@@ -54,5 +92,6 @@ export interface ProjectReport {
   plan: string[]
   caveat: string
   actions: { label: string; to: string }[]
+  commands?: ProjectCommand[]
   details: ProjectSection[]
 }

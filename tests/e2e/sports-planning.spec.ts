@@ -137,8 +137,12 @@ test('可搜索平台、平台类型、排序、欧盘与空状态', async ({ pa
   await d.getByRole('button', { name: /查看.*场/ }).click()
   await page.getByRole('button', { name: '玩法与赔率设置 · 港盘 HK', exact: true }).click()
   await d.getByRole('button', { name: /欧盘 DEC/ }).click()
-  await d.getByRole('button', { name: /筛选空结果/ }).click()
+  await expect(d.getByText('数据场景', { exact: true })).toHaveCount(0)
   await d.getByRole('button', { name: '完成设置' }).click()
+  await expect(d).not.toBeVisible()
+  await page
+    .getByRole('combobox', { name: '搜索球队或联赛', exact: true })
+    .fill('不存在的测试球队xyz')
   await expect(page.getByText('暂无匹配赛事', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '重置筛选', exact: true }).click()
   await expect(page.locator('.pw-fixture')).toHaveCount(6)

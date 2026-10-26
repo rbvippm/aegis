@@ -7,7 +7,6 @@ export interface AnalyticsPlatform {
   id: string
   name: string
   category: 'crypto' | 'cases'
-  region: 'asia' | 'europe' | null
   complete: boolean
 }
 export interface LedgerTransfer {

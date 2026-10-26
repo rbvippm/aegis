@@ -4,7 +4,7 @@ for (const route of ['monitor', 'compare']) {
   test(`${route} 抽屉上拉最高、慢拉半收起、快拉与长拉关闭`, async ({ page }) => {
     await page.goto(`/${route}`)
     const trigger = page.getByRole('button', {
-      name: route === 'monitor' ? '筛选平台' : '识别',
+      name: route === 'monitor' ? '平台 A全部细项' : '识别',
       exact: true,
     })
     await trigger.click()
@@ -103,7 +103,7 @@ for (const width of [360, 390, 430]) {
           fullPage: true,
         })
       await page
-        .getByRole('button', { name: route === 'monitor' ? '筛选平台' : '识别', exact: true })
+        .getByRole('button', { name: route === 'monitor' ? '平台 A全部细项' : '识别', exact: true })
         .click()
       const drawer = page.getByRole('dialog')
       await expect(drawer).toBeVisible()

@@ -15,7 +15,7 @@ const props = withDefaults(
     unit?: 'money' | 'count' | 'percent'
   }>(),
   {
-    title: '真实链上存款',
+    title: '链上存款',
     label: (key: string) => key,
     percent: false,
     balance: false,
@@ -216,11 +216,7 @@ function selectPoint(event: PointerEvent) {
           </text>
         </g>
         <line x1="12" x2="278" :y1="y(0)" :y2="y(0)" stroke="#9eb6cf" />
-        <g
-          v-for="{ row, index: r } in painted"
-          :key="row.key"
-          :opacity="selected === r ? 1 : 0.2"
-        >
+        <g v-for="{ row, index: r } in painted" :key="row.key" :opacity="selected === r ? 1 : 0.2">
           <path
             v-if="kind === 'line'"
             :d="path(row.values)"

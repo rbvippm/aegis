@@ -60,7 +60,10 @@ describe('项目 AI mock 场景', () => {
     const answer = mockProjectAnswer('monitor', '平台 B 热钱包')
     expect(answer.summary).toContain('8 分钟')
     expect(answer.project?.details[0]?.text).toContain('另一组条件')
-    expect(answer.project?.table?.rows[2]?.[1]).toBe('样本不足')
+    expect(answer.project?.table?.rows.map((row) => row[0])).toEqual(['平台 B'])
+    expect(mockProjectAnswer('monitor', '平台 C 热钱包').project?.table?.rows[0]?.[1]).toBe(
+      '样本不足',
+    )
   })
   it('模板与资格流程不虚构真实提交或授权', () => {
     expect(mockProjectAnswer('tickets', '工单').project?.plan.join()).toContain('不代为提交')

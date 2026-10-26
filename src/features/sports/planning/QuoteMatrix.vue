@@ -140,8 +140,9 @@ onBeforeUnmount(clearChanges)
       </tbody>
     </table>
   </div>
-  <button v-if="market.quotes.length > 5 && !full" class="sp-expand" @click="expanded = !expanded">
-    {{ expanded ? '收起平台' : `展开其余平台（${market.quotes.length - 5}）`
-    }}<ChevronDown :size="14" :class="{ 'sp-rotate': expanded }" />
+  <button v-if="market.quotes.length > 5 && !full" class="sp-expand pw-platform-expand" :aria-expanded="expanded" @click="expanded = !expanded">
+    <span>{{ expanded ? '收起平台' : '展开其余平台' }}</span>
+    <span class="pw-platform-expand__count">{{ expanded ? market.quotes.length : market.quotes.length - 5 }}</span>
+    <ChevronDown :size="16" :class="{ 'sp-rotate': expanded }" />
   </button>
 </template>

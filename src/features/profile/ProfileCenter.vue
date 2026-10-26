@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { appInfo } from '@/shared/app-info'
+import { usePlatformFollows } from '@/features/monitoring/follows'
+import PlatformFollowButton from '@/features/monitoring/PlatformFollowButton.vue'
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -67,7 +70,7 @@ const ticketFilter = ref('all')
 const messageFilter = ref('all')
 const followsTab = ref('sports')
 const followedIds = ref<string[]>([])
-const followedPlatforms = ref<string[]>([])
+const platformFollows = usePlatformFollows()
 const followedMatches = computed(() =>
   dataMode === 'demo' ? sportsMatches.filter((item) => followedIds.value.includes(item.id)) : [],
 )
@@ -153,7 +156,8 @@ function showNotice(id: string) {
   const notice = profile.notices.find((item) => item.id === id)
   if (!notice) return
   notice.read = true
-  if (notice.target.startsWith('/compare?')) void router.push(notice.target)
+  if (notice.target.startsWith('/compare?') || notice.target.startsWith('/monitor?'))
+    void router.push(notice.target)
   else if (notice.target) void navigate(notice.target)
   else open('about')
 }
@@ -165,6 +169,7 @@ watch(
   () => route.fullPath,
   () => {
     panel.value = null
+    followsTab.value = route.query.tab === 'platforms' ? 'platforms' : 'sports'
     earningsTab.value = route.query.tab === 'records' ? 'records' : 'bindings'
     readFollowed()
     const requestedPanel = String(route.query.panel ?? '')
@@ -181,7 +186,8 @@ watch(
         open('binding', platform.id)
       }
     }
-    if (['help', 'feedback', 'about'].includes(requestedPanel)) open(requestedPanel as ProfilePanel)
+    if (['help', 'feedback', 'about', 'invite'].includes(requestedPanel))
+      open(requestedPanel as ProfilePanel)
   },
   { immediate: true },
 )
@@ -238,10 +244,10 @@ watch(
                 {{ profile.previewIdentity ? profile.nickname : '游客' }}</button
               ><RouterLink
                 class="pf-subscription-link"
-                to="/me?section=subscription"
+                :to="{ path: '/me', query: { section: 'subscription', level: profile.subscriptionLevel ?? undefined } }"
                 aria-label="订阅与特权"
                 ><span class="pf-badge pf-subscription-badge"
-                  >{{ profile.previewIdentity ? '普通用户' : '未登录'
+                  >{{ profile.previewIdentity ? (profile.subscriptionPlan?.id ?? '未订阅') : '未登录'
                   }}<ChevronRight :size="11" /></span></RouterLink></span
             ><span class="pf-user-id">{{
               profile.previewIdentity ? 'ID: AE00128' : '登录后查看个人记录'
@@ -329,9 +335,9 @@ watch(
           <button @click="open('settings')">
             <span><ShieldCheck :size="22" /></span>账户与隐私
           </button>
-          <button @click="open('help')">
-            <span><Headphones :size="22" /></span>帮助与客服
-          </button>
+          <a href="https://www.google.com/" target="_blank" rel="noopener noreferrer">
+            <span><Headphones :size="22" /></span>联系客服
+          </a>
         </div>
         <div class="pf-menu pf-menu--utility">
           <button @click="open('feedback')">
@@ -342,7 +348,7 @@ watch(
             ><ChevronRight :size="14" />
           </button>
         </div>
-        <p class="pf-version">version：v1.0.0</p>
+        <p class="pf-version">version：v{{ appInfo.version }}</p>
       </template>
       <StatePanel
         v-else-if="dataMode !== 'demo'"
@@ -662,20 +668,20 @@ watch(
           </section>
           <RouterLink class="pf-primary pf-wide" to="/compare">去体育对比页</RouterLink></template
         ><template v-else
-          ><p class="pf-helper">关注的平台会出现在这里。</p>
-          <article v-for="item in profile.bindings" :key="item.id" class="pf-card pf-platform-top">
+          ><p class="pf-helper">
+            已关注 {{ platformFollows.followed.length }} 家平台，异常动态进入消息中心。
+          </p>
+          <p v-if="!platformFollows.followed.length" class="pf-helper">
+            暂无关注平台，可在监测页面添加。
+          </p>
+          <article
+            v-for="item in platformFollows.followed"
+            :key="item.id"
+            class="pf-card pf-platform-top"
+          >
             <span class="pf-letter" :class="`pf-letter--${item.id}`">{{ item.id }}</span>
             <h3>{{ item.name }}<PlatformAccountLink :platform="item.id" :name="item.name" /></h3>
-            <button
-              class="pf-small-button"
-              @click="
-                followedPlatforms = followedPlatforms.includes(item.id)
-                  ? followedPlatforms.filter((id) => id !== item.id)
-                  : [...followedPlatforms, item.id]
-              "
-            >
-              {{ followedPlatforms.includes(item.id) ? '取消关注' : '关注平台' }}
-            </button>
+            <PlatformFollowButton :id="item.id" :name="item.name" />
           </article>
           <RouterLink class="pf-text-button" to="/monitor"
             >打开平台监测<ChevronRight :size="16" /></RouterLink></template

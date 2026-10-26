@@ -13,6 +13,7 @@ import {
   Info,
   Bell,
 } from '@lucide/vue'
+import { planningScopeError, scopedPlanningMarket } from './ai-scope'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import SportsSheet from '../SportsSheet.vue'
@@ -65,6 +66,8 @@ onBeforeUnmount(() => document.removeEventListener('pointerdown', outsideSearch)
 const route = useRoute(),
   router = useRouter(),
   tracking = useSportsTracking()
+const routeScopeError = ref('')
+const contextSelection = ref(0)
 const view = ref('odds'),
   sport = ref('basketball'),
   category = ref<Category>('all'),
@@ -79,12 +82,6 @@ const formats = [
   { id: 'ID' as const, label: '印尼盘 ID', description: '正负赔率' },
   { id: 'DEC' as const, label: '欧盘 DEC', description: '十进制 · 含本金的总返还倍数' },
 ]
-const scenarios = [
-  { id: 'normal', name: '完整数据', detail: '展示当前范围内的有效报价' },
-  { id: 'locked', name: '锁盘较多', detail: '部分盘口显示为锁盘' },
-  { id: 'partial', name: '部分缺失', detail: '个别选项暂无价格' },
-  { id: 'empty', name: '筛选空结果', detail: '当前条件不返回赛事' },
-] as const
 const format = ref<OddsFormat>('HK'),
   enabled = ref<Family[]>(Object.keys(familyNames) as Family[]),
   formatName = computed(() => formats.find((f) => f.id === format.value)?.label ?? '港盘 HK')
@@ -103,7 +100,6 @@ const followed = ref<string[]>([]),
   visibleCount = ref(6),
   opportunityCount = ref(6),
   catalogGroup = ref('all'),
-  scenario = ref('normal'),
   snapshot = ref(0)
 const operators = computed(() =>
   planningOperators.filter(
@@ -127,33 +123,45 @@ const searchResults = computed(() => {
         .slice(0, 10)
     : []
 })
-function filteredMarket(m: Market): Market {
+function aiEntry() {
+  const index =
+    selectedQuote.value && activeMarket.value.quotes.includes(selectedQuote.value.quote)
+      ? selectedQuote.value.index
+      : contextSelection.value
   return {
-    ...m,
-    quotes: m.quotes
-      .filter((q) => operators.value.some((p) => p.id === q.operator))
-      .map((q, i) => {
-        const clone = { ...q, prices: [...q.prices], before: [...q.before] }
-        if (scenario.value === 'locked' && i < 3) clone.status = 'suspended'
-        if (scenario.value === 'partial' && i % 3 === 0)
-          clone.prices[clone.prices.length - 1] = null
-        if (snapshot.value % 2)
-          clone.prices = clone.prices.map((p, j) =>
-            p == null ? null : Number((p + ((i + j) % 2 ? 0.02 : -0.02)).toFixed(2)),
-          )
-        return clone
-      })
-      .sort((a, b) =>
-        sort.value === 'operator'
-          ? planningOperators
-              .find((p) => p.id === a.operator)!
-              .name.localeCompare(planningOperators.find((p) => p.id === b.operator)!.name)
-          : 0,
-      ),
+    path: '/ai',
+    query: {
+      analyze: '1',
+      source: 'sports',
+      fixture: active.value.id,
+      market: activeMarket.value.id,
+      selection: String(index),
+      category: category.value,
+      operator: operator.value,
+      revision: String(snapshot.value),
+      q: `解读${active.value.home}对${active.value.away}的${activeMarket.value.label}，请比较${activeMarket.value.scope}、${activeMarket.value.line}、${activeMarket.value.selections[index]}的同盘口有效报价，并解释推荐理由和待核对项。`,
+    },
+  }
+}
+function filteredMarket(m: Market): Market {
+  const scoped = scopedPlanningMarket(m, {
+    category: category.value,
+    operator: operator.value,
+    revision: snapshot.value,
+  })
+  return {
+    ...scoped,
+    quotes: scoped.quotes.sort((a, b) =>
+      sort.value === 'operator'
+        ? planningOperators
+            .find((p) => p.id === a.operator)!
+            .name.localeCompare(planningOperators.find((p) => p.id === b.operator)!.name)
+        : 0,
+    ),
   }
 }
 const fixtures = computed(() =>
-  scenario.value === 'empty'
+  routeScopeError.value
     ? []
     : planningMatches
         .filter(
@@ -234,11 +242,13 @@ function open(kind: string, f?: Fixture, m?: Market) {
   panel.value = kind
 }
 function tool(kind: string, f: Fixture, m: Market) {
+  contextSelection.value = 0
   if (kind === '完整比价') compared.value = { ...compared.value, [f.id]: m.id }
   selectedQuote.value = undefined
   open(kind, f, m)
 }
 function quote(f: Fixture, m: Market, q: Quote, index: number) {
+  contextSelection.value = index
   selectedQuote.value = { quote: q, index }
   open('报价详情', f, m)
 }
@@ -301,6 +311,7 @@ function addSlips(ids: string[]) {
   panel.value = '完整比价'
 }
 function reset() {
+  routeScopeError.value = ''
   sport.value = 'basketball'
   category.value = 'all'
   league.value = ''
@@ -309,20 +320,23 @@ function reset() {
   date.value = ''
   search.value = ''
   focusedFixture.value = ''
-  scenario.value = 'normal'
 }
 async function close() {
   panel.value = ''
   if (route.query.panel)
     await router.replace({ path: '/compare', query: { ...route.query, panel: undefined } })
 }
-watch([sport, league, status, date, category, operator, search, sort, scenario], () => {
+watch([sport, league, status, date, category, operator, search, sort], () => {
   visibleCount.value = 6
   opportunityCount.value = 6
 })
-watch(category, () => {
-  operator.value = ''
-})
+watch(
+  category,
+  () => {
+    operator.value = ''
+  },
+  { flush: 'sync' },
+)
 onMounted(() => {
   try {
     const value = localStorage.getItem('aegis-sports-format')
@@ -339,16 +353,65 @@ onMounted(() => {
 watch(
   () => route.fullPath,
   () => {
+    routeScopeError.value = ''
+    const scopeKeys = ['category', 'operator', 'revision']
+    const hasScope = scopeKeys.some((key) => route.query[key] !== undefined)
+    if (hasScope) {
+      if (
+        scopeKeys.some(
+          (key) => route.query[key] !== undefined && typeof route.query[key] !== 'string',
+        )
+      ) {
+        routeScopeError.value = '报价范围参数无效，请重新选择筛选条件。'
+        panel.value = ''
+        return
+      }
+      const revision = route.query.revision
+      const nextScope = {
+        category: typeof route.query.category === 'string' ? route.query.category : 'all',
+        operator:
+          typeof route.query.operator === 'string'
+            ? route.query.operator
+            : typeof route.query.platform === 'string'
+              ? route.query.platform
+              : '',
+        revision:
+          revision === undefined
+            ? 0
+            : typeof revision === 'string' && /^\d+$/.test(revision)
+              ? Number(revision)
+              : NaN,
+      }
+      routeScopeError.value = planningScopeError(nextScope)
+      if (routeScopeError.value) {
+        panel.value = ''
+        return
+      }
+      // The synchronous category watcher clears the old operator before this desired one is applied.
+      category.value = nextScope.category as Category
+      operator.value = nextScope.operator
+      snapshot.value = nextScope.revision
+    }
     if (['odds', 'arbitrage', 'ranking'].includes(String(route.query.view)))
       view.value = String(route.query.view)
     const f = planningMatches.find((f) => f.id === route.query.match)
-    const m = f?.markets.find((m) => m.id === route.query.market) ?? f?.markets[0]
+    const baseMarket = f?.markets.find((m) => m.id === route.query.market) ?? f?.markets[0]
+    const m = baseMarket ? filteredMarket(baseMarket) : undefined
+    const requestedSelection =
+      typeof route.query.selection === 'string' && /^\d+$/.test(route.query.selection)
+        ? Number(route.query.selection)
+        : 0
+    contextSelection.value =
+      m && Number.isSafeInteger(requestedSelection) && requestedSelection < m.selections.length
+        ? requestedSelection
+        : 0
+    selectedQuote.value = undefined
     if (f) {
       active.value = f
       sport.value = f.sport
       if (m) activeMarket.value = m
     }
-    const op = String(route.query.platform ?? '')
+    const op = String(route.query.operator ?? route.query.platform ?? '')
     if (planningOperators.some((p) => p.id === op)) operator.value = op
     const name = String(route.query.panel ?? '')
     if (name === 'reminders') panel.value = '提醒中心'
@@ -358,7 +421,7 @@ watch(
     else if (name === 'quote' && f && m) {
       const q = m.quotes.find((q) => q.operator === op)
       if (q) {
-        selectedQuote.value = { quote: q, index: 0 }
+        selectedQuote.value = { quote: q, index: contextSelection.value }
         panel.value = '报价详情'
       }
     }
@@ -399,6 +462,7 @@ const faqs = [
 <template>
   <div class="sports-page pw-workspace">
     <h1 class="sr-only">体育对比</h1>
+    <StatePanel v-if="routeScopeError" title="报价范围无法还原" :description="routeScopeError" />
     <div class="sp-compare-toolbar">
       <div class="sp-page-tabs ae-glass">
         <button
@@ -584,7 +648,7 @@ const faqs = [
       <template v-if="view === 'odds'">
         <FixtureCard
           v-for="f in fixtures.slice(0, visibleCount)"
-          :key="`${f.id}-${scenario}`"
+          :key="f.id"
           :fixture="f"
           :format="format"
           :enabled="enabled"
@@ -710,21 +774,6 @@ const faqs = [
                 :disabled="enabled.length === 1 && enabled.includes(id)"
             /></label>
           </div>
-          <h3>数据场景</h3>
-          <div class="pw-scenarios" aria-label="数据场景">
-            <button
-              v-for="item in scenarios"
-              :key="item.id"
-              type="button"
-              class="pw-scenario"
-              :aria-pressed="scenario === item.id"
-              :class="{ selected: scenario === item.id }"
-              @click="scenario = item.id"
-            >
-              <strong>{{ item.name }}</strong>
-              <small>{{ item.detail }}</small>
-            </button>
-          </div>
           <button class="sp-primary sp-full" @click="close">完成设置</button></template
         >
         <template v-else-if="panel === '体育项目'">
@@ -819,15 +868,7 @@ const faqs = [
           </div>
           <button class="sp-primary sp-full" @click="plan">保留所选报价并试算</button
           ><button class="sp-sheet-link" @click="open('玩法规则')">查看结算规则 →</button
-          ><RouterLink
-            class="sp-sheet-link"
-            :to="{
-              path: '/ai',
-              query: {
-                analyze: '1',
-                q: `${active.home}对${active.away}怎么看？请分析${activeMarket.scope}，${activeMarket.line}`,
-              },
-            }"
+          ><RouterLink class="sp-sheet-link" :to="aiEntry()"
             >让 AI 解读当前数据 →</RouterLink
           ></template
         >
@@ -837,15 +878,7 @@ const faqs = [
           <p class="pw-muted">
             {{ activeMarket.scope }} · {{ activeMarket.selections.join(' / ') }}
           </p>
-          <RouterLink
-            class="sp-sheet-link"
-            :to="{
-              path: '/ai',
-              query: {
-                analyze: '1',
-                q: `${active.home}对${active.away}怎么看？请分析${activeMarket.scope}，${activeMarket.line}`,
-              },
-            }"
+          <RouterLink class="sp-sheet-link" :to="aiEntry()"
             >让 AI 解读当前数据</RouterLink
           ></template
         >

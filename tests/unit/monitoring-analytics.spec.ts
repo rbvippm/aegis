@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 import {
   change,
@@ -186,4 +187,37 @@ it('监测样本包含各链的USDT活动，资产余额可对账且不发生样
     )
     .reduce((s, t) => s + (t.direction === 'deposit' ? t.usd : -t.usd), 0)
   expect(actual).toBe(start + net)
+})
+
+it('公开地址样本匹配公链格式，TRON校验和正确且账本只使用已披露地址', async () => {
+  const { monitoringAddressExamples } = await import('@/mocks/monitoring-addresses')
+  const { analyticsLedger } = await import('@/mocks/monitoring-analytics')
+  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+  const decode = (address: string) => {
+    let value = 0n
+    for (const char of address) value = value * 58n + BigInt(alphabet.indexOf(char))
+    const hex = value.toString(16).padStart(2, '0')
+    return Buffer.from(hex.length % 2 ? `0${hex}` : hex, 'hex')
+  }
+  for (const [chain, example] of Object.entries(monitoringAddressExamples)) {
+    expect(new Set(example.addresses).size).toBe(example.addresses.length)
+    for (const address of example.addresses) {
+      if (chain === 'TRON') {
+        expect(address).toMatch(/^T[1-9A-HJ-NP-Za-km-z]{33}$/)
+        const bytes = decode(address)
+        expect(bytes.length).toBe(25)
+        expect(bytes[0]).toBe(0x41)
+        const sha = (input: Uint8Array) => createHash('sha256').update(input).digest()
+        expect(bytes.subarray(21)).toEqual(sha(sha(bytes.subarray(0, 21))).subarray(0, 4))
+      } else if (chain === 'SOL') {
+        expect(address).toMatch(/^[1-9A-HJ-NP-Za-km-z]+$/)
+        expect(decode(address).length).toBe(32)
+      } else expect(address).toMatch(/^0x[0-9a-f]{40}$/)
+    }
+    expect(
+      analyticsLedger
+        .filter((t) => t.chain === chain)
+        .every((t) => example.addresses.includes(t.wallet)),
+    ).toBe(true)
+  }
 })

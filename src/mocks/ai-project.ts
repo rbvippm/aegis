@@ -1,9 +1,15 @@
-import type { ChatAnswer, ProjectReport, ProjectScenario } from '@/features/ai/conversation-types'
+import { recommendationAnswer, monitorReportAnswer } from './ai-recommendations'
+import { capabilityAnswer, resolveCapability } from './ai-business'
+import type {
+  AiBusinessContext,
+  ChatAnswer,
+  ProjectReport,
+  ProjectScenario,
+} from '@/features/ai/conversation-types'
 import { sportsMatches, sportsMovements } from './sports'
-import { researchPlatforms, researchSnapshot } from './monitoring-research'
 import { vipOffers, agentPolicies, serviceSnapshot } from './services'
 import { formatOdds, bestPrice } from '@/features/sports/logic'
-import { findOpportunities, walletSummary } from '@/features/home/overview'
+import { findOpportunities } from '@/features/home/overview'
 
 export function resolveProjectScenario(text: string): ProjectScenario | undefined {
   // Keep the separate Villa/City fixture in its own existing answer contract.
@@ -18,6 +24,14 @@ export function resolveProjectScenario(text: string): ProjectScenario | undefine
     !/维拉|曼城/.test(text)
   )
     return
+  if (
+    /推荐|优先了解|候选|怎么选|选哪家/.test(text) &&
+    /平台|盾牌|资金活跃/.test(text) &&
+    !/赔率|报价|VIP|代理|套餐/.test(text)
+  )
+    return 'recommendation'
+  const capability = resolveCapability(text)
+  if (capability) return capability
   if (/整理.*(材料|事实)|工单|维权|卡款|申诉/.test(text)) return 'tickets'
   if (/UID|奖励资格|绑定|返水资格/i.test(text)) return 'binding'
   if (/代理|佣金|场馆费|锁佣|扣费|团队/.test(text)) return 'agents'
@@ -39,10 +53,20 @@ const followups: Record<ProjectScenario, string[]> = {
   odds: ['为什么过期报价不能参与排名？', '查看平台综合评级'],
   arbitrage: ['试算费用和限额应该怎么核对？', '查看当前滚球变化'],
   movements: ['这些变化能说明什么？', '比较同盘口报价'],
-  monitor: ['平台 B 的热钱包异动怎么看？', '如何核对平台UID、奖励资格和出金记录？'],
+  monitor: [
+    '这些平台应该先核对哪些风险？',
+    '按盾牌分推荐值得优先了解的平台',
+    '查看这些平台近7天资金表现',
+  ],
+  recommendation: ['为什么这些平台排在前面？', '改按资金活跃度推荐', '查看候选平台近30天资金表现'],
   vip: ['对比两家 VIP 的流水和封顶', '应该如何选择 VIP 方案？'],
   agents: ['按净收益 10000U 试算佣金', '代理合作如何核对锁佣条款？'],
   tickets: ['帮我列一份工单材料清单', '整理一份出金进度咨询模板'],
+  analytics: ['比较平台 A 与平台 B 近30天资金表现', '查看我关注平台的近7天异常动态'],
+  activity: ['帮我关注平台 A，接收异常消息', 'S级纯净度和盾牌分有什么区别？'],
+  following: ['查看我关注平台的近7天异常动态', '帮我把平台异常消息标为已读'],
+  invitation: ['邀请链接和邀请码有什么区别？', '帮我邀请好友，并分享到 Telegram'],
+  efficiency: ['S级纯净度和盾牌分有什么区别？', '比较平台 A 与平台 B 近30天资金表现'],
   binding: ['为什么绑定 UID 不等于奖励开通？', '帮我整理出金进度咨询的事实和材料，不要自动提交'],
 }
 export function projectFollowup(text: string, previous?: ChatAnswer): ProjectScenario | undefined {
@@ -50,7 +74,15 @@ export function projectFollowup(text: string, previous?: ChatAnswer): ProjectSce
     ? (resolveProjectScenario(text) ?? previous.project.scenario)
     : undefined
 }
-export function mockProjectAnswer(scenario: ProjectScenario, text: string): ChatAnswer {
+export function mockProjectAnswer(
+  scenario: ProjectScenario,
+  text: string,
+  context?: AiBusinessContext,
+): ChatAnswer {
+  if (scenario === 'recommendation') return recommendationAnswer(text, context)
+  if (scenario === 'monitor') return monitorReportAnswer(text)
+  const capability = capabilityAnswer(scenario, text, context)
+  if (capability) return { ...capability, followups: [...followups[scenario]] }
   const event =
     sportsMatches.find((m) => text.includes(m.home) || text.includes(m.away)) ??
     sportsMatches.find((m) => m.id === 'harbor-mountain')!
@@ -62,9 +94,6 @@ export function mockProjectAnswer(scenario: ProjectScenario, text: string): Chat
   const side = /客队|客胜|小球|小分/.test(text) ? ('away' as const) : ('home' as const)
   const selection = market.selections[side === 'home' ? 0 : 1]
   const sportLabel = event.sport === 'football' ? '足球' : '篮球'
-  const a = researchPlatforms[0]!,
-    b = researchPlatforms[1]!
-  const knownWallet = walletSummary(researchPlatforms)
   const defaultReport: ProjectReport = {
     scenario,
     title: '数据解读',
@@ -221,53 +250,6 @@ export function mockProjectAnswer(scenario: ProjectScenario, text: string): Chat
       {
         title: '记录范围',
         text: '三条变动均来自项目篮球赛事固定记录，不代表当前真实市场或连续盘口曲线。',
-      },
-    ]
-  } else if (scenario === 'monitor') {
-    snapshot = researchSnapshot
-    r.title = '平台出入金与风险解读'
-    r.scope = 'USDT · 平台 A / B / C · 小额 <1,000U / 大额 >10,000U'
-    r.takeaway = `已知样本中平台 A 小额平均出款 ${a.smallMinutes} 分钟，平台 B ${b.smallMinutes} 分钟。平台 B 同时有热钱包净流出28%的观察信号；到账速度、资金纯净度与储备保障需分别判断。`
-    r.reasons = [
-      {
-        title: '耗时和评分分开',
-        text: `平台 A 盾牌分 ${a.score}，S级、污染占比 ${a.taint}%；平台 B ${b.score}，B级、污染占比 ${b.taint}%。评分为固定样例，不能仅由出款分钟数推断。`,
-      },
-      {
-        title: '异动需要解释去向',
-        text: `平台 B 余额 ${b.wallet}、24h 净流出6.0M，约占当前余额28%。不把资金流出直接解释为违约或无法提款。`,
-      },
-      {
-        title: '缺失值不当作零',
-        text: `平台 C 仅8笔样本且余额未知，不参与耗时和评分排序。已知热钱包汇总 ${knownWallet.amount}，覆盖2/3家。`,
-      },
-    ]
-    r.table = {
-      title: '出款与资金观察',
-      columns: ['平台', '小额 / 大额平均', '样本 / 纯净度'],
-      rows: researchPlatforms.map((p) => [
-        p.name,
-        p.smallMinutes === null ? '样本不足' : `${p.smallMinutes} / ${p.largeMinutes} min`,
-        `${p.samples}笔 / ${p.grade ?? '待检测'}`,
-      ]),
-    }
-    r.plan = [
-      '优先查看与自身链、资产和金额档一致的样本；当前样例未给按链分组均值，不套用到某一条链。',
-      '平台 B 先核查地址归属、资金去向和出款状态，再决定是否继续观察。',
-      '大额记录在监测页有独立平均值，但样本未按金额拆分，不声称大额样本充足或预测必定到账。',
-    ]
-    r.actions = [
-      { label: '查看平台 A 完整体检', to: '/monitor?platform=A' },
-      { label: '查看平台 B 钱包异动', to: '/monitor?platform=B&panel=flow' },
-    ]
-    r.details = [
-      {
-        title: '平均与中位数',
-        text: '本分析复用监测页平均出款3/8分钟；AI欢迎页TRON小额样例的中位数3m24s/5m08s属于另一组条件，不混合排序。',
-      },
-      {
-        title: '综合分口径',
-        text: '储备充足率40%、纯净度30%、客诉解决率30%。缺负债、工单或标记地址数据时不能据余额计算真实储备或评分。',
       },
     ]
   } else if (scenario === 'vip') {

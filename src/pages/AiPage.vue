@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ArrowUpRight,
   BookOpen,
   ChartNoAxesColumn,
   ChevronRight,
+  RefreshCw,
   Copy,
   Database,
   History,
@@ -14,6 +15,7 @@ import {
   Send,
   Square,
   SquarePen,
+  Sparkles,
   Trash2,
   X,
 } from '@lucide/vue'
@@ -25,12 +27,50 @@ import SportIcon from '@/features/sports/SportIcon.vue'
 import ConversationAnswer from '@/features/ai/ConversationAnswer.vue'
 import ConversationDetails from '@/features/ai/ConversationDetails.vue'
 import { useConversation } from '@/features/ai/conversation-store'
-import type { ChatMessage, DetailPanel } from '@/features/ai/conversation-types'
+import type { AiSportsEntry, ChatMessage, DetailPanel } from '@/features/ai/conversation-types'
 import { resolveProjectScenario } from '@/mocks/ai-project'
+import { planningSuggestions } from '@/mocks/ai-planning'
+import { aiCapabilityPrompts } from '@/mocks/ai-capabilities'
 import { aiSuggestions } from '@/mocks/ai-conversation'
 import { dataMode } from '@/shared/api/config'
 
 const chat = useConversation()
+const demoPrompts = computed<{ text: string; entry?: AiSportsEntry }[]>(() => {
+  const prompts = [
+    ...aiSuggestions.map((item) => ({ text: item.text })),
+    ...planningSuggestions,
+    ...aiCapabilityPrompts,
+  ]
+  return prompts.filter((item, index) => prompts.findIndex((p) => p.text === item.text) === index)
+})
+const questionPage = ref(0)
+const shortWelcome = ref(false)
+const questionsPerPage = computed(() => (shortWelcome.value ? 2 : 3))
+const questionPages = computed(() =>
+  Math.max(1, Math.ceil(demoPrompts.value.length / questionsPerPage.value)),
+)
+const visiblePrompts = computed(() =>
+  demoPrompts.value.slice(
+    questionPage.value * questionsPerPage.value,
+    (questionPage.value + 1) * questionsPerPage.value,
+  ),
+)
+watch(questionsPerPage, () => {
+  questionPage.value = 0
+})
+function changeQuestionPage(delta: number) {
+  questionPage.value = (questionPage.value + delta + questionPages.value) % questionPages.value
+}
+let welcomeMedia: MediaQueryList | undefined
+function updateWelcomeDensity() {
+  shortWelcome.value = welcomeMedia?.matches ?? false
+}
+onMounted(() => {
+  welcomeMedia = matchMedia('(max-height: 700px)')
+  updateWelcomeDensity()
+  welcomeMedia.addEventListener('change', updateWelcomeDensity)
+})
+onBeforeUnmount(() => welcomeMedia?.removeEventListener('change', updateWelcomeDensity))
 const route = useRoute()
 const router = useRouter()
 const draft = ref('')
@@ -60,9 +100,9 @@ function scrollLatest() {
   const element = thread.value?.querySelector<HTMLElement>('.ac-message:last-child')
   if (thread.value && element) thread.value.scrollTop = element.offsetTop - 10
 }
-async function send(question = draft.value) {
+async function send(question = draft.value, entry?: AiSportsEntry) {
   if (!question.trim() || composing.value || chat.busy) return
-  const pending = chat.send(question, context.value)
+  const pending = chat.send(question, context.value, entry)
   const conversationId = chat.activeId
   draft.value = ''
   context.value = ''
@@ -95,6 +135,7 @@ function keydown(event: KeyboardEvent) {
   void send()
 }
 async function newChat() {
+  questionPage.value = 0
   chat.newConversation()
   draft.value = ''
   context.value = ''
@@ -142,17 +183,44 @@ function pickTool(kind: string) {
   else void send(aiSuggestions[0].text)
 }
 watch(
-  () => [route.query.q, route.query.analyze] as const,
+  () =>
+    [
+      route.query.q,
+      route.query.analyze,
+      route.query.fixture,
+      route.query.market,
+      route.query.selection,
+      route.query.source,
+      route.query.category,
+      route.query.operator,
+      route.query.revision,
+    ] as const,
   async ([value, analyze]) => {
     if (typeof value !== 'string' || !value.trim()) return
     draft.value = value.slice(0, 2000)
     await nextTick()
     resizeInput()
     // Only explicit business analysis links start a mock request; plain q remains editable.
-    if (dataMode === 'demo' && analyze === '1' && resolveProjectScenario(value)) {
+    if (
+      dataMode === 'demo' &&
+      analyze === '1' &&
+      (resolveProjectScenario(value) || route.query.source === 'sports')
+    ) {
+      const entry: AiSportsEntry | undefined =
+        route.query.source === 'sports'
+          ? {
+              source: 'sports',
+              fixture: String(route.query.fixture ?? ''),
+              market: String(route.query.market ?? ''),
+              selection: Number(route.query.selection ?? NaN),
+              category: String(route.query.category ?? 'all'),
+              operator: String(route.query.operator ?? ''),
+              revision: Number(route.query.revision ?? 0),
+            }
+          : undefined
       chat.newConversation()
       await router.replace({ path: '/ai', query: { ...route.query, analyze: undefined } })
-      await send(value.slice(0, 2000))
+      await send(value.slice(0, 2000), entry)
     }
   },
   { immediate: true },
@@ -179,20 +247,33 @@ onBeforeUnmount(() => chat.stop())
         <div class="ac-hero">
           <AiOrb large />
           <h2>你好，我是 Aegis AI</h2>
-          <p>结合内部资料，为你解释每一个选择。</p>
+          <p>查平台数据、解读变化，也能帮你处理站内事务。</p>
         </div>
         <div class="ac-suggestions" aria-label="推荐问题">
           <button
-            v-for="(item, index) in aiSuggestions"
-            :key="item.kind"
+            v-for="item in visiblePrompts"
+            :key="item.text"
+            :title="item.text"
             :disabled="chat.busy"
-            @click="send(item.text)"
+            @click="send(item.text, item.entry)"
           >
-            <SportIcon v-if="index === 0" sport="football" :size="25" /><ChartNoAxesColumn
-              v-else-if="index === 1"
+            <SportIcon
+              v-if="/维拉|曼城|海港|比赛/.test(item.text)"
+              sport="football"
               :size="25"
-            /><Database v-else :size="25" /><span>{{ item.text }}</span
+            /><ChartNoAxesColumn
+              v-else-if="/赔率|报价|资金|存款|中位数|纯净度/.test(item.text)"
+              :size="25"
+            /><Sparkles v-else-if="/帮我|如何/.test(item.text)" :size="25" /><Database
+              v-else
+              :size="25"
+            /><span>{{ item.text }}</span
             ><ChevronRight :size="18" />
+          </button>
+        </div>
+        <div class="ac-question-navigation">
+          <button aria-label="换一批推荐问题" @click="changeQuestionPage(1)">
+            <RefreshCw :size="15" /><span>换一批</span>
           </button>
         </div>
         <div class="ac-capabilities" aria-label="AI 能力">
@@ -396,3 +477,30 @@ onBeforeUnmount(() => chat.stop())
 </template>
 
 <style src="@/features/ai/conversation.css"></style>
+
+<style scoped>
+.ac-demo-groups {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--ae-border, #d7e6f8);
+  border-radius: 17px;
+  background: white;
+}
+.ac-demo-groups button {
+  min-height: 44px;
+  padding: 5px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--ae-label);
+  font-size: 13px;
+  font-weight: 600;
+}
+.ac-demo-groups button.active {
+  background: var(--ae-pill);
+  color: white;
+  box-shadow: var(--ae-pill-shadow);
+}
+</style>

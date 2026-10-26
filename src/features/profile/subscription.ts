@@ -4,9 +4,9 @@ export interface SubscriptionPlan {
   id: SubscriptionLevel
   name: string
   description: string
+  monthlyPriceCny: number
   monthlyPoints: number
   alert: string
-  quote: string
   support: string
   manager: string
   managerDetail: string
@@ -17,9 +17,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     id: 'L1',
     name: '轻享',
     description: '关注赛事，轻松开启分析',
+    monthlyPriceCny: 200,
     monthlyPoints: 1000,
     alert: '关注赛事提醒',
-    quote: 'VIP 转移报价咨询',
     support: '标准工单跟进',
     manager: '工单跟进',
     managerDetail: '需求进入工单队列，按提交顺序处理，不指定专属经理。',
@@ -29,9 +29,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     id: 'L2',
     name: '进阶',
     description: '多平台比较，让选择更从容',
+    monthlyPriceCny: 500,
     monthlyPoints: 5000,
     alert: '多赛事条件提醒与归并',
-    quote: 'VIP 转移优先报价',
     support: '工单优先跟进',
     manager: '经理协助跟进',
     managerDetail: '工单优先处理，经理协助核对方案与报价，不固定为专属经理。',
@@ -41,9 +41,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     id: 'L3',
     name: '尊享',
     description: '专属需求，深度定制支持',
+    monthlyPriceCny: 1000,
     monthlyPoints: 15000,
     alert: '多赛事、多玩法组合提醒',
-    quote: 'VIP 转移优先报价与定制方案',
     support: '复杂工单专属跟进',
     manager: '专属经理跟进',
     managerDetail: '一位经理持续跟进订阅、报价与复杂工单。开通后才会指定人选。',
@@ -67,14 +67,6 @@ export const subscriptionBenefits = [
     values: subscriptionPlans.map((p) => `${p.monthlyPoints.toLocaleString('en-US')} 积分 / 月`),
     to: '/ai',
     action: '前往 AI 分析',
-  },
-  {
-    id: 'vip',
-    title: 'VIP 转移与报价',
-    description: '匿名核验现有待遇，比较不同平台的等级匹配、返水、Lossback 与完整条款。',
-    values: subscriptionPlans.map((p) => p.quote),
-    to: '/me?section=vip',
-    action: '获取定制报价',
   },
   {
     id: 'odds',

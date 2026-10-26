@@ -1,46 +1,26 @@
 import { test, expect } from '@playwright/test'
-import { chooseOption } from './helpers/select'
 
-test('监测下拉浮层、地区标签与筛选保持同步', async ({ page }) => {
+test('监测排序与公链选择共用下拉和焦点行为', async ({ page }) => {
   await page.goto('/monitor')
   const sort = page.getByRole('combobox', { name: '平台排序', exact: true })
   await sort.click()
-  await expect(page.getByRole('listbox', { name: '平台排序' })).toBeVisible()
-  await expect(page.getByRole('option', { name: '盾牌分' })).toHaveAttribute(
+  await expect(page.getByRole('option', { name: '盾牌分', exact: true })).toHaveAttribute(
     'aria-selected',
     'true',
   )
   await page.keyboard.press('End')
   await page.keyboard.press('Enter')
-  await expect(sort).toContainText('真实存款')
+  await expect(sort).toContainText('排名')
   await expect(page.getByRole('listbox')).toHaveCount(0)
   await sort.click()
   await page.keyboard.press('Escape')
   await expect(sort).toBeFocused()
-  await expect(page.getByRole('article', { name: '平台 A', exact: true })).toContainText('亚洲平台')
-  await expect(page.getByRole('article', { name: '平台 B', exact: true })).toContainText('欧洲平台')
-  await chooseOption(page, page.getByRole('combobox', { name: '平台地区', exact: true }), 'europe')
-  await expect(page.getByRole('article')).toHaveCount(1)
-  await page.getByRole('button', { name: '平台 B详情', exact: true }).click()
-  await expect(page.getByRole('dialog').getByRole('heading')).toContainText('欧洲平台')
+  const chain = page.getByRole('combobox', { name: '公链', exact: true })
+  await chain.click()
+  await page.getByRole('option', { name: 'ETH', exact: true }).click()
   await page.keyboard.press('Escape')
-  await page.getByRole('button', { name: '筛选平台', exact: true }).click()
-  const drawer = page.getByRole('dialog')
-  await chooseOption(page, drawer.getByRole('combobox', { name: '平台地区', exact: true }), 'asia')
-  await drawer.getByRole('combobox', { name: '纯净度', exact: true }).click()
-  const list = page.getByRole('listbox', { name: '纯净度', exact: true })
-  await expect(list).toBeVisible()
-  const bounds = await list.boundingBox()
-  const sheet = await drawer.boundingBox()
-  expect(bounds!.y).toBeGreaterThanOrEqual(sheet!.y)
-  expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(sheet!.y + sheet!.height)
-  await page.keyboard.press('Escape')
-  await expect(drawer).toBeVisible()
-  await drawer.getByRole('button', { name: '查看 2 个平台', exact: true }).click()
-  await expect(page.getByRole('article')).toHaveCount(2)
-  await sort.click()
-  await page.getByRole('searchbox', { name: '搜索平台名称', exact: true }).click()
-  await expect(page.getByRole('listbox')).toHaveCount(0)
+  await expect(chain).toBeFocused()
+  await expect(chain).toContainText('3 条公链')
 })
 
 for (const path of ['/', '/monitor', '/compare', '/ai', '/me']) {

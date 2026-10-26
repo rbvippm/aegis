@@ -59,6 +59,7 @@ export type ProfilePanel =
   | 'ticketInfo'
   | 'feedback'
   | 'about'
+  | 'changelog'
   | 'help'
   | 'invite'
   | 'language'

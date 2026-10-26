@@ -33,7 +33,7 @@ const items = [
   { to: '/', label: '首页', icon: House },
   { to: '/monitor', label: '监测', icon: Database },
   { to: '/ai', label: 'AI', icon: null },
-  { to: '/compare', label: '对比', icon: Trophy },
+  { to: '/compare', label: '赔率', icon: Trophy },
   { to: '/me', label: '我的', icon: UserRound },
 ]
 </script>

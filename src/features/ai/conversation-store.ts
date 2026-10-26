@@ -1,9 +1,13 @@
+import { usePlatformFollows } from '@/features/monitoring/follows'
+import { useProfile } from '@/features/profile/store'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { requestChat } from './conversation-service'
-import type { ChatMessage, Conversation } from './conversation-types'
+import type { AiSportsEntry, ChatMessage, Conversation } from './conversation-types'
 
 export const useConversation = defineStore('ai-conversation', () => {
+  const platformFollows = usePlatformFollows()
+  const profile = useProfile()
   // History is kept in memory for this tab, never persisted or sent to an external service.
   const conversations = ref<Conversation[]>([])
   const activeId = ref('')
@@ -54,6 +58,11 @@ export const useConversation = defineStore('ai-conversation', () => {
         (text) => {
           if (requestId === id) message.stage = text
         },
+        {
+          follows: [...platformFollows.ids],
+          platformUnread: profile.notices.filter((n) => n.type === 'platform' && !n.read).length,
+        },
+        message.entry,
       )
       if (requestId !== id) return
       message.answer = answer
@@ -72,7 +81,7 @@ export const useConversation = defineStore('ai-conversation', () => {
       }
     }
   }
-  async function send(question: string, context = '') {
+  async function send(question: string, context = '', entry?: AiSportsEntry) {
     if (busy.value || !question.trim()) return
     if (!active.value) {
       const conversation = {
@@ -87,6 +96,7 @@ export const useConversation = defineStore('ai-conversation', () => {
       id: crypto.randomUUID(),
       question: question.trim(),
       context,
+      entry,
       status: 'pending',
       stage: '正在整理回答…',
     }

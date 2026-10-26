@@ -1,12 +1,27 @@
 <script setup lang="ts">
+import PlatformFollowButton from '@/features/monitoring/PlatformFollowButton.vue'
+import { usePlatformFollows } from '@/features/monitoring/follows'
+import { dateLabel } from '@/features/monitoring/analytics-model'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Search, Share2, SlidersHorizontal, ChevronRight, Info, ShieldCheck } from '@lucide/vue'
+import {
+  ChevronRight,
+  ChevronLeft,
+  ShieldCheck,
+  ArrowUp,
+  ArrowDown,
+  Info,
+  Sparkles,
+  ChartColumn,
+  Wallet,
+  FileText,
+} from '@lucide/vue'
 import ResearchAnalytics from '@/features/monitoring/ResearchAnalytics.vue'
+import { money, count, percent, change } from '@/features/monitoring/analytics-model'
 import type { AnalyticsScope } from '@/features/monitoring/ResearchAnalytics.vue'
 import ResearchPlatformCard from '@/features/monitoring/ResearchPlatformCard.vue'
-import { researchRegionLabel, type ResearchPlatform } from '@/features/monitoring/research'
+import type { ResearchPlatform } from '@/features/monitoring/research'
 import { analyticsCatalog } from '@/mocks/monitoring-analytics'
 import { researchSnapshot } from '@/mocks/monitoring-research'
 import { monitoringPlatforms as researchPlatforms } from '@/mocks/monitoring-platforms'
@@ -15,6 +30,7 @@ import StatePanel from '@/shared/ui/StatePanel.vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 
 const route = useRoute()
+const platformFollows = usePlatformFollows()
 const analytics = ref<InstanceType<typeof ResearchAnalytics>>()
 const scope = ref<AnalyticsScope>({
   snapshot: researchSnapshot,
@@ -30,18 +46,17 @@ const window = computed(() =>
     ? (scope.value.period as '24h' | '7d' | '30d')
     : '30d',
 )
-const search = ref(typeof route.query.search === 'string' ? route.query.search : '')
-const grade = ref(typeof route.query.grade === 'string' ? route.query.grade : '')
-const region = ref(
-  ['asia', 'europe', 'unknown'].includes(String(route.query.region))
-    ? String(route.query.region)
-    : '',
-)
-const completeOnly = ref(route.query.complete === '1')
+const search = ref('')
+const grade = ref('')
+const completeOnly = ref(false)
 const sort = ref('score')
+const ascending = ref(false)
+watch(sort, () => {
+  ascending.value = sort.value === 'rank'
+})
 const platformLimit = ref(3)
 watch(
-  [search, region, grade, completeOnly, () => scope.value.period, () => scope.value.ids.join(',')],
+  [search, grade, completeOnly, () => scope.value.period, () => scope.value.ids.join(',')],
   () => {
     platformLimit.value = 3
   },
@@ -50,10 +65,6 @@ function matchesPlatform(platform: ResearchPlatform) {
   return (
     platform.name.toLowerCase().includes(search.value.trim().toLowerCase()) &&
     scope.value.ids.includes(platform.id) &&
-    (!region.value ||
-      (region.value === 'unknown'
-        ? platform.region === null
-        : platform.region === region.value)) &&
     (!grade.value || platform.grade === grade.value) &&
     (!completeOnly.value || platform.score !== null)
   )
@@ -87,7 +98,6 @@ const visiblePlatforms = computed(() => {
     const platform: ResearchPlatform = {
       id,
       name: meta.name,
-      region: meta.region,
       score: null,
       chains: [],
       grade: null,
@@ -113,34 +123,176 @@ const visiblePlatforms = computed(() => {
     }
     return matchesPlatform(platform) ? [platform] : []
   })
+  const numericValue = (p: ResearchPlatform) => {
+    if (['score', 'rank'].includes(sort.value)) return p.score
+    const value = scope.value.values[p.id]
+    if (!value) return null
+    return sort.value === 'deposit'
+      ? value.amount
+      : sort.value === 'withdrawal'
+        ? value.withdrawals
+        : sort.value === 'net'
+          ? value.net
+          : value.balance
+  }
   return [...known, ...extras].sort((a, b) => {
-    if (sort.value === 'deposit' || (a.score === null && b.score === null))
-      return b.windows[window.value].amount - a.windows[window.value].amount
-    if (a.score === null) return 1
-    if (b.score === null) return -1
-    return b.score - a.score
+    const av = numericValue(a),
+      bv = numericValue(b)
+    if (av === null) return bv === null ? a.name.localeCompare(b.name, 'zh-CN') : 1
+    if (bv === null) return -1
+    if (sort.value === 'rank') return bv - av || a.name.localeCompare(b.name, 'zh-CN')
+    return (ascending.value ? 1 : -1) * (av - bv) || a.name.localeCompare(b.name, 'zh-CN')
   })
 })
-const panel = ref<{ kind: string; platform?: ResearchPlatform } | null>(null)
+type Panel = { kind: string; platform?: ResearchPlatform; scroll?: number; focus?: string }
+const panel = ref<Panel | null>(null)
+const panelVisible = ref(false)
+const panelBody = ref<HTMLElement>()
+const balancesExpanded = ref(false)
+const detailSections = ref<Record<string, boolean>>({})
+const panelHistory = ref<Panel[]>([])
+let pendingEvidence: { id: string; kind: string } | null = null
+let evidenceParent: Panel | null = null
+const overview = computed(() =>
+  panel.value?.platform ? analytics.value?.platformOverview(panel.value.platform.id) : null,
+)
+const detailMetrics = computed(() => {
+  const r = overview.value
+  return r
+    ? [
+        ['存款额', money(r.deposits)],
+        ['出款额', money(r.withdrawals)],
+        ['净流量', money(r.net)],
+        ['热钱包余额', money(r.balance)],
+      ]
+    : []
+})
+const transactionMetrics = computed(() => {
+  const r = overview.value
+  return r
+    ? [
+        ['存款笔数', count(r.depositCount)],
+        ['出款笔数', count(r.withdrawalCount)],
+        ['平均单笔存款', money(r.averageDeposit)],
+        ['平均单笔出款', money(r.averageWithdrawal)],
+        ['最大单笔存款', money(r.largestDeposit)],
+        ['最大单笔出款', money(r.largestWithdrawal)],
+        ['范围内存款占比', r.share == null ? '—' : `${r.share.toFixed(1)}%`],
+        ['余额变化', percent(r.balanceGrowth)],
+      ]
+    : []
+})
+const walletMetrics = computed(() => {
+  const r = overview.value
+  return r
+    ? [
+        ['独立存款钱包', count(r.uniqueDepositors)],
+        ['独立出款钱包', count(r.uniqueWithdrawers)],
+        ['新增存款钱包', count(r.newDepositors)],
+        ['新增出款钱包', count(r.newWithdrawers)],
+      ]
+    : []
+})
+const evidenceKinds = [
+  '深度分析',
+  '存款流水',
+  '出款流水',
+  '大额存款',
+  '大额出款',
+  '资金异动',
+  '地址清单',
+  '数据来源',
+]
+let returnToCompare = false
+function openCard(kind: string, platform: ResearchPlatform) {
+  returnToCompare = false
+  open(kind, platform)
+}
+function openPlatformDetail(id: string, fromCompare = false) {
+  returnToCompare = fromCompare
+  const platform = visiblePlatforms.value.find((p) => p.id === id)
+  if (platform) open('详情', platform)
+}
+function capturePanel(): Panel | null {
+  if (!panel.value) return null
+  return {
+    ...panel.value,
+    scroll: panelBody.value?.closest('.ae-drawer__body')?.scrollTop ?? 0,
+    focus:
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement.textContent?.trim()
+        : undefined,
+  }
+}
+async function restorePanel(value: Panel, reopen = true) {
+  panel.value = value
+  panelVisible.value = reopen
+  await nextTick()
+  await nextTick()
+  panelBody.value?.closest('.ae-drawer__body')?.scrollTo({ top: value.scroll ?? 0 })
+  const target = [...(panelBody.value?.querySelectorAll<HTMLElement>('button, a') ?? [])].find(
+    (el) => el.textContent?.trim() === value.focus,
+  )
+  target?.focus({ preventScroll: true })
+}
+function returnFromEvidence() {
+  if (!evidenceParent) return
+  const value = evidenceParent
+  evidenceParent = null
+  void restorePanel(value)
+}
+function back() {
+  const previous = panelHistory.value.pop()
+  if (previous) void restorePanel(previous)
+}
 const uid = ref('')
 const report = ref('')
 const feedback = ref('')
 function open(kind: string, platform?: ResearchPlatform) {
-  if (platform && ['地址清单', '数据来源'].includes(kind) && analytics.value) {
-    analytics.value.showPlatformEvidence(platform.id, kind)
+  if (platform && evidenceKinds.includes(kind) && analytics.value) {
+    if (panel.value) {
+      evidenceParent = capturePanel()
+      pendingEvidence = { id: platform.id, kind }
+      panelVisible.value = false
+    } else analytics.value.showPlatformEvidence(platform.id, kind)
     return
   }
+  if (kind === '详情' && !panel.value) {
+    balancesExpanded.value = false
+    detailSections.value = {}
+  }
+  const currentPanel = capturePanel()
+  if (currentPanel) panelHistory.value.push(currentPanel)
   panel.value = { kind, platform }
+  panelVisible.value = true
   uid.value = ''
   report.value = ''
   feedback.value = ''
 }
-function close() {
-  panel.value = null
+async function close() {
+  panelVisible.value = false
+  if (pendingEvidence) {
+    const request = pendingEvidence
+    pendingEvidence = null
+    panel.value = null
+    if (request.kind === '深度分析') analytics.value?.showPlatformAnalysis(request.id)
+    else analytics.value?.showPlatformEvidence(request.id, request.kind, true)
+    return
+  }
+  const previous = panelHistory.value.pop()
+  if (previous) {
+    await nextTick()
+    await restorePanel(previous)
+  } else {
+    panel.value = null
+    if (returnToCompare) {
+      returnToCompare = false
+      analytics.value?.openCompare()
+    }
+  }
 }
 function resetFilters() {
   grade.value = ''
-  region.value = ''
   completeOnly.value = false
   search.value = ''
 }
@@ -151,8 +303,12 @@ watch(
   () => route.fullPath,
   () => {
     if (dataMode !== 'demo') return
-    const platform = researchPlatforms.find((item) => item.id === route.query.platform)
-    if (platform) open(route.query.panel === 'flow' ? '异动详情' : '详情', platform)
+    const platform = platformFollows.catalog.find((item) => item.id === route.query.platform)
+    if (platform) {
+      open('详情', platform)
+      if (route.query.event) open('资金动态', platform)
+      else if (route.query.panel === 'flow') open('异动详情', platform)
+    }
   },
   { immediate: true },
 )
@@ -161,55 +317,55 @@ watch(
 <template>
   <div class="monitor-research">
     <template v-if="dataMode === 'demo'">
-      <div class="research-search-row">
-        <label class="research-search ae-glass"
-          ><Search :size="21" /><input
-            v-model="search"
-            type="search"
-            placeholder="搜索平台名称"
-            aria-label="搜索平台名称"
-        /></label>
-        <button class="research-filter ae-glass" aria-label="分享监测分析" @click="analytics?.openShare()">
-          <Share2 :size="20" />
-        </button>
-        <button class="research-filter ae-glass" aria-label="筛选平台" @click="analytics?.openFilters()">
-          <SlidersHorizontal :size="21" /><i
-            v-if="grade || region || completeOnly || analytics?.scopeCustomized"
-          ></i>
-        </button>
-      </div>
       <ResearchAnalytics
         ref="analytics"
         :search="search"
-        :region="region"
         :grade="grade"
         :complete-only="completeOnly"
-        :result-count="visiblePlatforms.length"
         @scope="scope = $event"
+        @platform-detail="openPlatformDetail"
+        @evidence-close="returnFromEvidence"
         @reset="resetFilters"
-        @update:region="region = $event"
         @update:grade="grade = $event"
         @update:complete-only="completeOnly = $event"
       >
+        <template #filter-result="{ hasResults }"
+          ><p class="research-filter-result" role="status">
+            筛选结果 <strong>{{ hasResults ? visiblePlatforms.length : 0 }}</strong> 家平台
+          </p></template
+        >
         <template #platforms>
           <div class="research-list-heading">
-            <h2>平台综合对比</h2>
-            <span>{{ visiblePlatforms.length }} 家</span>
-          </div>
-          <div class="research-region-filter">
-            <GlassSelect v-model="region" label="平台地区"
-              ><option value="">全部地区</option>
-              <option value="asia">亚洲平台</option>
-              <option value="europe">欧洲平台</option>
-              <option value="unknown">地区未标注</option></GlassSelect
+            <GlassSelect
+              class="research-period-select"
+              :model-value="scope.period"
+              label="统计时间范围"
+              @update:model-value="analytics?.setOverviewPeriod($event)"
             >
-            <label
-              ><span class="sr-only">平台排序</span
-              ><GlassSelect v-model="sort" aria-label="平台排序">
-                <option value="score">盾牌分</option>
-                <option value="deposit">真实存款</option></GlassSelect
-              ></label
-            >
+              <option value="24h">近24小时</option>
+              <option value="7d">近7天</option>
+              <option value="30d">近30天</option>
+              <option value="90d">近90天</option>
+              <option value="365d">近365天</option>
+            </GlassSelect>
+            <div class="research-sort-controls">
+              <GlassSelect v-model="sort" label="平台排序"
+                ><option value="score">盾牌分</option>
+                <option value="deposit">存款额</option>
+                <option value="withdrawal">出款额</option>
+                <option value="net">净流量</option>
+                <option value="balance">热钱包余额</option>
+                <option value="rank">排名</option></GlassSelect
+              >
+              <button
+                v-if="sort !== 'rank'"
+                class="research-sort-direction"
+                :aria-label="ascending ? '切换为降序' : '切换为升序'"
+                @click="ascending = !ascending"
+              >
+                <ArrowUp v-if="ascending" :size="18" /><ArrowDown v-else :size="18" />
+              </button>
+            </div>
           </div>
           <div class="research-platforms">
             <ResearchPlatformCard
@@ -222,7 +378,7 @@ watch(
               :growth="scope.values[platform.id]?.change"
               :share="scope.values[platform.id]?.share ?? null"
               :rank="platform.score === null && !platform.wallet ? undefined : index + 1"
-              @open="open"
+              @open="openCard"
             />
             <div v-if="!visiblePlatforms.length" class="research-empty">
               <StatePanel
@@ -245,29 +401,26 @@ watch(
               platformLimit === 3 ? `展开全部平台（${visiblePlatforms.length}）` : '收起平台卡片'
             }}
           </button>
-          <button class="research-method" @click="open('评级口径与来源')">
-            <Info :size="17" /><span
-              ><strong>盾牌分：储备40% · 纯净度30% · 客诉解决30%</strong
-              ><small>小额 &lt;1,000U · 大额 &gt;10,000U</small></span
-            ><span class="research-method__more">评级口径<ChevronRight :size="12" /></span>
-          </button>
         </template>
       </ResearchAnalytics>
     </template>
     <StatePanel v-else title="暂无监测数据" description="稍后再查看链上监测与平台研究。" />
 
     <BottomDrawer
-      :open="panel !== null"
-      :title="
-        panel?.platform
-          ? `${panel.platform.name} · ${researchRegionLabel(panel.platform.region)} · ${panel.kind}`
-          : (panel?.kind ?? '')
-      "
+      :open="panelVisible"
+      :title="panel?.platform ? `${panel.platform.name} · ${panel.kind}` : (panel?.kind ?? '')"
       close-label="关闭弹窗"
       @close="close"
     >
       <template v-if="panel">
-        <div class="research-sheet__body">
+        <div
+          ref="panelBody"
+          class="research-sheet__body"
+          :class="{ 'research-sheet__body--detail': panel.kind === '详情' }"
+        >
+          <button v-if="panelHistory.length" class="research-detail-back" @click="back">
+            <ChevronLeft :size="16" />返回上一级
+          </button>
           <template v-if="panel.kind === '绑定 UID'">
             <p>额外返水为渠道佣金中的玩家分成，并非投注额返还比例。资格与结算以平台规则为准。</p>
             <form @submit.prevent="submitDemo">
@@ -299,13 +452,16 @@ watch(
             </form>
           </template>
           <template v-else-if="panel.kind === '出金安全体检卡'">
-            <div class="research-inspection" :class="{ warning: panel.platform?.grade === 'B' }">
+            <div
+              class="research-inspection"
+              :class="{ warning: panel.platform?.grade === 'B', unknown: !panel.platform?.grade }"
+            >
               <ShieldCheck :size="42" /><strong
                 >{{ panel.platform?.grade ?? '待检测'
                 }}{{ panel.platform?.grade ? '级' : '' }}</strong
               ><span
                 >污染占比 {{ panel.platform?.taint ?? '暂无数据'
-                }}{{ panel.platform?.taint === null ? '' : '%' }}</span
+                }}{{ panel.platform?.taint == null ? '' : '%' }}</span
               >
             </div>
             <p>
@@ -324,54 +480,394 @@ watch(
             <p>当前范围的逐笔依据可在“资金流水”中查看。资金变化不等同于平台安全评级。</p>
           </template>
           <template v-else-if="panel.kind === '评级口径与来源' || panel.kind === '评分依据'">
-            <p><strong>独立评分 · 赞助不影响排名</strong></p>
-            <p>盾牌分 = 储备充足率40% + 出金纯净度30% + 客诉解决率30%。分项归一化后计算。</p>
-            <p>
-              储备充足率须结合可核验负债，不能仅用热钱包余额替代；客诉解决率须有真实工单及解决口径。
-            </p>
-            <p>
-              S级：&lt;0.5%；A级：0.5%–&lt;2%；B级：2%–5%；C级：&gt;5%。缺失、过期或样本不足的数据不参与评分。
-            </p>
-            <p>
-              耗时为申请至到账的平均值，小额 &lt;1,000U，大额
-              &gt;10,000U；中间金额不计入这两档。资产为 USDT，耗时不等同于安全评级。
-            </p>
-            <p>
-              24h 图表按小时汇总；7d、30d、90d 按日汇总；365d
-              按周汇总。资金统计剔除内部冷热钱包互转。
-            </p>
+            <section class="research-reading-card">
+              <h3>盾牌分构成</h3>
+              <div class="research-rating-weights">
+                <div
+                  v-for="[label, weight] in [
+                    ['储备充足率', '40%'],
+                    ['出金纯净度', '30%'],
+                    ['客诉解决率', '30%'],
+                  ]"
+                  :key="label"
+                >
+                  <strong>{{ weight }}</strong
+                  ><span>{{ label }}</span>
+                </div>
+              </div>
+              <p>分项归一化后计算。独立评分，赞助不影响排名。</p>
+              <p>
+                储备充足率须结合可核验负债，不能仅用热钱包余额替代；客诉解决率须有真实工单及解决口径。
+              </p>
+            </section>
+            <section class="research-reading-card">
+              <h3>纯净度分级</h3>
+              <dl class="research-detail-list">
+                <div
+                  v-for="[grade, range] in [
+                    ['S级', '＜0.5%'],
+                    ['A级', '0.5%–＜2%'],
+                    ['B级', '2%–5%'],
+                    ['C级', '＞5%'],
+                  ]"
+                  :key="grade"
+                >
+                  <dt>{{ grade }}</dt>
+                  <dd>{{ range }}</dd>
+                </div>
+              </dl>
+              <p>缺失、过期或样本不足的数据不参与评分。</p>
+            </section>
+            <section class="research-reading-card">
+              <h3>耗时与资金口径</h3>
+              <p>
+                耗时为申请至到账的平均值，资产为 USDT。小额 ＜1,000U，大额
+                ＞10,000U；中间金额不计入这两档。耗时不等同于安全评级。
+              </p>
+              <p>
+                24h 图表按小时汇总；7d、30d、90d 按日；365d 按周。资金统计剔除内部冷热钱包互转。
+              </p>
+            </section>
           </template>
           <template v-else-if="panel.kind === '地址清单'">
             <p>覆盖链：{{ panel.platform?.chains.join('、') }}。</p>
           </template>
-          <template v-else-if="panel.kind === '历史评测'"><p>暂无历史评测。</p></template>
-          <template v-else-if="panel.kind === '详情'">
-            <RouterLink
-              class="research-sheet-link"
-              :to="{
-                path: '/ai',
-                query: {
-                  analyze: '1',
-                  q: `解读${panel.platform?.name}的盾牌分、热钱包、纯净度与出金评级`,
-                },
-              }"
-              >让 AI 解读平台数据<ChevronRight :size="16"
-            /></RouterLink>
-            <p>
-              {{
-                panel.platform?.score === null
-                  ? '样本不足，暂不评分。'
-                  : `盾牌分 ${panel.platform?.score}/10。`
-              }}
+          <template v-else-if="panel.kind === '历史评测'"
+            ><div class="research-detail-empty">
+              <FileText :size="26" /><strong>暂无历史评测</strong>
+              <p>当前平台尚无可展示的历史评测记录。</p>
+            </div></template
+          >
+          <template v-else-if="panel.kind === '资金动态'">
+            <p class="research-activity-note">
+              近7天 · 大额出款 ≥ $100,000；热钱包转移不计入出款额。链上出款不直接代表玩家身份。
             </p>
-            <button
-              v-for="kind in ['出金安全体检卡', '地址清单', '历史评测', '评分依据', '数据来源']"
-              :key="kind"
-              class="research-sheet-link"
-              @click="open(kind, panel.platform)"
+            <article
+              v-for="event in platformFollows.activities.filter(
+                (e) => e.platform === panel?.platform?.id,
+              )"
+              :key="event.id"
+              class="research-activity"
+              :class="{ 'research-activity--selected': route.query.event === event.id }"
             >
-              {{ kind }}<ChevronRight :size="16" />
+              <header>
+                <strong>{{ event.title }}</strong
+                ><b>{{ event.usd === null ? '余额预警' : money(event.usd) }}</b>
+              </header>
+              <p>
+                {{ dateLabel(event.time, true) }} UTC+8 · {{ event.chain ?? '全链' }}
+                {{ event.token ?? '' }}
+              </p>
+              <p>{{ event.description }}</p>
+              <code v-if="event.wallet">{{ event.wallet }}</code>
+            </article>
+            <p
+              v-if="!platformFollows.activities.some((e) => e.platform === panel?.platform?.id)"
+              class="research-activity-note"
+            >
+              当前窗口暂无符合阈值的资金动态。
+            </p>
+            <button class="research-detail-link" @click="open('出款流水', panel.platform)">
+              查看资金流水与来源<ChevronRight :size="16" />
             </button>
+          </template>
+          <template v-else-if="panel.kind === '详情'">
+            <div v-if="panel.platform" class="research-detail-follow">
+              <span>关注后，异常动态进入消息中心</span
+              ><PlatformFollowButton :id="panel.platform.id" :name="panel.platform.name" />
+            </div>
+            <button class="research-detail-link" @click="open('资金动态', panel.platform)">
+              <span
+                >资金动态 ·
+                {{
+                  platformFollows.activities.filter((e) => e.platform === panel?.platform?.id)
+                    .length
+                }}
+                条</span
+              ><ChevronRight :size="16" />
+            </button>
+            <div class="research-detail-hero">
+              <div class="research-detail-rating">
+                <span><ShieldCheck :size="16" />盾牌分</span
+                ><strong
+                  >{{ panel.platform?.score ?? '—'
+                  }}<small v-if="panel.platform?.score != null">/10</small></strong
+                >
+              </div>
+              <span class="research-detail-status">{{
+                panel.platform?.score == null ? '暂无完整评级' : '独立评测'
+              }}</span>
+              <p>{{ scope.period }} 资金范围<span>·</span>{{ scope.snapshot }}</p>
+            </div>
+            <div class="research-detail-actions">
+              <button class="research-primary" @click="open('深度分析', panel.platform)">
+                <ChartColumn :size="17" />深度分析
+              </button>
+              <RouterLink
+                class="research-detail-ai"
+                aria-label="让 AI 解读平台数据"
+                :to="{
+                  path: '/ai',
+                  query: {
+                    analyze: '1',
+                    q: `解读${panel.platform?.name}的盾牌分、热钱包、纯净度与出金评级；${scope.period}；${scope.chains?.join('/') ?? '全部公链'}；${scope.tokens?.map((t) => `币种${t}`).join('/') ?? '全部币种'}`,
+                  },
+                }"
+                ><Sparkles :size="17" />AI 解读</RouterLink
+              >
+            </div>
+            <template v-if="overview">
+              <section class="research-detail-section research-detail-funds">
+                <h3>资金概览</h3>
+                <dl class="research-detail-metrics research-detail-key-metrics">
+                  <div v-for="[label, value] in detailMetrics" :key="label">
+                    <dt>{{ label }}</dt>
+                    <dd
+                      :class="
+                        label === '净流量'
+                          ? overview.net < 0
+                            ? 'research-negative'
+                            : 'research-positive'
+                          : ''
+                      "
+                    >
+                      {{ value }}
+                    </dd>
+                  </div>
+                </dl>
+                <p class="research-detail-growth">
+                  存款变化
+                  <b
+                    :class="
+                      overview.deposits - overview.before.deposits < 0
+                        ? 'research-negative'
+                        : 'research-positive'
+                    "
+                    >{{ percent(change(overview.deposits, overview.before.deposits)) }}</b
+                  ><span>较前一等长窗口</span>
+                </p>
+                <div class="research-detail-shortcuts">
+                  <button
+                    v-for="kind in ['存款流水', '出款流水', '资金异动']"
+                    :key="kind"
+                    @click="open(kind, panel.platform)"
+                  >
+                    {{ kind }}<ChevronRight :size="13" />
+                  </button>
+                </div>
+                <details
+                  class="research-detail-inline"
+                  :open="detailSections.transactions"
+                  @toggle="detailSections.transactions = ($event.target as HTMLDetailsElement).open"
+                >
+                  <summary>交易统计<ChevronRight :size="16" /></summary>
+                  <dl class="research-detail-metrics">
+                    <div v-for="[label, value] in transactionMetrics" :key="label">
+                      <dt>{{ label }}</dt>
+                      <dd>{{ value }}</dd>
+                    </div>
+                  </dl>
+                  <div class="research-detail-shortcuts">
+                    <button @click="open('大额存款', panel.platform)">
+                      大额存款<ChevronRight :size="13" /></button
+                    ><button @click="open('大额出款', panel.platform)">
+                      大额出款<ChevronRight :size="13" />
+                    </button>
+                  </div>
+                </details>
+              </section>
+              <details
+                class="research-detail-section research-detail-group"
+                :open="detailSections.wallet"
+                @toggle="detailSections.wallet = ($event.target as HTMLDetailsElement).open"
+              >
+                <summary>
+                  <Wallet :size="18" /><span
+                    >钱包与链上资产<small
+                      >{{ count(overview.uniqueDepositors) }} 个独立存款钱包</small
+                    ></span
+                  ><ChevronRight :size="17" />
+                </summary>
+                <div class="research-detail-group-body">
+                  <dl class="research-detail-metrics">
+                    <div v-for="[label, value] in walletMetrics" :key="label">
+                      <dt>{{ label }}</dt>
+                      <dd>{{ value }}</dd>
+                    </div>
+                  </dl>
+                  <details
+                    class="research-detail-inline"
+                    :open="balancesExpanded"
+                    @toggle="balancesExpanded = ($event.target as HTMLDetailsElement).open"
+                  >
+                    <summary>公链与币种余额<ChevronRight :size="16" /></summary>
+                    <dl class="research-detail-list">
+                      <div
+                        v-for="balance in overview.balances"
+                        :key="`${balance.chain}:${balance.token}`"
+                      >
+                        <dt>{{ balance.chain }} · {{ balance.token }}</dt>
+                        <dd>{{ money(balance.usd) }}</dd>
+                      </div>
+                    </dl>
+                  </details>
+                  <h4>主要存款地址</h4>
+                  <dl class="research-detail-list">
+                    <div
+                      v-for="wallet in overview.topWallets"
+                      :key="`${wallet.chain}:${wallet.wallet}`"
+                    >
+                      <dt class="research-detail-address" :title="wallet.wallet">
+                        {{ wallet.chain }} · {{ wallet.wallet }}
+                      </dt>
+                      <dd>{{ money(wallet.amount) }}</dd>
+                    </div>
+                  </dl>
+                  <button
+                    class="research-sheet-link"
+                    aria-label="地址清单"
+                    @click="open('地址清单', panel.platform)"
+                  >
+                    查看全部地址<ChevronRight :size="16" />
+                  </button>
+                  <p class="research-sheet-note">
+                    金额分布、新增与回访和存款频次在深度分析中统一查看。
+                  </p>
+                </div>
+              </details>
+            </template>
+            <div v-else class="research-detail-empty">
+              <Info :size="22" /><strong>当前范围暂无可统计样本</strong>
+              <p>可查看评测资料，或调整公链、币种和平台范围。</p>
+            </div>
+            <details
+              class="research-detail-section research-detail-group"
+              :open="detailSections.safety"
+              @toggle="detailSections.safety = ($event.target as HTMLDetailsElement).open"
+            >
+              <summary>
+                <ShieldCheck :size="18" /><span
+                  >出金评测<small>{{
+                    panel.platform?.grade
+                      ? `${panel.platform.grade}级 · ${panel.platform.samples} 笔耗时样本`
+                      : '暂无完整评测数据'
+                  }}</small></span
+                ><ChevronRight :size="17" />
+              </summary>
+              <div class="research-detail-group-body">
+                <dl class="research-detail-metrics">
+                  <div>
+                    <dt>出金纯净度</dt>
+                    <dd>
+                      {{
+                        panel.platform?.grade
+                          ? `${panel.platform.grade}级 · ${panel.platform.taint}%`
+                          : '—'
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>耗时样本</dt>
+                    <dd>{{ count(panel.platform?.samples ?? 0) }} 笔</dd>
+                  </div>
+                  <div>
+                    <dt>小额出款耗时</dt>
+                    <dd>
+                      {{
+                        panel.platform?.smallMinutes != null
+                          ? `${panel.platform.smallMinutes}m`
+                          : '—'
+                      }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>大额出款耗时</dt>
+                    <dd>
+                      {{
+                        panel.platform?.largeMinutes != null
+                          ? `${panel.platform.largeMinutes}m`
+                          : '—'
+                      }}
+                    </dd>
+                  </div>
+                </dl>
+                <p class="research-sheet-note">
+                  纯净度统计近7天、≤3跳关联；出款耗时不等同安全评级。
+                </p>
+                <button
+                  v-for="kind in ['出金安全体检卡', '评分依据', '上报异常']"
+                  :key="kind"
+                  class="research-sheet-link"
+                  @click="open(kind, panel.platform)"
+                >
+                  {{ kind }}<ChevronRight :size="16" />
+                </button>
+              </div>
+            </details>
+            <details
+              v-if="overview"
+              class="research-detail-section research-detail-group"
+              :open="detailSections.ranks"
+              @toggle="detailSections.ranks = ($event.target as HTMLDetailsElement).open"
+            >
+              <summary>
+                <ChartColumn :size="18" /><span
+                  >高点与范围排名<small>{{ scope.period }} 当前筛选范围</small></span
+                ><ChevronRight :size="17" />
+              </summary>
+              <div class="research-detail-group-body">
+                <dl class="research-detail-metrics">
+                  <div>
+                    <dt>存款高点日</dt>
+                    <dd>{{ overview.depositPeak?.date ?? '—' }}</dd>
+                    <small>{{
+                      overview.depositPeak ? money(overview.depositPeak.deposits) : '—'
+                    }}</small>
+                  </div>
+                  <div>
+                    <dt>净流入高点日</dt>
+                    <dd>{{ overview.netPeak?.date ?? '—' }}</dd>
+                    <small>{{ overview.netPeak ? money(overview.netPeak.net) : '—' }}</small>
+                  </div>
+                </dl>
+                <dl class="research-detail-list">
+                  <div v-for="item in overview.ranks" :key="item.label">
+                    <dt>{{ item.label }}</dt>
+                    <dd>
+                      {{ item.rank == null ? '—' : `${item.rank} / ${overview.platformCount} 家` }}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            </details>
+            <details
+              class="research-detail-section research-detail-group"
+              :open="detailSections.resources"
+              @toggle="detailSections.resources = ($event.target as HTMLDetailsElement).open"
+            >
+              <summary>
+                <FileText :size="18" /><span
+                  >资料与账户<small>历史评测、数据来源与账户关联</small></span
+                ><ChevronRight :size="17" />
+              </summary>
+              <div class="research-detail-group-body">
+                <button
+                  v-for="kind in ['历史评测', '数据来源']"
+                  :key="kind"
+                  class="research-sheet-link"
+                  @click="open(kind, panel.platform)"
+                >
+                  {{ kind }}<ChevronRight :size="16" /></button
+                ><button
+                  v-if="panel.platform?.score != null"
+                  class="research-sheet-link"
+                  :aria-label="`绑定${panel.platform.name} UID`"
+                  @click="open('绑定 UID', panel.platform)"
+                >
+                  账户 UID 关联<ChevronRight :size="16" />
+                </button>
+              </div>
+            </details>
           </template>
           <template v-else
             ><p>快照：2026/{{ researchSnapshot }}。</p>
@@ -387,3 +883,64 @@ watch(
 </template>
 
 <style src="@/features/monitoring/research.css"></style>
+
+<style scoped>
+.research-detail-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  border: 1px solid var(--ae-border, #d7e6f8);
+  border-radius: 14px;
+  background: white;
+  color: var(--ae-highlight);
+  font-size: 14px;
+  text-align: left;
+}
+.research-detail-follow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--ae-muted);
+}
+.research-activity-note {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ae-muted);
+}
+.research-activity {
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid var(--ae-border, #d7e6f8);
+  border-radius: 16px;
+  background: white;
+}
+.research-activity--selected {
+  border-color: var(--ae-highlight);
+  background: #f5f8ff;
+}
+.research-activity header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+.research-activity p {
+  font-size: 12px;
+  color: var(--ae-muted);
+  line-height: 1.7;
+}
+.research-activity code {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+</style>

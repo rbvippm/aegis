@@ -1,3 +1,4 @@
+import { monitoringExampleAddress } from './monitoring-addresses'
 import { monitoringPlatforms } from './monitoring-platforms'
 import {
   analyticsChains,
@@ -7,19 +8,19 @@ import {
   type OpeningBalance,
 } from '@/features/monitoring/analytics-model'
 
-// Reproducible fictional ledger; never a source for API mode or real explorer links.
+// Fictional ledger using independently disclosed public address examples.
+// Never a source for API mode or claims about actual address activity/ownership.
 export const analyticsAsOf = Date.parse('2026-10-25T12:00:00Z')
 export const analyticsCatalog: AnalyticsPlatform[] = [
   ...monitoringPlatforms.map((p) => ({
     id: p.id,
     name: p.name,
     category: 'crypto' as const,
-    region: p.region,
     complete: p.score !== null,
   })),
-  { id: 'case-1', name: '传统平台 甲', category: 'cases', region: 'europe', complete: true },
-  { id: 'case-2', name: '传统平台 乙', category: 'cases', region: 'asia', complete: true },
-  { id: 'case-3', name: '传统平台 丙', category: 'cases', region: null, complete: true },
+  { id: 'case-1', name: '传统平台 甲', category: 'cases', complete: true },
+  { id: 'case-2', name: '传统平台 乙', category: 'cases', complete: true },
+  { id: 'case-3', name: '传统平台 丙', category: 'cases', complete: true },
 ]
 const chainTokens: Record<string, string[]> = {
   ETH: ['ETH', 'USDT', 'USDC'],
@@ -59,13 +60,12 @@ for (const [p, platform] of analyticsCatalog.filter((p) => p.complete).entries()
           : chainTokens[chain]![hash(seed + 12345) % chainTokens[chain]!.length]!
       const direction =
         slot === 5 && d % 7 === 0 ? 'internal' : slot >= 4 ? 'withdrawal' : 'deposit'
-      const epoch = Math.floor((729 - d) / 28) - (slot % 2 === 0 ? 0 : 1)
       analyticsLedger.push({
         id: `sample-${platform.id}-${String(d).padStart(3, '0')}-${slot}`,
         platform: platform.id,
         chain,
         token,
-        wallet: `sample:${platform.id}:${chain}:${Math.max(0, epoch)}:${hash(seed + 3467) % 12}`,
+        wallet: monitoringExampleAddress(chain, hash(seed + 3467)),
         time: analyticsAsOf - d * day - ((slot * 3 + 1) * day) / 24,
         usd: Math.round(
           (120 + ((d * 197 + slot * 1729 + p * 571) % 90000)) *

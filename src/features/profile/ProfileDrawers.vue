@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import AboutPanel from './AboutPanel.vue'
+import InvitationPanel from '@/features/invitation/InvitationPanel.vue'
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
@@ -7,7 +9,6 @@ import {
   ChevronRight,
   CircleHelp,
   Clipboard,
-  Database,
   FileText,
   Globe,
   Headphones,
@@ -42,6 +43,7 @@ const titles: Record<ProfilePanel, string> = {
   ticketInfo: '工单详情与补充材料',
   feedback: '意见反馈',
   about: '关于我们',
+  changelog: '版本日志',
   help: '帮助与客服',
   invite: '邀请好友',
   language: '语言',
@@ -482,22 +484,15 @@ async function copyUid() {
           <button class="pf-primary pf-wide">保存反馈</button>
         </form></template
       >
-      <template v-else-if="panel === 'about'"
-        ><section class="pf-about">
-          <Database :size="34" />
-          <h3>Aegis · 御盾</h3>
-          <p>看清平台，再做选择。</p>
-        </section>
-        <section class="pf-card">
-          <h3>我们提供什么</h3>
-          <p>
-            通过链上资金监测、同盘口报价对比和可追溯的 AI
-            分析，帮助用户理解数据与规则。不保管用户资金，不承诺收益或赔付。
-          </p>
-        </section>
-        <button class="pf-text-button" @click="emit('open', 'feedback')">
-          意见反馈<ChevronRight :size="16" />
-        </button>
+      <template v-else-if="panel === 'about' || panel === 'changelog'">
+        <AboutPanel
+          :releases="panel === 'changelog'"
+          @feedback="emit('open', 'feedback')"
+          @releases="emit('open', 'changelog')"
+          @back="emit('open', 'about')"
+          @messages="emit('navigate', 'messages')"
+          @help="emit('open', 'help')"
+        />
       </template>
       <template v-else-if="panel === 'help'"
         ><section class="pf-card">
@@ -515,12 +510,8 @@ async function copyUid() {
           <Headphones :size="18" />意见反馈<ChevronRight :size="16" /></button
       ></template>
       <template v-else-if="panel === 'invite'"
-        ><section class="pf-empty">
-          <Send :size="30" />
-          <h3>邀请奖励</h3>
-          <p>奖励以活动规则为准。</p>
-        </section></template
-      >
+        ><InvitationPanel @login="emit('open', 'login')"
+      /></template>
       <template v-else-if="panel === 'logout'"
         ><section class="pf-card">
           <h3>切换为游客浏览？</h3>

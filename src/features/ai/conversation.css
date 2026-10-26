@@ -1250,3 +1250,126 @@
   position: relative;
   z-index: 1;
 }
+
+/* Centered welcome with lightweight question cards and three capability columns. */
+.ac-page--welcome .ac-welcome {
+  justify-content: center;
+  gap: 0;
+  padding: 12px 16px;
+}
+.ac-page--welcome .ac-hero {
+  text-align: center;
+  padding: 0 0 20px;
+}
+.ac-page--welcome .ac-hero .ae-ai-orb--large {
+  width: 112px;
+  height: 112px;
+}
+.ac-page--welcome .ac-hero h2 {
+  margin: 16px 0 0;
+  font-size: 24px;
+  line-height: 1.5;
+  letter-spacing: -0.6px;
+}
+.ac-page--welcome .ac-hero p {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.ac-page--welcome .ac-hero::before {
+  left: -16px;
+  right: -16px;
+  top: 55px;
+  height: 170px;
+}
+.ac-page--welcome .ac-hero::after {
+  inset: 80px -16px 0;
+}
+.ac-page--welcome .ac-suggestions {
+  flex-shrink: 0;
+  margin: 0;
+  gap: 8px;
+}
+.ac-page--welcome .ac-suggestions > button {
+  min-height: 50px;
+  padding: 10px 14px;
+  gap: 12px;
+  border: 1px solid #fff;
+  border-radius: 20px;
+  background: #ffffffef;
+  box-shadow: 0 5px 18px #5595dd08;
+}
+.ac-page--welcome .ac-suggestions > button > svg {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+}
+.ac-page--welcome .ac-suggestions > button > svg:last-child {
+  width: 18px;
+  height: 18px;
+}
+.ac-page--welcome .ac-suggestions > button span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.ac-question-navigation {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 44px;
+}
+.ac-question-navigation button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 4px 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ae-highlight);
+  font-size: 13px;
+  font-weight: 500;
+}
+.ac-question-navigation button:active {
+  background: #e6f1ff;
+}
+.ac-page--welcome .ac-capabilities {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 4px 0 0;
+  gap: 8px;
+}
+.ac-page--welcome .ac-capabilities button {
+  min-height: 84px;
+}
+.ac-page--welcome .ac-capabilities small {
+  display: block;
+}
+@media (max-height: 700px) {
+  .ac-page--welcome .ac-welcome {
+    padding-block: 8px;
+  }
+  .ac-page--welcome .ac-hero {
+    padding-bottom: 12px;
+  }
+  .ac-page--welcome .ac-hero .ae-ai-orb--large {
+    width: 80px;
+    height: 80px;
+  }
+  .ac-page--welcome .ac-hero h2 {
+    margin-top: 10px;
+    font-size: 22px;
+  }
+  .ac-page--welcome .ac-hero p {
+    margin-top: 6px;
+  }
+  .ac-page--welcome .ac-capability-icon {
+    width: 34px;
+    height: 34px;
+    margin-bottom: 5px;
+  }
+}
