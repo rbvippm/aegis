@@ -2,44 +2,78 @@
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  Search,
-  SlidersHorizontal,
-  ChevronRight,
-  Info,
-  TriangleAlert,
-  ShieldCheck,
-} from '@lucide/vue'
-import ResearchChart from '@/features/monitoring/ResearchChart.vue'
+import { Search, SlidersHorizontal, ChevronRight, Info, ShieldCheck } from '@lucide/vue'
+import ResearchAnalytics from '@/features/monitoring/ResearchAnalytics.vue'
+import type { AnalyticsScope } from '@/features/monitoring/ResearchAnalytics.vue'
 import ResearchPlatformCard from '@/features/monitoring/ResearchPlatformCard.vue'
-import {
-  researchChains,
-  researchRegionLabel,
-  type ResearchChain,
-  type ResearchPlatform,
-  type ResearchWindow,
-} from '@/features/monitoring/research'
-import { researchPlatforms, researchSnapshot } from '@/mocks/monitoring-research'
+import { researchRegionLabel, type ResearchPlatform } from '@/features/monitoring/research'
+import { researchSnapshot } from '@/mocks/monitoring-research'
+import { monitoringPlatforms as researchPlatforms } from '@/mocks/monitoring-platforms'
 import { dataMode } from '@/shared/api/config'
 import StatePanel from '@/shared/ui/StatePanel.vue'
 import BottomDrawer from '@/shared/ui/BottomDrawer.vue'
 
 const route = useRoute()
-const windows: ResearchWindow[] = ['24h', '7d', '30d']
-const window = ref<ResearchWindow>('30d')
-const search = ref('')
-const chain = ref<ResearchChain | ''>('')
-const grade = ref('')
-const region = ref('')
-const completeOnly = ref(false)
+const analytics = ref<InstanceType<typeof ResearchAnalytics>>()
+const scope = ref<AnalyticsScope>({
+  snapshot: researchSnapshot,
+  period: '30d',
+  ids: ['A', 'B', 'C'],
+  values: {},
+})
+const hasUnratedScope = computed(() =>
+  scope.value.ids.some((id) => !researchPlatforms.some((p) => p.id === id)),
+)
+const window = computed(() =>
+  ['24h', '7d', '30d'].includes(scope.value.period)
+    ? (scope.value.period as '24h' | '7d' | '30d')
+    : '30d',
+)
+const search = ref(typeof route.query.search === 'string' ? route.query.search : '')
+const grade = ref(typeof route.query.grade === 'string' ? route.query.grade : '')
+const region = ref(
+  ['asia', 'europe', 'unknown'].includes(String(route.query.region))
+    ? String(route.query.region)
+    : '',
+)
+const completeOnly = ref(route.query.complete === '1')
 const sort = ref('score')
+const platformLimit = ref(3)
+watch(
+  [search, region, grade, completeOnly, () => scope.value.period, () => scope.value.ids.join(',')],
+  () => {
+    platformLimit.value = 3
+  },
+)
 const visiblePlatforms = computed(() =>
   researchPlatforms
+    .map((p) => {
+      const value = scope.value.values[p.id]
+      return value
+        ? {
+            ...p,
+            wallet: value.wallet,
+            flow: value.flow,
+            flowPercent: value.flowPercent,
+            windows: {
+              ...p.windows,
+              [window.value]: {
+                deposit: value.deposit,
+                amount: value.amount,
+                change: value.change ?? 0,
+              },
+            },
+          }
+        : p
+    })
     .filter(
       (platform) =>
         platform.name.toLowerCase().includes(search.value.trim().toLowerCase()) &&
-        (!chain.value || platform.chains.includes(chain.value)) &&
-        (!region.value || platform.region === region.value) &&
+        scope.value.ids.includes(platform.id) &&
+        (!region.value ||
+          (region.value === 'unknown'
+            ? platform.region === null
+            : platform.region === region.value)) &&
         (!grade.value || platform.grade === grade.value) &&
         (!completeOnly.value || platform.score !== null),
     )
@@ -56,6 +90,10 @@ const uid = ref('')
 const report = ref('')
 const feedback = ref('')
 function open(kind: string, platform?: ResearchPlatform) {
+  if (platform && ['地址清单', '数据来源'].includes(kind) && analytics.value) {
+    analytics.value.showPlatformEvidence(platform.id, kind)
+    return
+  }
   panel.value = { kind, platform }
   uid.value = ''
   report.value = ''
@@ -65,7 +103,6 @@ function close() {
   panel.value = null
 }
 function resetFilters() {
-  chain.value = ''
   grade.value = ''
   region.value = ''
   completeOnly.value = false
@@ -101,73 +138,79 @@ watch(
             aria-label="搜索平台名称"
         /></label>
         <button class="research-filter ae-glass" aria-label="筛选平台" @click="open('筛选条件')">
-          <SlidersHorizontal :size="21" /><i v-if="chain || grade || region || completeOnly"></i>
+          <SlidersHorizontal :size="21" /><i v-if="grade || region || completeOnly"></i>
         </button>
       </div>
-      <div class="research-controls">
-        <label class="research-chain ae-glass"
-          ><span class="sr-only">平台覆盖公链</span
-          ><GlassSelect v-model="chain">
-            <option value="">全部公链</option>
-            <option v-for="item in researchChains" :key="item">{{ item }}</option></GlassSelect
-          ></label
-        >
-        <div class="research-period ae-glass" aria-label="存款统计时间范围">
+      <ResearchAnalytics
+        ref="analytics"
+        :search="search"
+        :region="region"
+        :grade="grade"
+        :complete-only="completeOnly"
+        @scope="scope = $event"
+        @reset="resetFilters"
+      >
+        <template #platforms>
+          <div class="research-list-heading">
+            <h2>平台综合对比</h2>
+            <span>{{ visiblePlatforms.length }} 家</span>
+          </div>
+          <div class="research-region-filter">
+            <GlassSelect v-model="region" label="平台地区"
+              ><option value="">全部地区</option>
+              <option value="asia">亚洲平台</option>
+              <option value="europe">欧洲平台</option>
+              <option value="unknown">地区未标注</option></GlassSelect
+            >
+            <label
+              ><span class="sr-only">平台排序</span
+              ><GlassSelect v-model="sort" aria-label="平台排序">
+                <option value="score">盾牌分</option>
+                <option value="deposit">真实存款</option></GlassSelect
+              ></label
+            >
+          </div>
+          <div class="research-platforms">
+            <ResearchPlatformCard
+              v-for="(platform, index) in visiblePlatforms.slice(0, platformLimit)"
+              :key="platform.id"
+              :platform="platform"
+              :window="window"
+              :period-label="scope.period"
+              :snapshot="scope.snapshot"
+              :growth="scope.values[platform.id]?.change"
+              :rank="platform.score === null ? undefined : index + 1"
+              @open="open"
+            />
+            <div v-if="!visiblePlatforms.length" class="research-empty">
+              <StatePanel
+                :title="hasUnratedScope ? '当前范围暂无评级样本' : '暂无匹配平台'"
+                :description="
+                  hasUnratedScope
+                    ? '评分、纯净度与耗时需要独立评级样本。'
+                    : '试试其他平台名称、公链或纯净度条件。'
+                "
+              /><button v-if="!hasUnratedScope" @click="resetFilters">重置筛选</button>
+            </div>
+          </div>
           <button
-            v-for="period in windows"
-            :key="period"
-            :class="{ active: window === period }"
-            :aria-pressed="window === period"
-            @click="window = period"
+            v-if="visiblePlatforms.length > 3"
+            class="ma-secondary ma-platform-expand"
+            :aria-expanded="platformLimit > 3"
+            @click="platformLimit = platformLimit === 3 ? visiblePlatforms.length : 3"
           >
-            {{ period }}
+            {{
+              platformLimit === 3 ? `展开全部平台（${visiblePlatforms.length}）` : '收起平台卡片'
+            }}
           </button>
-        </div>
-      </div>
-      <ResearchChart :window="window" />
-      <div class="research-list-heading">
-        <h2>平台综合对比</h2>
-      </div>
-      <div class="research-region-filter">
-        <GlassSelect v-model="region" label="平台地区"
-          ><option value="">全部地区</option>
-          <option value="asia">亚洲平台</option>
-          <option value="europe">欧洲平台</option></GlassSelect
-        >
-        <label
-          ><span class="sr-only">平台排序</span
-          ><GlassSelect v-model="sort" aria-label="平台排序">
-            <option value="score">盾牌分</option>
-            <option value="deposit">真实存款</option></GlassSelect
-          ></label
-        >
-      </div>
-      <div class="research-platforms">
-        <ResearchPlatformCard
-          v-for="(platform, index) in visiblePlatforms"
-          :key="platform.id"
-          :platform="platform"
-          :window="window"
-          :rank="platform.score === null ? undefined : index + 1"
-          @open="open"
-        />
-        <div v-if="!visiblePlatforms.length" class="research-empty">
-          <StatePanel
-            title="暂无匹配平台"
-            description="试试其他平台名称、公链或纯净度条件。"
-          /><button @click="resetFilters">重置筛选</button>
-        </div>
-      </div>
-      <button class="research-method" @click="open('评级口径与来源')">
-        <Info :size="17" /><span
-          ><strong>盾牌分：储备40% · 纯净度30% · 客诉解决30%</strong
-          ><small>小额 &lt;1,000U · 大额 &gt;10,000U</small></span
-        ><span class="research-method__more">评级口径<ChevronRight :size="12" /></span>
-      </button>
-      <button class="research-live" @click="open('异动详情', researchPlatforms[1])">
-        <TriangleAlert :size="17" /><strong>钱包异动 1 条</strong
-        ><span>查看详情 <ChevronRight :size="13" /></span>
-      </button>
+          <button class="research-method" @click="open('评级口径与来源')">
+            <Info :size="17" /><span
+              ><strong>盾牌分：储备40% · 纯净度30% · 客诉解决30%</strong
+              ><small>小额 &lt;1,000U · 大额 &gt;10,000U</small></span
+            ><span class="research-method__more">评级口径<ChevronRight :size="12" /></span>
+          </button>
+        </template>
+      </ResearchAnalytics>
     </template>
     <StatePanel v-else title="暂无监测数据" description="稍后再查看链上监测与平台研究。" />
 
@@ -184,20 +227,15 @@ watch(
       <template v-if="panel">
         <div class="research-sheet__body">
           <template v-if="panel.kind === '筛选条件'">
-            <label class="research-field"
-              >覆盖公链<GlassSelect v-model="chain">
-                <option value="">全部公链</option>
-                <option v-for="item in researchChains" :key="item">{{ item }}</option>
-              </GlassSelect></label
-            >
             <p class="research-sheet-note">
-              按平台覆盖的链筛选；卡片金额仍为已标记钱包的全链汇总。
+              公链、币种和平台多选位于监测页的分析范围中，所选条件会应用于统计金额。
             </p>
             <label class="research-field"
               >平台地区<GlassSelect v-model="region"
                 ><option value="">全部地区</option>
                 <option value="asia">亚洲平台</option>
-                <option value="europe">欧洲平台</option></GlassSelect
+                <option value="europe">欧洲平台</option>
+                <option value="unknown">地区未标注</option></GlassSelect
               ></label
             >
             <label class="research-field"
@@ -267,14 +305,11 @@ watch(
             </button>
           </template>
           <template v-else-if="panel.kind === '异动详情'">
-            <div class="research-sheet-warning">
-              <TriangleAlert :size="22" />平台 B · 24h 净流出 28%
-            </div>
             <p>
-              热钱包余额 $21.6M；24h 净流出 $6.0M。口径为净流出额 ÷ 当前钱包余额，结果四舍五入。
+              {{ panel.platform?.name }} · {{ scope.period }} 净流量
+              {{ panel.platform?.flow ?? '暂无数据' }}。
             </p>
-            <p>钱包异动不等同于平台违约。需结合地址归属、资金去向与历史流向核查。</p>
-            <p class="research-sheet-note">快照 {{ researchSnapshot }}</p>
+            <p>当前范围的逐笔依据可在“资金流水”中查看。资金变化不等同于平台安全评级。</p>
           </template>
           <template v-else-if="panel.kind === '评级口径与来源' || panel.kind === '评分依据'">
             <p><strong>独立评分 · 赞助不影响排名</strong></p>
@@ -290,8 +325,8 @@ watch(
               &gt;10,000U；中间金额不计入这两档。资产为 USDT，耗时不等同于安全评级。
             </p>
             <p>
-              30d 图表为每日入金；7d 图表为每日入金；24h
-              图表为分时入金。净入金剔除已识别的内部冷热钱包互转。
+              24h 图表按小时汇总；7d、30d、90d 按日汇总；365d
+              按周汇总。资金统计剔除内部冷热钱包互转。
             </p>
           </template>
           <template v-else-if="panel.kind === '地址清单'">

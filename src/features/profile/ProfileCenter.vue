@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -664,7 +665,7 @@ watch(
           ><p class="pf-helper">关注的平台会出现在这里。</p>
           <article v-for="item in profile.bindings" :key="item.id" class="pf-card pf-platform-top">
             <span class="pf-letter" :class="`pf-letter--${item.id}`">{{ item.id }}</span>
-            <h3>{{ item.name }}</h3>
+            <h3>{{ item.name }}<PlatformAccountLink :platform="item.id" :name="item.name" /></h3>
             <button
               class="pf-small-button"
               @click="

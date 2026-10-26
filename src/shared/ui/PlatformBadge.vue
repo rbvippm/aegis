@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import PlatformAccountLink from './PlatformAccountLink.vue'
 import { getSportsPlatform, platformName } from '@/features/sports/platforms'
-defineProps<{ platform: string }>()
+withDefaults(defineProps<{ platform: string; linkable?: boolean }>(), { linkable: true })
 </script>
 <template>
   <span class="platform-badge"
     ><i :class="`platform-badge__mark--${platform}`" aria-hidden="true">{{
       getSportsPlatform(platform)?.mark ?? platform
     }}</i
-    ><span>{{ platformName(platform) }}</span></span
-  >
+    ><span v-if="!linkable">{{ platformName(platform) }}</span
+    ><PlatformAccountLink v-if="linkable" label :platform="platform" :name="platformName(platform)"
+  /></span>
 </template>
 <style>
 .platform-badge {

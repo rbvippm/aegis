@@ -64,6 +64,7 @@ for (const width of [360, 390, 430]) {
     expect(menu!.x).toBeGreaterThanOrEqual(0)
     expect(menu!.x + menu!.width).toBeLessThanOrEqual(width)
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
-    await page.screenshot({ path: `outputs/unified-controls/monitor-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/unified-controls/monitor-${width}.png` })
   })
 }

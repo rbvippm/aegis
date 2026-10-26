@@ -102,17 +102,20 @@ for (const width of [360, 390, 430]) {
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto('/ai')
     await page.waitForTimeout(350)
-    await page.screenshot({ path: `outputs/ai-implementation/welcome-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/welcome-${width}.png` })
     await expect(page.getByRole('button', { name: /出入金评估 到账/ })).toBeInViewport()
     const composer = await page.locator('.ac-composer').boundingBox()
     const dock = await page.locator('.ae-dock').boundingBox()
     expect(composer!.y + composer!.height).toBeLessThan(dock!.y)
     await page.getByRole('button', { name: sports, exact: true }).click()
     await expect(page.getByRole('region', { name: '方向参考' })).toBeVisible()
-    await page.screenshot({ path: `outputs/ai-implementation/sports-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/sports-${width}.png` })
     await page.getByRole('button', { name: '完整分析与依据' }).click()
     await page.waitForTimeout(350)
-    await page.screenshot({ path: `outputs/ai-implementation/details-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/details-${width}.png` })
     expect(await page.getByRole('dialog').evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
       false,
     )
@@ -120,11 +123,13 @@ for (const width of [360, 390, 430]) {
     await page.getByRole('button', { name: '新建对话' }).click()
     await page.getByRole('button', { name: funding, exact: true }).click()
     await expect(page.getByRole('region', { name: '出金表现', exact: true })).toBeVisible()
-    await page.screenshot({ path: `outputs/ai-implementation/funding-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/funding-${width}.png` })
     await page.locator('.ac-thread').evaluate((el) => {
       el.scrollTop = el.scrollHeight
     })
-    await page.screenshot({ path: `outputs/ai-implementation/funding-bottom-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/funding-bottom-${width}.png` })
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
     expect(errors).toEqual([])
   })
@@ -144,7 +149,8 @@ test('缩小视口、减少动效和减少透明度时输入与导航仍可用',
   expect(composer!.y + composer!.height).toBeLessThan(dock!.y)
   await page.getByRole('button', { name: '发送问题' }).click()
   await expect(page.getByRole('region', { name: '方向参考' })).toBeVisible()
-  await page.screenshot({ path: 'outputs/ai-implementation/compact-viewport.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/ai-implementation/compact-viewport.png' })
 })
 
 for (const [width, height] of [
@@ -171,6 +177,7 @@ for (const [width, height] of [
       el.scrollLeft = 100
     })
     expect(await page.locator('.ac-thread').evaluate((el) => el.scrollLeft)).toBe(0)
-    await page.screenshot({ path: `outputs/ai-implementation/compact-welcome-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/ai-implementation/compact-welcome-${width}.png` })
   })
 }

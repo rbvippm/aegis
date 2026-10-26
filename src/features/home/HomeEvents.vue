@@ -259,7 +259,7 @@ const panelTitle = computed(() =>
               @click="showQuote(item.quote.platform, item.side)"
             >
               <span class="he-quote__head"
-                ><PlatformBadge :platform="item.quote.platform" /><small>{{
+                ><PlatformBadge :linkable="false" :platform="item.quote.platform" /><small>{{
                   item.ties > 1 ? '并列较优' : '当前较优'
                 }}</small></span
               ><span class="he-selection">{{ item.selection }}</span
@@ -275,7 +275,8 @@ const panelTitle = computed(() =>
       </div>
       <button class="he-ticker" @click="showMovement(recent[0]!)">
         <TrendingDown :size="17" /><span
-          ><small>滚球播报</small><PlatformBadge :platform="recent[0]!.platform" /><b>{{
+          ><small>滚球播报</small
+          ><PlatformBadge :linkable="false" :platform="recent[0]!.platform" /><b>{{
             movementValue(recent[0]!, format)
           }}</b></span
         ><ChevronRight :size="14" />

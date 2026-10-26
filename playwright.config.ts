@@ -4,11 +4,13 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: 'dot',
   use: {
     baseURL: 'http://127.0.0.1:6173',
     headless: true,
-    trace: 'retain-on-failure',
+    trace: process.env.AEGIS_CAPTURE_UI === '1' ? 'retain-on-failure' : 'off',
+    screenshot: 'off',
+    video: 'off',
     launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
       ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH }
       : {},

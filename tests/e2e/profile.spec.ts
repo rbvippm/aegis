@@ -89,10 +89,11 @@ for (const width of [360, 390, 430]) {
       await page.goto('/me' + (section ? '?section=' + section : ''))
       await expect(page.locator('.page-enter-active')).toHaveCount(0)
       await expect(page.locator('.pf-mode')).toHaveCount(0)
-      await page.screenshot({
-        path: `outputs/profile-implementation/${section || 'overview'}-${width}.png`,
-        animations: 'disabled',
-      })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({
+          path: `outputs/profile-implementation/${section || 'overview'}-${width}.png`,
+          animations: 'disabled',
+        })
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
         false,
       )
@@ -100,10 +101,11 @@ for (const width of [360, 390, 430]) {
         const main = document.getElementById('main-content')
         main?.scrollTo(0, main.scrollHeight)
       })
-      await page.screenshot({
-        path: `outputs/profile-implementation/${section || 'overview'}-bottom-${width}.png`,
-        animations: 'disabled',
-      })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({
+          path: `outputs/profile-implementation/${section || 'overview'}-bottom-${width}.png`,
+          animations: 'disabled',
+        })
       const content = await page.locator('.pf-content').boundingBox(),
         dock = await page.locator('.ae-dock').boundingBox()
       expect(content!.y + content!.height).toBeLessThanOrEqual(dock!.y)
@@ -111,7 +113,8 @@ for (const width of [360, 390, 430]) {
     await page.goto('/me')
     await page.getByRole('button', { name: '账户设置', exact: true }).click()
     await page.waitForTimeout(350)
-    await page.screenshot({ path: `outputs/profile-implementation/settings-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/profile-implementation/settings-${width}.png` })
     expect(await page.getByRole('dialog').evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(
       false,
     )

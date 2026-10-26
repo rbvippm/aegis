@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import AegisMark from '@/shared/ui/AegisMark.vue'
 import MessageCenterLink from '@/shared/ui/MessageCenterLink.vue'
 import LanguageMenu from '@/shared/ui/LanguageMenu.vue'
+import PlatformAccountDrawer from '@/shared/ui/PlatformAccountDrawer.vue'
 import FloatingDock from '@/shared/ui/FloatingDock.vue'
 import { usePreferences } from '@/stores/preferences'
 
@@ -39,5 +40,6 @@ const customHeader = computed(() => route.name === 'ai' || profilePage.value)
       <RouterView />
     </main>
     <FloatingDock />
+    <PlatformAccountDrawer />
   </div>
 </template>

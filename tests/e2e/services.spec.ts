@@ -121,10 +121,11 @@ for (const width of [360, 390, 430]) {
       await expect(page.locator('.svc-hero h1')).toBeVisible()
       if (width === 390) {
         await expect(page.locator('.page-enter-active')).toHaveCount(0)
-        await page.screenshot({
-          path: `outputs/services/${section}-390-viewport.png`,
-          animations: 'disabled',
-        })
+        if (process.env.AEGIS_CAPTURE_UI === '1')
+          await page.screenshot({
+            path: `outputs/services/${section}-390-viewport.png`,
+            animations: 'disabled',
+          })
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
         false,
@@ -158,10 +159,11 @@ for (const section of ['vip', 'agents']) {
     await page.evaluate(
       () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
     )
-    await page.screenshot({
-      path: `outputs/services/${section}-390-full.png`,
-      animations: 'disabled',
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/services/${section}-390-full.png`,
+        animations: 'disabled',
+      })
     await page.setViewportSize({ width: 1280, height: 900 })
     expect((await page.locator('.home-shell').boundingBox())!.width).toBe(430)
   })

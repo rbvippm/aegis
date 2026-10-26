@@ -11,7 +11,8 @@ test('个人页 Telegram 和邮箱复用设置中的对应弹框', async ({ page
   await expect(d).toContainText('Telegram 登录')
   await expect(page.locator('.ae-drawer[open]')).toHaveCount(1)
   const telegram = await d.locator('.pf-drawer-content').innerText()
-  await page.screenshot({ path: 'outputs/compact-comparison/second-round/telegram.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/compact-comparison/second-round/telegram.png' })
   await page.keyboard.press('Escape')
   await expect(d).not.toBeVisible()
   await page.getByRole('button', { name: '账户设置', exact: true }).click()
@@ -21,7 +22,8 @@ test('个人页 Telegram 和邮箱复用设置中的对应弹框', async ({ page
   await expect(d).not.toBeVisible()
   await page.locator('.pf-connections').getByRole('button', { name: '邮箱', exact: true }).click()
   await expect(d.getByRole('textbox', { name: '邮箱', exact: true })).toBeVisible()
-  await page.screenshot({ path: 'outputs/compact-comparison/second-round/email.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/compact-comparison/second-round/email.png' })
   await d.getByRole('textbox', { name: '邮箱', exact: true }).fill('name@example.com')
   await d.getByRole('button', { name: '校验邮箱格式', exact: true }).click()
   await expect(d.getByRole('status')).toContainText('格式')
@@ -55,9 +57,11 @@ for (const width of [360, 390, 430]) {
     await expect(page.getByRole('dialog')).toContainText('玩法规则')
     await page.keyboard.press('Escape')
     await expect(page.getByRole('dialog')).not.toBeVisible()
-    await page.screenshot({ path: `outputs/compact-comparison/second-round/${width}-top.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/compact-comparison/second-round/${width}-top.png` })
     await card.evaluate((el) => (el.closest('main')!.scrollTop = (el as HTMLElement).offsetTop))
-    await page.screenshot({ path: `outputs/compact-comparison/second-round/${width}-card.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/compact-comparison/second-round/${width}-card.png` })
     await chooseOption(
       page,
       page.getByRole('combobox', { name: '平台类型', exact: true }),

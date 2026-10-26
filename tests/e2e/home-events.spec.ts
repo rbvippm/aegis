@@ -94,13 +94,15 @@ for (const width of [360, 390, 430]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
         false,
       )
-      await page.screenshot({ path: `outputs/home-events/${width}-${tab}.png` })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({ path: `outputs/home-events/${width}-${tab}.png` })
     }
     await card.getByRole('button', { name: '查看全部', exact: true }).click()
     await expect(page.getByRole('dialog').locator('.he-movement')).toHaveCount(20)
     expect(
       await page.getByRole('dialog').evaluate((el) => el.scrollWidth > el.clientWidth + 1),
     ).toBe(false)
-    await page.screenshot({ path: `outputs/home-events/${width}-history.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/home-events/${width}-history.png` })
   })
 }

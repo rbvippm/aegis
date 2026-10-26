@@ -13,9 +13,10 @@ for (const width of [360, 390, 430]) {
       const input = menu.getByRole('searchbox', { name: `搜索${label}`, exact: true })
       await expect(menu).toBeFocused()
       await expect(input).not.toBeFocused()
-      await page.screenshot({
-        path: `outputs/select-focus/first-round/${width}-${label}-opened.png`,
-      })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({
+          path: `outputs/select-focus/first-round/${width}-${label}-opened.png`,
+        })
       await input.click()
       await expect(input).toBeFocused()
       await input.fill(query)
@@ -64,7 +65,8 @@ test('抽屉中的可搜索选择也不自动唤起输入焦点', async ({ page 
   await expect(menu.getByRole('searchbox')).not.toBeFocused()
   await menu.getByRole('searchbox').click()
   await expect(menu.getByRole('searchbox')).toBeFocused()
-  await page.screenshot({ path: 'outputs/select-focus/first-round/drawer-manual-search.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/select-focus/first-round/drawer-manual-search.png' })
   await page.keyboard.press('Escape')
   await expect(menu).not.toBeVisible()
   await expect(dialog).toBeVisible()

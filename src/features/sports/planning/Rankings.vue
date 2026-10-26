@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { computed } from 'vue'
 import { ChevronRight, Info, Share2 } from '@lucide/vue'
 import {
@@ -66,7 +67,10 @@ function barWidth(value: number) {
       ><span class="pw-brand-mark">{{ row.operator.mark }}</span>
       <div class="pw-rank-main">
         <header>
-          <h3>{{ row.operator.name }}</h3>
+          <h3>
+            {{ row.operator.name
+            }}<PlatformAccountLink :platform="row.operator.id" :name="row.operator.name" />
+          </h3>
           <b>{{ number(row.value) }}%</b>
         </header>
         <div class="pw-rank-meta">

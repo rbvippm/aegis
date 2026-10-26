@@ -94,32 +94,36 @@ for (const width of [360, 390, 430])
     page.on('pageerror', (e) => errors.push(e.message))
     await page.goto('/me')
     await expect(page.locator('.page-enter-active')).toHaveCount(0)
-    await page.screenshot({
-      path: `outputs/subscription/${width}-profile.png`,
-      animations: 'disabled',
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/subscription/${width}-profile.png`,
+        animations: 'disabled',
+      })
     await page.getByRole('link', { name: '订阅与特权', exact: true }).click()
     await expect(page.locator('.sb-account')).toBeVisible()
     await page.waitForTimeout(200)
-    await page.screenshot({
-      path: `outputs/subscription/${width}-subscription.png`,
-      animations: 'disabled',
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/subscription/${width}-subscription.png`,
+        animations: 'disabled',
+      })
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
     await page.getByRole('button', { name: '档次对比', exact: true }).click()
     const comparison = page.getByRole('region', { name: '订阅权益对比' })
     await comparison.scrollIntoViewIfNeeded()
     expect(await comparison.evaluate((el) => el.scrollWidth > el.clientWidth + 1)).toBe(false)
-    await page.screenshot({
-      path: `outputs/subscription/${width}-comparison.png`,
-      animations: 'disabled',
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/subscription/${width}-comparison.png`,
+        animations: 'disabled',
+      })
     await page.getByRole('button', { name: '了解 L2 订阅方案', exact: true }).click()
     await page.waitForTimeout(300)
-    await page.screenshot({
-      path: `outputs/subscription/${width}-plan.png`,
-      animations: 'disabled',
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/subscription/${width}-plan.png`,
+        animations: 'disabled',
+      })
     expect(
       await page.getByRole('dialog').evaluate((el) => el.scrollWidth > el.clientWidth + 1),
     ).toBe(false)

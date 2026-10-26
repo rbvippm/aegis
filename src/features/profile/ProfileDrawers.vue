@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import GlassSelect from '@/shared/ui/GlassSelect.vue'
 import { computed, ref, watch } from 'vue'
 import {
@@ -342,7 +343,9 @@ async function copyUid() {
       >
       <template v-else-if="panel === 'bindingInfo'"
         ><section v-if="platform" class="pf-card">
-          <h3>{{ platform.name }}</h3>
+          <h3>
+            {{ platform.name }}<PlatformAccountLink :platform="platform.id" :name="platform.name" />
+          </h3>
           <dl class="pf-definition">
             <div>
               <dt>UID</dt>

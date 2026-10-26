@@ -13,6 +13,7 @@ const props = withDefaults(
     plain?: boolean
     hideChevron?: boolean
     searchable?: boolean
+    selectedValues?: string[]
   }>(),
   { label: '' },
 )
@@ -127,12 +128,18 @@ function revealOption(index: number) {
   else if (option.offsetTop + option.offsetHeight > menu.value.scrollTop + menu.value.clientHeight)
     menu.value.scrollTop = option.offsetTop + option.offsetHeight - menu.value.clientHeight
 }
+function isSelected(value: string) {
+  return props.selectedValues ? props.selectedValues.includes(value) : selected.value === value
+}
 function choose(index: number) {
   const option = options.value[index]
   if (!option || option.disabled || !native.value) return
   native.value.value = option.value
   native.value.dispatchEvent(new Event('change', { bubbles: true }))
-  close(true)
+  if (props.selectedValues) {
+    highlighted.value = index
+    void nextTick(() => menu.value?.focus({ preventScroll: true }))
+  } else close(true)
 }
 function change(event: Event) {
   const value = (event.target as HTMLSelectElement).value
@@ -268,6 +275,7 @@ onBeforeUnmount(() => {
         class="glass-select__menu"
         :style="position"
         role="listbox"
+        :aria-multiselectable="selectedValues ? true : undefined"
         :aria-label="accessibleLabel"
         tabindex="-1"
         :aria-activedescendant="`${id}-${highlighted}`"
@@ -292,14 +300,14 @@ onBeforeUnmount(() => {
           :id="`${id}-${index}`"
           :key="`${option.value}-${index}`"
           role="option"
-          :aria-selected="selected === option.value"
+          :aria-selected="isSelected(option.value)"
           :aria-disabled="option.disabled"
           :data-index="index"
           :class="{ 'is-highlighted': highlighted === index }"
           @click.stop="choose(index)"
         >
           <span>{{ option.label }}</span
-          ><Check v-if="selected === option.value" :size="16" aria-hidden="true" />
+          ><Check v-if="isSelected(option.value)" :size="16" aria-hidden="true" />
         </li></ul
     ></Teleport>
   </span>

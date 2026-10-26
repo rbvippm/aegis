@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import HomeEvents from './HomeEvents.vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -163,15 +164,18 @@ watch(
       </div>
       <StatePanel v-if="!demo" title="暂无平台数据" description="评分和排名服务尚未接入。" />
       <template v-else-if="ranking === 'score'">
-        <RouterLink
+        <div
           v-for="(p, index) in platforms"
           :key="p.id"
           class="hr-rank-row"
-          :to="`/monitor?platform=${p.id}`"
-          ><span class="hr-rank-number">{{ p.score === null ? '—' : index + 1 }}</span
+          @click="router.push(`/monitor?platform=${p.id}`)"
+        >
+          <span class="hr-rank-number">{{ p.score === null ? '—' : index + 1 }}</span
           ><span class="hr-avatar" :class="`hr-avatar-${p.id}`">{{ p.id }}</span
           ><span class="hr-rank-name"
-            ><strong>{{ p.name }}</strong
+            ><strong class="hr-account-name"
+              ><RouterLink :to="`/monitor?platform=${p.id}`" @click.stop>{{ p.name }}</RouterLink
+              ><PlatformAccountLink :platform="p.id" :name="p.name" /></strong
             ><small>{{
               p.grade
                 ? `出金纯净度 ${p.grade} · 小额 ${p.smallMinutes} min`
@@ -179,14 +183,14 @@ watch(
             }}</small></span
           ><span class="hr-rank-value"
             >{{ p.score?.toFixed(1) ?? '—' }}<small>综合盾牌分</small></span
-          ></RouterLink
-        >
+          >
+        </div>
       </template>
       <template v-else>
         <p class="hr-rank-scope">
           <span>足球</span><span>全场亚洲让球</span><span>近7天</span><b>共同样本 128 场</b>
         </p>
-        <button
+        <div
           v-for="(p, index) in oddsRanks"
           :key="p.id"
           class="hr-rank-row"
@@ -195,10 +199,16 @@ watch(
           <span class="hr-rank-number">{{ index + 1 }}</span
           ><span class="hr-avatar" :class="`hr-avatar-${p.id}`">{{ p.id }}</span
           ><span class="hr-rank-name"
-            ><strong>平台 {{ p.id }}</strong
+            ><strong class="hr-account-name"
+              ><button
+                type="button"
+                @click.stop="compare('ranking', undefined, undefined, undefined, p.id)"
+              >
+                平台 {{ p.id }}</button
+              ><PlatformAccountLink :platform="p.id" :name="`平台 ${p.id}`" /></strong
             ><small>同盘口有效报价</small></span
           ><span class="hr-rank-value">{{ p.share }}%<small>最优报价占比</small></span>
-        </button>
+        </div>
       </template>
       <button class="hr-ranking-note" @click="panel = 'ranking'">
         综合评分与赔率排名独立计算 · 查看口径与来源
@@ -335,3 +345,22 @@ watch(
     </BottomDrawer>
   </div>
 </template>
+
+<style scoped>
+.hr-account-name {
+  display: flex;
+  align-items: center;
+}
+.hr-account-name > a,
+.hr-account-name > button:first-child {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+</style>

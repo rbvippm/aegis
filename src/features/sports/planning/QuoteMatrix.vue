@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { ArrowUp, ArrowDown, Ban, ChevronDown, LockKeyhole } from '@lucide/vue'
 import { formatOdds } from '../logic'
@@ -81,8 +82,8 @@ onBeforeUnmount(clearChanges)
           <th>
             <span class="pw-brand"
               ><i>{{ operator(q.operator).mark }}</i
-              ><span>{{ operator(q.operator).name }}</span></span
-            >
+              ><PlatformAccountLink label :platform="q.operator" :name="operator(q.operator).name"
+            /></span>
           </th>
           <td v-for="(_, i) in market.selections" :key="i">
             <button

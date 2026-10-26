@@ -39,9 +39,9 @@ const icon = computed(
     <span class="he-movement__icon"><component :is="icon" :size="19" /></span
     ><span class="he-movement__main"
       ><span class="he-movement__top"
-        ><PlatformBadge :platform="movement.platform" /><span class="he-movement__label">{{
-          movementLabel(movement)
-        }}</span
+        ><PlatformBadge :linkable="false" :platform="movement.platform" /><span
+          class="he-movement__label"
+          >{{ movementLabel(movement) }}</span
         ><time>{{ movement.time }}</time></span
       ><strong class="he-movement__value">{{ movementValue(movement, format) }}</strong
       ><small

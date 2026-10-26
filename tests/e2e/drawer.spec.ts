@@ -58,11 +58,13 @@ for (const route of ['monitor', 'compare']) {
     await expect(drawer).toHaveAttribute('data-detent', 'expanded')
     await expect.poll(heightRatio).toBeGreaterThan(0.79)
     expect(await heightRatio()).toBeLessThanOrEqual(0.801)
-    await page.screenshot({ path: `outputs/drawer-review/${route}-manual-max.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/drawer-review/${route}-manual-max.png` })
     await pull(90)
     await expect(drawer).toHaveAttribute('data-detent', 'half')
     await expect.poll(heightRatio).toBeLessThan(0.62)
-    await page.screenshot({ path: `outputs/drawer-review/${route}-half.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/drawer-review/${route}-half.png` })
     await pull(-120)
     await expect(drawer).toHaveAttribute('data-detent', 'expanded')
     await expect.poll(heightRatio).toBeGreaterThan(0.79)
@@ -95,10 +97,11 @@ for (const width of [360, 390, 430]) {
     for (const route of ['monitor', 'compare']) {
       await page.goto(`/${route}`)
       await page.waitForTimeout(350)
-      await page.screenshot({
-        path: `outputs/drawer-review/after-${route}-${width}.png`,
-        fullPage: true,
-      })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({
+          path: `outputs/drawer-review/after-${route}-${width}.png`,
+          fullPage: true,
+        })
       await page
         .getByRole('button', { name: route === 'monitor' ? '筛选平台' : '识别', exact: true })
         .click()
@@ -106,7 +109,8 @@ for (const width of [360, 390, 430]) {
       await expect(drawer).toBeVisible()
       await drawer.locator('.ae-drawer__handle').focus()
       await page.waitForTimeout(350)
-      await page.screenshot({ path: `outputs/drawer-review/${route}-expanded-${width}.png` })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({ path: `outputs/drawer-review/${route}-expanded-${width}.png` })
       expect(await drawer.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(false)
       const body = drawer.locator('.ae-drawer__body')
       await body.evaluate((el) => {

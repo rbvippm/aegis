@@ -1,249 +1,256 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { ResearchWindow } from './research'
-import { researchSeries } from '@/mocks/monitoring-research'
-
-const props = defineProps<{ window: ResearchWindow }>()
-const relative = ref(false)
-const point = ref(4)
-const selected = ref(0)
-const series = computed(() => researchSeries[props.window])
-watch(
-  () => props.window,
-  () => {
-    point.value = 4
+import type { Series } from './analytics-model'
+import { count, dateLabel, money } from './analytics-model'
+import GlassSelect from '@/shared/ui/GlassSelect.vue'
+const props = withDefaults(
+  defineProps<{
+    series: Series[]
+    times: number[]
+    title?: string
+    label?: (key: string) => string
+    percent?: boolean
+    balance?: boolean
+    unit?: 'money' | 'count' | 'percent'
+  }>(),
+  {
+    title: '真实链上存款',
+    label: (key: string) => key,
+    percent: false,
+    balance: false,
+    unit: 'money',
   },
 )
-const colors = ['#0874ff', '#08b7aa']
-const chartTop = computed(() => (props.window === '24h' ? 20 : 100))
+const kind = ref('line')
+const selected = ref(0),
+  point = ref(0)
+watch(
+  () => [props.series, props.times],
+  () => {
+    selected.value = 0
+    point.value = Math.max(0, props.times.length - 1)
+  },
+)
+const colors = [
+  '#0864ff',
+  '#087f6b',
+  '#7955bd',
+  '#a66615',
+  '#bd526d',
+  '#3d5d86',
+  '#357b8e',
+  '#925e7a',
+  '#687c3c',
+]
 const values = computed(() =>
-  series.value.values.map((row) =>
-    row.map((value) => (relative.value ? (value / row[0]! - 1) * 100 : value)),
+  props.series.map((row) => ({
+    ...row,
+    values: row.values.map((value) =>
+      props.percent
+        ? row.values[0] === 0
+          ? null
+          : ((value - row.values[0]!) / Math.abs(row.values[0]!)) * 100
+        : value,
+    ),
+  })),
+)
+const hasComparable = computed(
+  () => !props.percent || values.value.some((row) => row.values.some((v) => v !== null)),
+)
+const range = computed(() => {
+  const all = values.value.flatMap((row) => row.values).filter((v): v is number => v !== null)
+  const min = Math.min(0, ...all),
+    max = Math.max(0, ...all)
+  return { min, max: max === min ? max + 1 : max }
+})
+const x = (i: number) => 12 + (i / Math.max(1, props.times.length - 1)) * 266
+const y = (v: number) => 120 - ((v - range.value.min) / (range.value.max - range.value.min)) * 108
+const path = (row: (number | null)[]) =>
+  row
+    .map((v, i) =>
+      v === null ? '' : `${i === 0 || row[i - 1] === null ? 'M' : 'L'}${x(i)},${y(v)}`,
+    )
+    .join(' ')
+const display = (value: number | null) =>
+  value === null
+    ? '无可比基期'
+    : props.percent || props.unit === 'percent'
+      ? `${value.toFixed(1)}%`
+      : props.unit === 'count'
+        ? count(value)
+        : money(value)
+const total = (values: (number | null)[]) =>
+  values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+const active = computed(() => values.value[selected.value])
+const ticks = computed(() =>
+  [...new Set([0, Math.floor(props.times.length / 2), props.times.length - 1])].filter(
+    (i) => i >= 0,
   ),
 )
-const min = computed(() => (relative.value ? -50 : 0))
-const max = computed(() => (relative.value ? 250 : chartTop.value))
-const x = (index: number) => 8 + index * 47
-const y = (value: number) => 110 - ((value - min.value) / (max.value - min.value)) * 102
-const line = (row: number[]) => {
-  let path = `M${x(0)},${y(row[0]!)}`
-  for (let index = 1; index < row.length; index++) {
-    const middle = (x(index - 1) + x(index)) / 2
-    path += ` C${middle},${y(row[index - 1]!)} ${middle},${y(row[index]!)} ${x(index)},${y(row[index]!)}`
-  }
-  return path
-}
-const activeValue = computed(() => values.value[selected.value]?.[point.value] ?? 0)
-const tooltip = computed(() =>
-  relative.value ? `${activeValue.value.toFixed(1)}%` : `$${activeValue.value}M`,
-)
 function move(direction: number) {
-  point.value = Math.min(6, Math.max(0, point.value + direction))
+  point.value = Math.min(props.times.length - 1, Math.max(0, point.value + direction))
+}
+function selectPoint(event: PointerEvent) {
+  const box = (event.currentTarget as SVGElement).getBoundingClientRect()
+  point.value = Math.max(
+    0,
+    Math.min(
+      props.times.length - 1,
+      Math.round(
+        ((((event.clientX - box.left) / box.width) * 340 - 12) / 266) * (props.times.length - 1),
+      ),
+    ),
+  )
 }
 </script>
-
 <template>
-  <section class="research-chart" aria-label="真实链上存款趋势">
-    <div class="research-chart__heading">
-      <h2>真实链上存款</h2>
-      <div class="research-toggle" aria-label="图表显示方式">
-        <button :aria-pressed="!relative" :class="{ active: !relative }" @click="relative = false">
-          金额
-        </button>
-        <button :aria-pressed="relative" :class="{ active: relative }" @click="relative = true">
-          涨跌幅
-        </button>
+  <section class="ma-card ma-chart" :aria-label="`${title}趋势`">
+    <header class="ma-heading">
+      <h2>{{ title }}</h2>
+      <GlassSelect v-model="kind" label="图形"
+        ><option value="line">折线</option>
+        <option value="bar">柱状</option>
+        <option value="bubble">气泡</option>
+        <option value="boxes">分块</option></GlassSelect
+      >
+    </header>
+    <slot name="controls" />
+    <div class="ma-legend" role="group" aria-label="曲线图例">
+      <button
+        v-for="(row, i) in values"
+        :key="row.key"
+        :aria-pressed="selected === i"
+        @click="selected = i"
+      >
+        <i :style="{ background: colors[i % colors.length] }" />{{ label(row.key) }}
+      </button>
+    </div>
+    <p v-if="!series.length || !hasComparable" class="ma-empty" role="status">
+      {{ !series.length ? '当前筛选范围暂无数据。' : '当前范围没有可比基期，请切回金额查看。' }}
+    </p>
+    <div v-else-if="kind === 'boxes'" class="ma-boxes">
+      <div
+        v-for="(row, i) in values"
+        :key="row.key"
+        :style="{ borderColor: colors[i % colors.length] }"
+      >
+        <span>{{ label(row.key) }}</span
+        ><strong>{{
+          display(
+            percent
+              ? (row.values.at(-1) ?? null)
+              : balance
+                ? (row.values.at(-1) ?? null)
+                : total(row.values),
+          )
+        }}</strong>
       </div>
     </div>
-    <div class="research-legend">
-      <button
-        v-for="(color, index) in colors"
-        :key="color"
-        :aria-pressed="selected === index"
-        @click="selected = index"
+    <template v-else>
+      <div v-if="active" class="ma-chart-readout" aria-live="polite">
+        <span
+          >{{ dateLabel(times[point] ?? 0, times.length === 24) }} · {{ label(active.key) }}</span
+        ><strong>{{ display(active.values[point] ?? null) }}</strong>
+      </div>
+      <svg
+        v-if="series.length"
+        viewBox="0 0 340 154"
+        role="img"
+        :aria-label="`${title}；${active ? label(active.key) : ''} ${display(active?.values[point] ?? null)}；左右方向键查看时间点`"
+        tabindex="0"
+        @keydown.left.prevent="move(-1)"
+        @keydown.right.prevent="move(1)"
+        @pointerdown="selectPoint"
+        @pointermove="
+          (event) => {
+            if (event.buttons || event.pointerType === 'mouse') selectPoint(event)
+          }
+        "
       >
-        <i :style="{ background: color }"></i>平台 {{ index === 0 ? 'A' : 'B' }}
-      </button>
-      <span>全链汇总</span>
-    </div>
-    <svg
-      viewBox="0 0 340 147"
-      role="img"
-      :aria-label="`${window} ${series.labels[point]} 平台${selected === 0 ? 'A' : 'B'} ${tooltip}；左右方向键查看时间点`"
-      tabindex="0"
-      @keydown.left.prevent="move(-1)"
-      @keydown.right.prevent="move(1)"
-    >
-      <defs>
-        <linearGradient id="research-blue-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop stop-color="#2890ff" stop-opacity=".22" />
-          <stop offset="1" stop-color="#2890ff" stop-opacity=".02" />
-        </linearGradient>
-        <linearGradient id="research-teal-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop stop-color="#04b6a6" stop-opacity=".16" />
-          <stop offset="1" stop-color="#04b6a6" stop-opacity="0" />
-        </linearGradient>
-      </defs>
-      <g v-for="fraction in [0, 0.5, 1]" :key="fraction">
+        <g v-for="f in [0, 0.5, 1]" :key="f">
+          <line
+            x1="12"
+            x2="278"
+            :y1="12 + f * 108"
+            :y2="12 + f * 108"
+            stroke="#d7e6f8"
+            stroke-dasharray="3 3"
+          />
+          <text x="284" :y="16 + f * 108">
+            {{ display(range.max - f * (range.max - range.min)) }}
+          </text>
+        </g>
+        <line x1="12" x2="278" :y1="y(0)" :y2="y(0)" stroke="#9eb6cf" />
+        <g v-for="(row, r) in values" :key="row.key" :opacity="selected === r ? 1 : 0.4">
+          <path
+            v-if="kind === 'line'"
+            :d="path(row.values)"
+            fill="none"
+            :stroke="colors[r % colors.length]"
+            :stroke-width="selected === r ? 2.8 : 1.8"
+            stroke-linejoin="round"
+          />
+          <template v-for="(v, i) in row.values" :key="i">
+            <rect
+              v-if="kind === 'bar' && v !== null"
+              :x="
+                x(i) - 2 + (r - values.length / 2) * Math.max(1, 220 / times.length / values.length)
+              "
+              :y="Math.min(y(v), y(0))"
+              :width="Math.max(1, 220 / times.length / values.length)"
+              :height="Math.max(1, Math.abs(y(v) - y(0)))"
+              :fill="colors[r % colors.length]"
+              rx="1"
+            />
+            <circle
+              v-if="kind === 'bubble' && v !== null"
+              :cx="x(i)"
+              :cy="y(v)"
+              :r="
+                2 +
+                Math.sqrt(Math.abs(v) / Math.max(1, Math.abs(range.max), Math.abs(range.min))) * 6
+              "
+              :fill="colors[r % colors.length]"
+              fill-opacity=".7"
+            />
+          </template>
+        </g>
         <line
-          x1="8"
-          :y1="8 + fraction * 102"
-          x2="290"
-          :y2="8 + fraction * 102"
-          stroke="#dce9f6"
+          :x1="x(point)"
+          :x2="x(point)"
+          y1="12"
+          y2="120"
+          stroke="#8bb9ef"
           stroke-dasharray="3 3"
         />
-        <text x="296" :y="12 + fraction * 102">
-          {{
-            relative
-              ? `${max - fraction * (max - min)}%`
-              : `$${max * (1 - fraction)}${fraction === 1 ? '' : 'M'}`
-          }}
-        </text>
-      </g>
-      <g v-for="(row, index) in values" :key="index">
-        <path
-          :d="`${line(row)} L290,110 L8,110 Z`"
-          :fill="index === 0 ? 'url(#research-blue-fill)' : 'url(#research-teal-fill)'"
+        <circle
+          v-if="active && active.values[point] !== null && active.values[point] !== undefined"
+          :cx="x(point)"
+          :cy="y(active.values[point]!)"
+          r="4"
+          :fill="colors[selected % colors.length]"
+          stroke="white"
+          stroke-width="2"
         />
-        <path
-          :d="line(row)"
-          fill="none"
-          :stroke="colors[index]"
-          stroke-width="2.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </g>
-      <line :x1="x(point)" :x2="x(point)" y1="8" y2="110" stroke="#8bc4ff" stroke-dasharray="3 3" />
-      <circle
-        :cx="x(point)"
-        :cy="y(activeValue)"
-        r="4"
-        :fill="colors[selected]"
-        stroke="white"
-        stroke-width="2"
-      />
-      <g
-        :transform="`translate(${Math.min(209, Math.max(8, x(point) - 48))},${Math.max(1, y(activeValue) - 29)})`"
-      >
-        <rect width="88" height="22" rx="7" fill="white" stroke="#e2effc" />
-        <text x="44" y="15" text-anchor="middle" class="research-chart__tooltip">
-          {{ selected === 0 ? 'A' : 'B' }} · {{ tooltip }}
+        <text
+          v-for="i in ticks"
+          :key="i"
+          :x="x(i)"
+          y="145"
+          :text-anchor="i === 0 ? 'start' : i === times.length - 1 ? 'end' : 'middle'"
+        >
+          {{ dateLabel(times[i]!, times.length === 24) }}
         </text>
-      </g>
-      <text
-        v-for="index in [0, 2, 4, 6]"
-        :key="index"
-        :x="index === 6 ? 290 : x(index)"
-        y="137"
-        :text-anchor="index === 0 ? 'start' : index === 6 ? 'end' : 'middle'"
-      >
-        {{ series.labels[index] }}
-      </text>
-      <rect
-        v-for="index in 7"
-        :key="`hit-${index}`"
-        :x="Math.max(0, x(index - 1) - 22)"
-        y="6"
-        width="47"
-        height="110"
-        fill="transparent"
-        @click="point = index - 1"
-      />
-    </svg>
-    <p>{{ window === '24h' ? '分时入金' : '每日入金' }} · 剔除内部转账</p>
+      </svg>
+    </template>
+    <p class="ma-note">
+      {{
+        percent
+          ? '相对首个时间桶；基期为零时不计算涨跌幅。'
+          : balance
+            ? '按所选链和币种汇总的期末余额。'
+            : '按时间桶汇总 · 已剔除内部转账。'
+      }}
+    </p>
   </section>
 </template>
-
-<style scoped>
-.research-chart {
-  padding: 10px 12px 8px;
-  border: 1px solid white;
-  border-radius: 18px;
-  background: #ffffffdf;
-  box-shadow: 0 4px 14px #729ed810;
-}
-.research-chart__heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-}
-h2 {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
-}
-.research-toggle {
-  display: flex;
-  padding: 2px;
-  border: 1px solid #d9e9ff;
-  background: #eef6ff;
-  border-radius: 18px;
-}
-button {
-  border: 0;
-  background: none;
-}
-.research-toggle button {
-  min-height: 44px;
-  padding: 0 10px;
-  font-size: 12px;
-  border-radius: 16px;
-}
-.research-toggle .active {
-  color: white;
-  background: linear-gradient(#60b0ff, #0872ff 65%, #54a8ff);
-  box-shadow:
-    inset 0 1px 2px #fff,
-    0 2px 5px #88b8ff80;
-}
-.research-legend {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.research-legend button {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  min-height: 44px;
-  padding: 0;
-  font-size: 12px;
-}
-.research-legend i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.research-legend span {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--ae-muted);
-}
-svg {
-  height: 130px;
-  display: block;
-  width: 100%;
-  overflow: visible;
-}
-svg text {
-  font:
-    11px -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
-  fill: #60799c;
-}
-svg .research-chart__tooltip {
-  font-size: 12px;
-  font-weight: 600;
-  fill: #14213d;
-}
-p {
-  text-align: center;
-  color: var(--ae-muted);
-  font-size: 12px;
-  line-height: 1.5;
-}
-</style>

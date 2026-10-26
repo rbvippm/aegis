@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { ChevronRight, ShieldCheck, TriangleAlert, Coins } from '@lucide/vue'
 import { computed } from 'vue'
 import { researchRegionLabel, type ResearchPlatform, type ResearchWindow } from './research'
 import { researchSnapshot } from '@/mocks/monitoring-research'
-const props = defineProps<{ platform: ResearchPlatform; window: ResearchWindow; rank?: number }>()
+const props = defineProps<{
+  platform: ResearchPlatform
+  window: ResearchWindow
+  rank?: number
+  periodLabel?: string
+  snapshot?: string
+  growth?: number | null
+}>()
 const emit = defineEmits<{ open: [kind: string, platform: ResearchPlatform] }>()
+const flowLabel = computed(() => props.periodLabel ?? '24h')
 const deposit = computed(() => props.platform.windows[props.window])
 const warning = computed(
   () => props.platform.flowPercent !== null && props.platform.flowPercent < -25,
@@ -21,17 +30,16 @@ const rebate = computed(
     :class="{ 'research-platform--partial': platform.score === null }"
     :aria-label="platform.name"
   >
-    <button
-      class="research-platform__header"
-      :aria-label="`${platform.name}详情`"
-      @click="emit('open', '详情', platform)"
-    >
+    <div class="research-platform__header" @click="emit('open', '详情', platform)">
       <span v-if="rank" class="research-rank">{{ rank }}</span
       ><span class="research-avatar" :class="`research-avatar--${platform.id}`">{{
         platform.id
       }}</span>
       <span class="research-platform__identity"
-        ><h3>{{ platform.name }}</h3>
+        ><h3 class="research-account-name">
+          <button type="button" :aria-label="`${platform.name}详情`">{{ platform.name }}</button
+          ><PlatformAccountLink :platform="platform.id" :name="platform.name" />
+        </h3>
         <small class="research-region-badge">{{
           researchRegionLabel(platform.region)
         }}</small></span
@@ -41,28 +49,29 @@ const rebate = computed(
         ><small>/10</small></span
       >
       <span v-else class="research-partial">样本不足 · 暂不评分</span><ChevronRight :size="16" />
-    </button>
+    </div>
     <template v-if="platform.score !== null">
       <button v-if="warning" class="research-warning" @click="emit('open', '异动详情', platform)">
         <TriangleAlert :size="18" /><span
-          >24h 净流出 {{ Math.abs(platform.flowPercent!) }}% · 钱包异动</span
+          >{{ flowLabel }} 净流出 {{ Math.abs(platform.flowPercent!) }}% · 钱包异动</span
         ><ChevronRight :size="14" />
       </button>
       <div class="research-metrics">
         <div class="research-metric">
-          <span>{{ window }} 真实存款</span>
+          <span>{{ periodLabel ?? window }} 真实存款</span>
           <div class="research-value">
             <strong>{{ deposit.deposit }}</strong
             ><span :class="deposit.change >= 0 ? 'research-positive' : 'research-negative'"
-              >{{ deposit.change >= 0 ? '↑' : '↓' }} {{ Math.abs(deposit.change) }}%</span
+              >{{ growth === null ? '无可比基期' : deposit.change >= 0 ? '↑' : '↓' }}
+              <template v-if="growth !== null">{{ Math.abs(deposit.change) }}%</template></span
             >
           </div>
-          <small>较前{{ window === '24h' ? '24小时' : window === '7d' ? '7天' : '30天' }}</small>
+          <small>较前一个等长窗口</small>
         </div>
         <div class="research-metric">
           <span>热钱包余额</span><strong>{{ platform.wallet }}</strong>
           <small
-            >24h {{ platform.flowPercent! >= 0 ? '净流入' : '净流出' }}
+            >{{ flowLabel }} {{ platform.flowPercent! >= 0 ? '净流入' : '净流出' }}
             <b :class="platform.flowPercent! >= 0 ? 'research-positive' : 'research-negative'">{{
               platform.flow
             }}</b></small
@@ -114,7 +123,7 @@ const rebate = computed(
         </button>
       </div>
       <button class="research-source" @click="emit('open', '数据来源', platform)">
-        <span>{{ researchSnapshot }}</span
+        <span>{{ snapshot ?? researchSnapshot }}</span
         ><span>数据来源 <ChevronRight :size="12" /></span>
       </button>
     </template>
@@ -142,6 +151,16 @@ button {
   gap: 9px;
   padding: 5px 1px;
   text-align: left;
+}
+.research-account-name {
+  display: flex;
+  align-items: center;
+}
+.research-account-name > button:first-child {
+  font: inherit;
+  color: inherit;
+  padding: 0;
+  min-height: 44px;
 }
 .research-rank {
   color: #526d97;

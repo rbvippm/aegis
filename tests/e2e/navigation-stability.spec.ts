@@ -60,9 +60,10 @@ for (const width of [360, 390, 430]) {
         expect(Math.abs(frame.dockTop - initialDock!.y)).toBeLessThan(1)
         expect(Math.abs(frame.dockWidth - initialDock!.width)).toBeLessThan(1)
       }
-      await page.screenshot({
-        path: `outputs/navigation-audit/verification/${width}-${to.slice(1)}.png`,
-      })
+      if (process.env.AEGIS_CAPTURE_UI === '1')
+        await page.screenshot({
+          path: `outputs/navigation-audit/verification/${width}-${to.slice(1)}.png`,
+        })
     }
   })
 }

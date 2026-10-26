@@ -32,9 +32,11 @@ for (const width of [360, 390, 430]) {
     await expect(page.locator('.pf-menu').getByRole('button')).toHaveText(['意见反馈', '关于我们'])
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
     await grid.scrollIntoViewIfNeeded()
-    await page.screenshot({ path: `outputs/profile-grid/${width}-grid.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/profile-grid/${width}-grid.png` })
     await page.locator('#main-content').evaluate((el) => (el.scrollTop = el.scrollHeight))
-    await page.screenshot({ path: `outputs/profile-grid/${width}-bottom.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/profile-grid/${width}-bottom.png` })
   })
 }
 test('八个快捷入口均沿用原有路由和弹框', async ({ page }) => {

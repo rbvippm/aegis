@@ -7,7 +7,8 @@ test('体育对比导航、格式与排名', async ({ page }) => {
   await expect(page.locator('.ae-dock [aria-current="page"]')).toHaveText('对比')
   await expect(page.locator('.sports-page')).not.toContainText('演示体验')
   await page.getByRole('button', { name: '玩法与赔率设置 · 港盘 HK', exact: true }).click()
-  await page.screenshot({ path: 'outputs/sports-implementation/format-390.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/sports-implementation/format-390.png' })
   await page.getByRole('button', { name: /马盘 MY 正负水位/ }).click()
   await page.getByRole('button', { name: '完成设置', exact: true }).click()
   await expect(
@@ -50,7 +51,8 @@ test('提醒仅本地保存，完整比价支持增加赛事', async ({ page }) 
   const match = page.getByRole('article', { name: '北辰队对南岳队', exact: true })
   await match.getByRole('button', { name: '提醒', exact: true }).click()
   const dialog = page.getByRole('dialog')
-  await page.screenshot({ path: 'outputs/sports-implementation/alert-390.png' })
+  if (process.env.AEGIS_CAPTURE_UI === '1')
+    await page.screenshot({ path: 'outputs/sports-implementation/alert-390.png' })
   await expect(dialog).toContainText('选择具体赛事、玩法与提醒条件')
   await dialog.getByRole('button', { name: '保存提醒设置' }).click()
   await expect(dialog.locator('.sp-feedback')).toContainText('提醒设置已保存')
@@ -75,19 +77,22 @@ for (const width of [360, 390, 430])
     await page.waitForTimeout(250)
     await expect(page.locator('.sports-page')).toBeVisible()
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false)
-    await page.screenshot({
-      path: `outputs/sports-implementation/home-${width}.png`,
-      fullPage: true,
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/sports-implementation/home-${width}.png`,
+        fullPage: true,
+      })
     await page.getByRole('button', { name: /^套利机会/ }).click()
     await expect(page.getByText('理论毛收益率').first()).toBeVisible()
     await page.getByRole('button', { name: '查看方案' }).first().click()
     await expect(page.getByRole('dialog')).toBeVisible()
-    await page.screenshot({ path: `outputs/sports-implementation/plan-${width}.png` })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({ path: `outputs/sports-implementation/plan-${width}.png` })
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: '平台排名', exact: true }).click()
-    await page.screenshot({
-      path: `outputs/sports-implementation/ranking-${width}.png`,
-      fullPage: true,
-    })
+    if (process.env.AEGIS_CAPTURE_UI === '1')
+      await page.screenshot({
+        path: `outputs/sports-implementation/ranking-${width}.png`,
+        fullPage: true,
+      })
   })
