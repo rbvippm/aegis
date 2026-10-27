@@ -1,36 +1,282 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="apple-mobile-web-app-title" content="Aegis" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#f5f8ff" />
-    <meta name="description" content="Aegis — 链上监测、赛事分析与透明数据对比。" />
+    <title>Aegis｜更清晰的数据，更理性的选择</title>
+    <meta
+      name="description"
+      content="链上资金监测 · 体育数据对比 · AI 解读。看清平台信息，理解数据依据。"
+    />
     <link rel="canonical" href="https://aegisuu.vercel.app/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Aegis" />
+    <meta property="og:locale" content="zh_CN" />
     <meta property="og:title" content="Aegis｜更清晰的数据，更理性的选择" />
     <meta
       property="og:description"
-      content="链上资金监测 · 体育数据对比 · AI 解读。与朋友一起看清平台信息，理解数据依据。"
+      content="链上资金监测 · 体育数据对比 · AI 解读。看清平台信息，理解数据依据。"
     />
     <meta property="og:url" content="https://aegisuu.vercel.app/" />
-    <meta property="og:image" content="https://aegisuu.vercel.app/social/invite-card.png" />
-    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image" content="https://aegisuu.vercel.app/social/preview-v2-wide.jpg" />
+    <meta
+      property="og:image:secure_url"
+      content="https://aegisuu.vercel.app/social/preview-v2-wide.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Aegis：链上资金监测、体育数据对比与 AI 解读" />
+    <meta
+      property="og:image:alt"
+      content="Aegis｜更清晰的数据，更理性的选择。链上资金监测 · 体育数据对比 · AI 解读"
+    />
+    <meta property="og:image" content="https://aegisuu.vercel.app/social/preview-v2-square.jpg" />
+    <meta
+      property="og:image:secure_url"
+      content="https://aegisuu.vercel.app/social/preview-v2-square.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="600" />
+    <meta property="og:image:height" content="600" />
+    <meta property="og:image:alt" content="Aegis 品牌标志：更清晰的数据，更理性的选择" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Aegis｜更清晰的数据，更理性的选择" />
-    <meta name="twitter:description" content="链上资金监测 · 体育数据对比 · AI 解读" />
-    <meta name="twitter:image" content="https://aegisuu.vercel.app/social/invite-card.png" />
-    <title>Aegis · 更清晰的数据，更理性的选择</title>
+    <meta
+      name="twitter:description"
+      content="链上资金监测 · 体育数据对比 · AI 解读。看清平台信息，理解数据依据。"
+    />
+    <meta name="twitter:image" content="https://aegisuu.vercel.app/social/preview-v2-wide.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="Aegis｜更清晰的数据，更理性的选择。链上资金监测 · 体育数据对比 · AI 解读"
+    />
+    <link rel="image_src" href="https://aegisuu.vercel.app/social/preview-v2-wide.jpg" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #f5f8ff;
+      }
+      #app-boot {
+        --boot-lift: -24px;
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: grid;
+        place-items: center;
+        padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom));
+        box-sizing: border-box;
+        overflow: hidden;
+        isolation: isolate;
+        background:
+          radial-gradient(ellipse at 50% 36%, #ffffff 0%, #ffffff00 58%),
+          radial-gradient(ellipse at 88% 100%, #e7f2ff 0%, #e7f2ff00 58%), #f5f8ff;
+        color: #14213d;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        text-align: center;
+        -webkit-font-smoothing: antialiased;
+        transition: opacity 180ms cubic-bezier(0.2, 0, 0.2, 1);
+      }
+      #app-boot::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        top: 50%;
+        left: 50%;
+        width: min(88vw, 440px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, #d7eaff70 0%, #e7f2ff40 42%, #e7f2ff00 70%);
+        transform: translate(-50%, -65%);
+        pointer-events: none;
+      }
+      #app-boot.is-ready {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .boot-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: min(100%, 320px);
+        transform: translateY(var(--boot-lift));
+      }
+      .boot-mark {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 92px;
+        height: 92px;
+        box-sizing: border-box;
+        border: 1px solid #d7e6f8;
+        border-radius: 28px;
+        background: linear-gradient(155deg, #ffffff 12%, #f5faff 62%, #e7f2ff);
+        box-shadow:
+          inset 0 1px 0 1px #ffffff,
+          inset 0 -1px 0 #d7e6f880,
+          0 4px 8px -4px #3d5d8614,
+          0 18px 36px -18px #3d5d8633;
+      }
+      .boot-mark::before {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border: 1px solid #ffffffb3;
+        border-radius: 23px;
+        pointer-events: none;
+      }
+      .boot-mark img {
+        display: block;
+        width: 68px;
+        height: 68px;
+        object-fit: contain;
+      }
+      .boot-name {
+        margin: 20px 0 0;
+        font-size: 28px;
+        font-weight: 650;
+        line-height: 36px;
+        letter-spacing: -0.65px;
+      }
+      .boot-caption {
+        margin: 8px 0 0;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 24px;
+        letter-spacing: 0.15px;
+        color: #526581;
+        overflow-wrap: anywhere;
+      }
+      .boot-progress {
+        width: 76px;
+        height: 3px;
+        margin-top: 26px;
+        overflow: hidden;
+        border-radius: 3px;
+        background: #d7e6f8b3;
+      }
+      .boot-progress::after {
+        content: '';
+        display: block;
+        width: 28px;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #57aeff, #0872ed);
+        animation: boot-progress 1.45s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+      }
+      .boot-retry {
+        position: absolute;
+        top: calc(100% + 22px);
+        left: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: 44px;
+        padding: 10px 18px;
+        border: 1px solid #d7e6f8;
+        border-radius: 999px;
+        background: #ffffffd9;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        color: #0864ff;
+        text-decoration: none;
+        white-space: nowrap;
+        transform: translateX(-50%);
+      }
+      .boot-retry:focus-visible {
+        outline: 3px solid #2563eb;
+        outline-offset: 4px;
+      }
+      #app-boot:not([data-state='error']) .boot-retry {
+        visibility: hidden;
+        animation: boot-retry 0s 12s forwards;
+      }
+      #app-boot[data-state='error'] .boot-progress {
+        display: none;
+      }
+      @keyframes boot-progress {
+        0% {
+          transform: translateX(-28px);
+          opacity: 0;
+        }
+        15%,
+        85% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateX(76px);
+          opacity: 0;
+        }
+      }
+      @keyframes boot-retry {
+        to {
+          visibility: visible;
+        }
+      }
+      @media (max-height: 520px) {
+        #app-boot {
+          --boot-lift: -12px;
+        }
+        .boot-mark {
+          width: 76px;
+          height: 76px;
+          border-radius: 24px;
+        }
+        .boot-mark::before {
+          border-radius: 19px;
+        }
+        .boot-mark img {
+          width: 56px;
+          height: 56px;
+        }
+        .boot-name {
+          margin-top: 14px;
+        }
+        .boot-progress {
+          margin-top: 20px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-boot {
+          transition: none;
+        }
+        .boot-progress::after {
+          animation: none;
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app-boot" role="status" aria-label="正在打开 Aegis" aria-live="polite">
+      <div class="boot-content">
+        <div class="boot-mark">
+          <img
+            src="/src/shared/assets/aegis-mark.png"
+            width="68"
+            height="68"
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+        <p class="boot-name">Aegis</p>
+        <p class="boot-caption">更清晰的数据，更理性的选择</p>
+        <div class="boot-progress" aria-hidden="true"></div>
+        <a class="boot-retry" href="">重新加载</a>
+        <noscript><p class="boot-caption">请启用 JavaScript 后重新打开。</p></noscript>
+      </div>
+    </div>
+    <div id="app" inert></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
