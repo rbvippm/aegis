@@ -27,7 +27,7 @@ const totals = computed(() => {
   <section
     class="rebate-benefit"
     :class="{ 'rebate-benefit--missing': rate === null }"
-    :aria-label="`${name ?? meta?.name ?? '平台'}返水优势`"
+    :aria-label="`${name ?? meta?.name ?? '平台'}返利优势`"
   >
     <Coins v-if="rate !== null" :size="18" aria-hidden="true" /><CircleAlert
       v-else

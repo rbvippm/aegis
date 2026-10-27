@@ -448,7 +448,7 @@ watch(
                 <option value="withdrawal">出款额</option>
                 <option value="net">净流量</option>
                 <option value="balance">热钱包余额</option>
-                <option value="rebate">返水优势</option></GlassSelect
+                <option value="rebate">返利优势</option></GlassSelect
               >
               <button
                 class="research-sort-direction"
