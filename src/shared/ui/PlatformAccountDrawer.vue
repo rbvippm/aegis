@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   UserRound,
 } from '@lucide/vue'
+import RebateBenefit from '@/features/rewards/RebateBenefit.vue'
 import BottomDrawer from './BottomDrawer.vue'
 import { accountPlatform } from '@/shared/lib/platform-account'
 const route = useRoute()
@@ -99,6 +100,11 @@ async function next() {
         </li>
       </ol>
 
+      <RebateBenefit
+        v-if="accountPlatform"
+        :platform="accountPlatform.id"
+        :name="accountPlatform.name"
+      />
       <section v-if="step === 0" class="account-association__stage">
         <div class="account-association__lead">
           <span class="account-association__symbol"><Link2 :size="24" aria-hidden="true" /></span>

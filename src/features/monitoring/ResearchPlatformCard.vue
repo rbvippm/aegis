@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RebateBenefit from '@/features/rewards/RebateBenefit.vue'
 import PlatformFollowButton from './PlatformFollowButton.vue'
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
 import { ChevronRight, ShieldCheck, TriangleAlert, Clock3 } from '@lucide/vue'
@@ -137,6 +138,7 @@ const comparable = computed(() => props.platform.score === null && props.platfor
         <span>范围内占比</span><strong>{{ shareText }}</strong>
       </div>
     </div>
+    <RebateBenefit :platform="platform.id" :name="platform.name" binding />
     <div v-if="platform.score !== null || comparable" class="research-card-summary">
       <span class="research-card-snapshot" :title="`数据快照：${snapshot ?? researchSnapshot}`"
         ><Clock3 :size="12" aria-hidden="true" />{{ snapshot ?? researchSnapshot }}</span

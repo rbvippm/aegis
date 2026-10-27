@@ -15,7 +15,7 @@ const shortcuts = [
   { label: '代理比价', icon: UsersRound, to: '/me?section=agents', color: 'teal' },
 ]
 function ask(text: string) {
-  void router.push({ path: '/ai', query: { q: text } })
+  void router.push({ path: '/ai', query: { q: text, submit: '1' } })
 }
 </script>
 <template>

@@ -187,6 +187,7 @@ watch(
     [
       route.query.q,
       route.query.analyze,
+      route.query.submit,
       route.query.fixture,
       route.query.market,
       route.query.selection,
@@ -195,16 +196,17 @@ watch(
       route.query.operator,
       route.query.revision,
     ] as const,
-  async ([value, analyze]) => {
+  async ([value, analyze, submit]) => {
     if (typeof value !== 'string' || !value.trim()) return
     draft.value = value.slice(0, 2000)
     await nextTick()
     resizeInput()
-    // Only explicit business analysis links start a mock request; plain q remains editable.
+    // An explicit send action submits any question; plain q remains an editable draft.
     if (
-      dataMode === 'demo' &&
-      analyze === '1' &&
-      (resolveProjectScenario(value) || route.query.source === 'sports')
+      submit === '1' ||
+      (dataMode === 'demo' &&
+        analyze === '1' &&
+        (resolveProjectScenario(value) || route.query.source === 'sports'))
     ) {
       const entry: AiSportsEntry | undefined =
         route.query.source === 'sports'
@@ -219,7 +221,7 @@ watch(
             }
           : undefined
       chat.newConversation()
-      await router.replace({ path: '/ai', query: { ...route.query, analyze: undefined } })
+      await router.replace({ path: '/ai', query: { ...route.query, analyze: undefined, submit: undefined } })
       await send(value.slice(0, 2000), entry)
     }
   },

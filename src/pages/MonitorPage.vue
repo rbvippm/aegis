@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { rebatePercent } from '@/features/rewards/rebate'
 import PlatformFollowButton from '@/features/monitoring/PlatformFollowButton.vue'
 import { usePlatformFollows } from '@/features/monitoring/follows'
 import { dateLabel } from '@/features/monitoring/analytics-model'
@@ -124,6 +125,7 @@ const visiblePlatforms = computed(() => {
   })
   const numericValue = (p: ResearchPlatform) => {
     if (sort.value === 'score') return p.score
+    if (sort.value === 'rebate') return rebatePercent(p.commission, p.playerShare)
     const value = scope.value.values[p.id]
     if (!value) return null
     return sort.value === 'deposit'
@@ -445,7 +447,8 @@ watch(
                 <option value="deposit">存款额</option>
                 <option value="withdrawal">出款额</option>
                 <option value="net">净流量</option>
-                <option value="balance">热钱包余额</option></GlassSelect
+                <option value="balance">热钱包余额</option>
+                <option value="rebate">返水优势</option></GlassSelect
               >
               <button
                 class="research-sort-direction"
@@ -945,7 +948,8 @@ watch(
               @toggle="detailSections.ranks = ($event.target as HTMLDetailsElement).open"
             >
               <summary>
-                <span class="research-detail-mark" aria-hidden="true"><ChartColumn :size="18" /></span
+                <span class="research-detail-mark" aria-hidden="true"
+                  ><ChartColumn :size="18" /></span
                 ><span
                   >高点与范围排名<small>{{
                     scopeRanks.scoreRank != null
@@ -980,8 +984,7 @@ watch(
             >
               <summary>
                 <span class="research-detail-mark" aria-hidden="true"><FileText :size="18" /></span
-                ><span
-                  >资料与账户<small>历史评测、数据来源与账户关联</small></span
+                ><span>资料与账户<small>历史评测、数据来源与账户关联</small></span
                 ><ChevronRight :size="16" />
               </summary>
               <div class="research-detail-group-body">

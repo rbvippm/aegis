@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RebateBenefit from '@/features/rewards/RebateBenefit.vue'
 import AboutPanel from './AboutPanel.vue'
 import InvitationPanel from '@/features/invitation/InvitationPanel.vue'
 import PlatformAccountLink from '@/shared/ui/PlatformAccountLink.vue'
@@ -324,6 +325,7 @@ async function copyUid() {
         ><div class="pf-info">
           <LockKeyhole :size="18" /><span>绑定 UID 后，奖励资格仍需单独核验。</span>
         </div>
+        <RebateBenefit :platform="selectedPlatform" />
         <form @submit.prevent="bind">
           <label class="pf-field"
             >平台<GlassSelect v-model="selectedPlatform">
@@ -348,6 +350,7 @@ async function copyUid() {
           <h3>
             {{ platform.name }}<PlatformAccountLink :platform="platform.id" :name="platform.name" />
           </h3>
+          <RebateBenefit :platform="platform.id" :name="platform.name" />
           <dl class="pf-definition">
             <div>
               <dt>UID</dt>

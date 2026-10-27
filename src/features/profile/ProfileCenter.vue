@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RebateBenefit from '@/features/rewards/RebateBenefit.vue'
 import { appInfo } from '@/shared/app-info'
 import { usePlatformFollows } from '@/features/monitoring/follows'
 import PlatformFollowButton from '@/features/monitoring/PlatformFollowButton.vue'
@@ -244,10 +245,14 @@ watch(
                 {{ profile.previewIdentity ? profile.nickname : '游客' }}</button
               ><RouterLink
                 class="pf-subscription-link"
-                :to="{ path: '/me', query: { section: 'subscription', level: profile.subscriptionLevel ?? undefined } }"
+                :to="{
+                  path: '/me',
+                  query: { section: 'subscription', level: profile.subscriptionLevel ?? undefined },
+                }"
                 aria-label="订阅与特权"
                 ><span class="pf-badge pf-subscription-badge"
-                  >{{ profile.previewIdentity ? (profile.subscriptionPlan?.id ?? '未订阅') : '未登录'
+                  >{{
+                    profile.previewIdentity ? (profile.subscriptionPlan?.id ?? '未订阅') : '未登录'
                   }}<ChevronRight :size="11" /></span></RouterLink></span
             ><span class="pf-user-id">{{
               profile.previewIdentity ? 'ID: AE00128' : '登录后查看个人记录'
@@ -424,6 +429,7 @@ watch(
                 绑定 UID
               </button>
             </div>
+            <RebateBenefit :platform="binding.id" :name="binding.name" />
             <template v-if="binding.uid"
               ><div class="pf-platform-row">
                 <span>奖励资格</span

@@ -6,7 +6,7 @@ test('首页问题带入 AI，导航可返回首页', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /看清平台/ })).toBeVisible()
   await page.getByRole('button', { name: /试着问/ }).click()
   await expect(page.getByRole('heading', { name: 'Aegis AI', exact: true })).toBeVisible()
-  await expect(page.getByRole('textbox', { name: '输入你的问题' })).toHaveValue(/维拉/)
+  await expect(page.locator('.ac-user-message')).toContainText('今晚维拉 vs 曼城，怎么看？')
   await expect(page.getByRole('list', { name: '对话消息' })).toHaveCount(0)
   await page.getByRole('navigation').getByRole('link', { name: '首页', exact: true }).click()
   await expect(page.getByRole('heading', { name: /看清平台/ })).toBeVisible()
