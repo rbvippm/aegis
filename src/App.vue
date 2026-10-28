@@ -6,6 +6,7 @@ import MessageCenterLink from '@/shared/ui/MessageCenterLink.vue'
 import LanguageMenu from '@/shared/ui/LanguageMenu.vue'
 import PlatformAccountDrawer from '@/shared/ui/PlatformAccountDrawer.vue'
 import FloatingDock from '@/shared/ui/FloatingDock.vue'
+import InstallAppEntry from '@/features/install/InstallAppEntry.vue'
 import { usePreferences } from '@/stores/preferences'
 
 const preferences = usePreferences()
@@ -38,6 +39,7 @@ const customHeader = computed(() => route.name === 'ai' || profilePage.value)
       <!-- Tab content and its header/layout must commit together. A leaving page
            would otherwise inherit the destination shell before it disappears. -->
       <RouterView />
+      <InstallAppEntry />
     </main>
     <FloatingDock />
     <PlatformAccountDrawer />

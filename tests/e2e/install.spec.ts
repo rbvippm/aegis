@@ -168,3 +168,23 @@ test('手动关闭后刷新仍隐藏，24小时到期只恢复横条', async ({ 
     page.getByRole('dialog', { name: '添加 Aegis 到桌面', exact: true }),
   ).not.toBeVisible()
 })
+
+test('安装横条跨页面常驻，关闭后全局隐藏且不遮挡 AI 输入', async ({ page }) => {
+  await page.goto('/')
+  const entry = page.locator('.install-entry')
+  for (const path of ['/monitor', '/compare', '/ai', '/me']) {
+    await page.locator(`.ae-dock a[href="${path}"]`).click()
+    await expect(entry).toBeVisible()
+    await expect(entry).toHaveCount(1)
+    expect((await entry.boundingBox())!.height).toBeLessThanOrEqual(58)
+    if (path === '/ai') {
+      const composer = await page.locator('.ac-composer-area').boundingBox()
+      expect(composer!.y + composer!.height).toBeLessThanOrEqual((await entry.boundingBox())!.y)
+    }
+  }
+  await entry.getByRole('button', { name: '关闭下载提示，24小时内不再显示', exact: true }).click()
+  await page.locator('.ae-dock a[href="/monitor"]').click()
+  await expect(entry).toHaveCount(0)
+  await page.reload()
+  await expect(entry).toHaveCount(0)
+})

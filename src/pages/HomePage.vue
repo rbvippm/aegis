@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Activity, Crown, UsersRound, Trophy } from '@lucide/vue'
-import InstallAppEntry from '@/features/install/InstallAppEntry.vue'
 import HomeBanner from '@/features/home/HomeBanner.vue'
 import HomeOverview from '@/features/home/HomeOverview.vue'
 import GlassSurface from '@/shared/ui/GlassSurface.vue'
@@ -51,6 +50,5 @@ function ask(text: string) {
       </RouterLink>
     </div>
     <HomeOverview />
-    <InstallAppEntry />
   </div>
 </template>

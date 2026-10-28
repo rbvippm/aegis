@@ -236,7 +236,7 @@ async function copyWebsite() {
       title="24小时内不再显示"
       @click="dismissEntry"
     >
-      <X :size="16" />
+      <X :size="21" :stroke-width="2.2" />
     </button>
   </section>
   <BottomDrawer :open="visible && open" title="添加 Aegis 到桌面" @close="open = false">
@@ -317,7 +317,7 @@ async function copyWebsite() {
 </template>
 <style scoped>
 .install-entry-space {
-  height: 82px;
+  height: 66px;
 }
 .install-entry {
   position: fixed;
@@ -325,31 +325,31 @@ async function copyWebsite() {
   left: 50%;
   bottom: calc(94px + var(--ae-safe-bottom));
   transform: translateX(-50%);
-  width: min(calc(100% - 24px), 406px);
+  width: min(calc(100% - 32px), 374px);
   box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 6px;
   margin: 0;
-  padding: 10px 6px 10px 10px;
-  border: 1px solid #cfe2fa;
-  border-radius: 20px;
-  background: linear-gradient(115deg, #fffffffa, #eef7fff5 55%, #e7f2fff5);
+  padding: 5px 4px 5px 8px;
+  border: 1px solid #ffffffd9;
+  border-radius: 18px;
+  background: linear-gradient(115deg, #ffffffb8, #eaf4ff99 55%, #dcecffad);
   box-shadow:
     inset 0 1px 1px white,
     inset 0 -1px 1px #b8d3f34d,
-    0 6px 22px #397fc329;
-  backdrop-filter: blur(16px) saturate(130%);
-  -webkit-backdrop-filter: blur(16px) saturate(130%);
+    0 4px 18px #397fc324;
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
 }
 .install-entry__copy {
   display: grid;
-  gap: 4px;
+  gap: 1px;
   flex: 1;
   min-width: 0;
 }
 .install-entry__copy strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 650;
 }
 .install-entry__copy > span {
@@ -373,6 +373,8 @@ async function copyWebsite() {
   height: 32px;
 }
 .install-entry > .install-entry__get {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -380,22 +382,53 @@ async function copyWebsite() {
   min-height: 44px;
   flex-shrink: 0;
   padding: 0 9px;
-  border: 1px solid #fff;
-  border-radius: 13px;
-  background: var(--ae-pill);
-  box-shadow: var(--ae-pill-shadow);
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  box-shadow: none;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
 }
+.install-entry > .install-entry__get::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 6px 0;
+  border: 1px solid #fff;
+  border-radius: 11px;
+  background: var(--ae-pill);
+  box-shadow: var(--ae-pill-shadow);
+}
 .install-entry > .install-entry__mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: linear-gradient(145deg, #fff, #e3f0ff);
   box-shadow:
     0 3px 9px #4b93eb14,
     inset 0 1px #fff;
+}
+.install-entry > .install-entry__mark :deep(svg),
+.install-entry > .install-entry__mark :deep(img) {
+  width: 27px;
+  height: 27px;
+}
+:global(.ai-chat-shell:has(.install-entry) .ac-page) {
+  padding-bottom: calc(152px + var(--ae-safe-bottom));
+}
+:global(.ai-chat-shell .install-entry-space) {
+  display: none;
+}
+:global([data-transparency="reduced"] .install-entry) {
+  background: #f0f7ff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .install-entry {
+    background: #f0f7ff;
+  }
 }
 .install-entry__close {
   display: grid;
@@ -407,10 +440,10 @@ async function copyWebsite() {
   border: 0;
   border-radius: 12px;
   background: transparent;
-  color: var(--ae-muted);
+  color: var(--ae-label, #3d5d86);
 }
 .install-entry__close:active {
-  background: #deebfa;
+  color: var(--ae-highlight);
 }
 @media (max-width: 374px) {
   .install-entry {
@@ -418,8 +451,8 @@ async function copyWebsite() {
     padding-left: 8px;
   }
   .install-entry > .install-entry__mark {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
   }
   .install-entry__copy strong {
     font-size: 13px;
